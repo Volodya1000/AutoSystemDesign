@@ -31,3 +31,11 @@ disable = [
     "too-few-public-methods",
     "duplicate-code",
 ]
+
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "unit: marks tests as unit tests",
+]
