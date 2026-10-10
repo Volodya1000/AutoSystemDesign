@@ -89,7 +89,7 @@ wheels = [
 ]
 
 [[package]]
-name = "autosystendesign"
+name = "autosystemdesign"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

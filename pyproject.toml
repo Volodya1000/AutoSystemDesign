@@ -1,5 +1,5 @@
 [project]
-name = "autosystendesign"
+name = "autosystemdesign"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -22,6 +22,7 @@ explicit_package_bases = true
 
 [tool.pylint.main]
 source-roots = ["src"]
+init-hook = "import sys; sys.path.insert(0, 'src')"
 
 [tool.pylint."messages control"]
 disable = [
