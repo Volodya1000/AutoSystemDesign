@@ -90,6 +90,7 @@ class DesignGenerationService:
                         graph=None,
                         validation=None,
                         usage=parsing_error.usage,
+                        parsing_failures=parsing_error.failure_details,
                     )
                 )
                 task = _build_parsing_repair_task(scenario, parsing_error)
@@ -103,6 +104,7 @@ class DesignGenerationService:
                     graph=proposal.graph,
                     validation=validation,
                     usage=proposal.usage,
+                    latency_seconds=proposal.latency_seconds,
                 )
             )
             if validation.is_successful:

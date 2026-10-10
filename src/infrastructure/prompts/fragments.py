@@ -14,8 +14,11 @@ from domain.specifications.rules import DEFAULT_ALLOWED_CONNECTION_TYPES
 
 STRUCTURED_OUTPUT_SYSTEM_PROMPT: Final[str] = (
     "You are a senior software architect that designs distributed system topologies. "
-    "You always answer with EXACTLY ONE valid JSON object: no markdown, no code fences, "
-    "no comments, no explanations, and no text before or after the JSON object."
+    "You always answer with EXACTLY ONE valid JSON object. Your response MUST begin "
+    "with the '{' character and MUST end with the '}' character: no markdown, no code "
+    "fences, no comments, no explanations, no thinking out loud, and no text before "
+    "or after the JSON object. Keep the JSON compact: one node or edge per line, "
+    "no extra fields."
 )
 
 # Auto-discovery instead of a hand-maintained list: every ConnectionProtocol

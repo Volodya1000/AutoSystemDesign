@@ -51,7 +51,10 @@ def _isolated_graph() -> ArchitectureGraph:
 
 
 def _proposal(
-    graph: ArchitectureGraph, prompt_tokens: int, completion_tokens: int
+    graph: ArchitectureGraph,
+    prompt_tokens: int,
+    completion_tokens: int,
+    latency_seconds: float = 0.0,
 ) -> DesignProposal:
     return DesignProposal(
         graph=graph,
@@ -59,6 +62,7 @@ def _proposal(
         usage=TokenUsage(
             prompt_tokens=prompt_tokens, completion_tokens=completion_tokens
         ),
+        latency_seconds=latency_seconds,
     )
 
 
@@ -108,12 +112,13 @@ def _build_service(
 
 class TestDesignGenerationService:
     def test_immediate_success(self, scenario: DesignScenario) -> None:
-        service, designer = _build_service([_proposal(_valid_graph(), 100, 50)])
+        service, designer = _build_service([_proposal(_valid_graph(), 100, 50, 5.0)])
         result: DesignGenerationResult = service.generate(scenario)
         assert result.status is GenerationStatus.SUCCEEDED
         assert len(result.attempts) == 1
         assert result.attempts[0].validation is not None
         assert result.attempts[0].validation.is_successful
+        assert result.attempts[0].latency_seconds == 5.0
         assert result.graph is result.attempts[0].graph
         assert result.total_usage == TokenUsage(prompt_tokens=100, completion_tokens=50)
         assert len(designer.received_tasks) == 1
@@ -150,6 +155,7 @@ class TestDesignGenerationService:
         assert first_attempt.graph is None
         assert first_attempt.validation is None
         assert first_attempt.usage.prompt_tokens == 90
+        assert first_attempt.parsing_failures == parsing_failure.failure_details
         repair_task: DesignTask = designer.received_tasks[1]
         assert repair_task.mode is DesignTaskMode.REPAIR
         assert repair_task.previous_graph_payload == "not json"

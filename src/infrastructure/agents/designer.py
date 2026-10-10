@@ -53,4 +53,5 @@ class ArchitectureDesignerAgent:
             graph=graph,
             raw_content=completion.content,
             usage=completion.usage,
+            latency_seconds=completion.latency_seconds,
         )

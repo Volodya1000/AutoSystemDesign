@@ -1,11 +1,13 @@
+# Non-secret local configuration.
+# base_url and api_key are env-only (ASD_BASE_URL / ASD_API_KEY)
+# and are intentionally absent from this file.
+# NOTE: max_tokens must cover the full JSON answer; finish_reason=length
+# in the client log means the answer was truncated mid-JSON.
 llm:
   model: openai/google/gemma-4-e4b
   temperature: 0.2
-  max_tokens: 2048
+  max_tokens: 4096
   timeout_seconds: 180.0
   structured_output_mode: prompt
 generation:
   max_attempts: 3
-testing:
-  generation_runs: 3
-  min_single_shot_success_rate: 1.0

@@ -55,3 +55,7 @@ disable = [
     "too-many-positional-arguments",
     "unused-argument",
 ]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"

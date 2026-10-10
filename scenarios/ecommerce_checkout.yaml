@@ -1,0 +1,12 @@
+identifier: ecommerce_checkout
+description: Checkout flow for a mid-size e-commerce platform
+workload:
+  baseline_requests_per_second: 120.0
+  peak_requests_per_second: 400.0
+  read_ratio: 0.7
+requirements:
+  - type_identifier: latency
+    threshold_value: 300.0
+    percentile: 99.0
+  - type_identifier: budget
+    threshold_value: 3000.0

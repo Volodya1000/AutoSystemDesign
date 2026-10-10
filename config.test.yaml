@@ -1,10 +1,10 @@
 # Test-owned configuration, selected by integration tests via APP_CONFIG_FILE.
-# llm.model must match the model loaded in LM Studio; override per run with
-# the ASD_LLM__MODEL environment variable if needed.
+# llm.model must match the model loaded in LM Studio.
+# temperature is pinned to 0.0 by the integration conftest anyway.
 llm:
   model: openai/google/gemma-4-e4b
-  temperature: 0.2
-  max_tokens: 2048
+  temperature: 0.0
+  max_tokens: 4096
   timeout_seconds: 180.0
   structured_output_mode: prompt
 generation:

@@ -77,3 +77,4 @@ class DesignProposal(BaseModel):
     graph: ArchitectureGraph
     raw_content: str
     usage: TokenUsage
+    latency_seconds: float = Field(default=0.0, ge=0.0)

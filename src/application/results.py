@@ -4,6 +4,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from application.tasks import ProposalFailureDetail
 from application.usage import TokenUsage
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
@@ -25,6 +26,8 @@ class GenerationAttempt(BaseModel):
     graph: ArchitectureGraph | None = None
     validation: ValidationResult | None = None
     usage: TokenUsage
+    latency_seconds: float = Field(default=0.0, ge=0.0)
+    parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
 
 
 class DesignGenerationResult(BaseModel):
