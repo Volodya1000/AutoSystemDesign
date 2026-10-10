@@ -1,0 +1,11 @@
+llm:
+  model: openai/google/gemma-4-e4b
+  temperature: 0.2
+  max_tokens: 2048
+  timeout_seconds: 180.0
+  structured_output_mode: prompt
+generation:
+  max_attempts: 3
+testing:
+  generation_runs: 3
+  min_single_shot_success_rate: 1.0
