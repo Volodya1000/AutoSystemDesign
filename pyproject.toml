@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "pydantic>=2.14.0",
+]
 [dependency-groups]
 dev = [
     "mypy>=2.3.1",
@@ -12,4 +14,20 @@ dev = [
     "pylint>=4.0.9",
     "pytest>=9.1.1",
     "ruff>=0.16.8",
+]
+
+[tool.mypy]
+mypy_path = "src"
+explicit_package_bases = true
+
+[tool.pylint.main]
+source-roots = ["src"]
+
+[tool.pylint."messages control"]
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "too-few-public-methods",
+    "duplicate-code",
 ]

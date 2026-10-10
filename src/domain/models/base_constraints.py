@@ -1,0 +1,40 @@
+from pydantic import BaseModel, Field
+
+from domain.models.enums import Operator
+
+
+class BaseRequirement(BaseModel):
+    def is_met_requirement(self, actual_value: float) -> bool:
+        raise NotImplementedError()
+
+
+class ThresholdRequirement(BaseRequirement):
+    threshold_value: float
+    operator: Operator
+
+    def is_met_requirement(self, actual_value: float) -> bool:
+        match self.operator:
+            case Operator.LESS_THAN:
+                return actual_value < self.threshold_value
+            case Operator.LESS_THAN_OR_EQUAL:
+                return actual_value <= self.threshold_value
+            case Operator.EQUAL:
+                return actual_value == self.threshold_value
+            case Operator.GREATER_THAN_OR_EQUAL:
+                return actual_value >= self.threshold_value
+            case Operator.GREATER_THAN:
+                return actual_value > self.threshold_value
+            case _:
+                return False
+
+
+class IntervalRequirement(BaseRequirement):
+    minimum_value: float
+    maximum_value: float
+
+    def is_met_requirement(self, actual_value: float) -> bool:
+        return self.minimum_value <= actual_value <= self.maximum_value
+
+
+class PercentileThresholdRequirement(ThresholdRequirement):
+    percentile: float = Field(default=99.0, ge=0.0, le=100.0)

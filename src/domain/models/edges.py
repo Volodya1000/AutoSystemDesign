@@ -1,0 +1,17 @@
+from pydantic import BaseModel, Field
+
+from domain.models.protocols import ConnectionProtocol
+
+
+class Edge(BaseModel):
+    source_identifier: str
+    target_identifier: str
+    protocol: ConnectionProtocol
+    description: str = Field(
+        default="",
+        description="Semantic description: purpose, payload, request nature and expected response",
+    )
+
+    network_latency_milliseconds: float = Field(default=2.0, ge=0.0)
+    retry_attempts_count: int = Field(default=0, ge=0)
+    timeout_milliseconds: float = Field(default=5000.0, gt=0.0)
