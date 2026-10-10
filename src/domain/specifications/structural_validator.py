@@ -22,10 +22,10 @@ class StructuralTopologyValidator(BaseValidator):
 
     def __init__(
         self,
-        allowed_connection_types: set[ConnectionType] | None = None,
+        allowed_connection_types: frozenset[ConnectionType] | None = None,
     ) -> None:
-        self._allowed_connection_types: set[ConnectionType] = (
-            allowed_connection_types
+        self._allowed_connection_types: frozenset[ConnectionType] = (
+            frozenset(allowed_connection_types)
             if allowed_connection_types is not None
             else DEFAULT_ALLOWED_CONNECTION_TYPES
         )
@@ -39,7 +39,4 @@ class StructuralTopologyValidator(BaseValidator):
             *check_isolated_nodes(graph),
         ]
 
-        return ValidationResult(
-            is_successful=len(collected_errors) == 0,
-            errors=collected_errors,
-        )
+        return ValidationResult(errors=collected_errors)

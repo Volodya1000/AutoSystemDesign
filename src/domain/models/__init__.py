@@ -9,7 +9,11 @@ from domain.models.enums import DatabaseRole, NodeType, Operator
 from domain.models.nodes import (
     BaseNode,
     CacheNode,
+    CapacityNode,
+    ClientNode,
+    ComputeNode,
     DatabaseNode,
+    LoadBalancerNode,
     MessageBrokerNode,
 )
 from domain.models.profiles import NodeProfile, ProfileRegistry
@@ -25,6 +29,7 @@ from domain.models.requirements import (
     BudgetRequirement,
     LatencyRequirement,
     QueueSizePercentileRequirement,
+    Requirement,
     ResourceUtilizationRequirement,
 )
 from domain.models.scenarios import DesignScenario, WorkloadProfile
@@ -42,6 +47,9 @@ __all__ = [
     "BaseRequirement",
     "BudgetRequirement",
     "CacheNode",
+    "CapacityNode",
+    "ClientNode",
+    "ComputeNode",
     "ConnectionProtocol",
     "DatabaseNode",
     "DatabaseRole",
@@ -49,6 +57,7 @@ __all__ = [
     "Edge",
     "IntervalRequirement",
     "LatencyRequirement",
+    "LoadBalancerNode",
     "MessageBrokerNode",
     "NodeProfile",
     "NodeType",
@@ -56,6 +65,7 @@ __all__ = [
     "PercentileThresholdRequirement",
     "ProfileRegistry",
     "QueueSizePercentileRequirement",
+    "Requirement",
     "ResourceUtilizationRequirement",
     "ThresholdRequirement",
     "WorkloadProfile",

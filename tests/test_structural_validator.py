@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from domain.exceptions.architecture_errors import (
@@ -9,7 +11,14 @@ from domain.exceptions.architecture_errors import (
 )
 from domain.models.edges import Edge
 from domain.models.enums import NodeType
-from domain.models.nodes import BaseNode
+from domain.models.nodes import (
+    CacheNode,
+    ClientNode,
+    ComputeNode,
+    DatabaseNode,
+    LoadBalancerNode,
+    MessageBrokerNode,
+)
 from domain.models.protocols import SYNCHRONOUS_REST_HTTP
 from domain.models.topology import AnyNode, ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
@@ -20,21 +29,46 @@ from domain.specifications.structural_validator import (
 pytestmark = pytest.mark.unit
 
 
+def _capacity_fields(replicas_count: int) -> dict[str, Any]:
+    return {
+        "replicas_count": replicas_count,
+        "maximum_concurrency": 100,
+        "maximum_queue_size": 500,
+        "mean_processing_time_milliseconds": 10.0,
+        "standard_deviation_processing_time": 2.0,
+        "monthly_cost_usd": 50.0,
+    }
+
+
 def create_test_node(
     identifier: str,
     node_type: NodeType,
     replicas_count: int = 1,
-) -> BaseNode:
-    return BaseNode(
-        identifier=identifier,
-        node_type=node_type,
-        replicas_count=replicas_count,
-        maximum_concurrency=100,
-        maximum_queue_size=500,
-        mean_processing_time_milliseconds=10.0,
-        standard_deviation_processing_time=2.0,
-        monthly_cost_usd=50.0,
-    )
+) -> AnyNode:
+    """Builds the concrete node class registered for the requested NodeType."""
+    match node_type:
+        case NodeType.CLIENT:
+            return ClientNode(identifier=identifier, replicas_count=replicas_count)
+        case NodeType.LOAD_BALANCER:
+            return LoadBalancerNode(
+                identifier=identifier, **_capacity_fields(replicas_count)
+            )
+        case NodeType.COMPUTE:
+            return ComputeNode(
+                identifier=identifier, **_capacity_fields(replicas_count)
+            )
+        case NodeType.DATABASE:
+            return DatabaseNode(
+                identifier=identifier, **_capacity_fields(replicas_count)
+            )
+        case NodeType.CACHE:
+            return CacheNode(identifier=identifier, **_capacity_fields(replicas_count))
+        case NodeType.MESSAGE_BROKER:
+            return MessageBrokerNode(
+                identifier=identifier, **_capacity_fields(replicas_count)
+            )
+        case _:
+            raise ValueError(f"Unsupported node type in tests: {node_type}")
 
 
 def create_test_edge(
@@ -54,10 +88,10 @@ class TestStructuralTopologyValidator:
 
     def test_should_pass_validation_when_topology_is_valid_dag(self) -> None:
         # Arrange
-        client_node: BaseNode = create_test_node("client_1", NodeType.CLIENT)
-        load_balancer_node: BaseNode = create_test_node("lb_1", NodeType.LOAD_BALANCER)
-        compute_node: BaseNode = create_test_node("compute_1", NodeType.COMPUTE)
-        database_node: BaseNode = create_test_node("db_1", NodeType.DATABASE)
+        client_node: AnyNode = create_test_node("client_1", NodeType.CLIENT)
+        load_balancer_node: AnyNode = create_test_node("lb_1", NodeType.LOAD_BALANCER)
+        compute_node: AnyNode = create_test_node("compute_1", NodeType.COMPUTE)
+        database_node: AnyNode = create_test_node("db_1", NodeType.DATABASE)
 
         nodes: list[AnyNode] = [
             client_node,
@@ -84,8 +118,8 @@ class TestStructuralTopologyValidator:
         self,
     ) -> None:
         # Arrange
-        node_original: BaseNode = create_test_node("duplicate_id", NodeType.COMPUTE)
-        node_duplicate: BaseNode = create_test_node("duplicate_id", NodeType.COMPUTE)
+        node_original: AnyNode = create_test_node("duplicate_id", NodeType.COMPUTE)
+        node_duplicate: AnyNode = create_test_node("duplicate_id", NodeType.COMPUTE)
 
         graph: ArchitectureGraph = ArchitectureGraph(
             nodes=[node_original, node_duplicate],
@@ -109,7 +143,7 @@ class TestStructuralTopologyValidator:
         self,
     ) -> None:
         # Arrange
-        existing_node: BaseNode = create_test_node("client_1", NodeType.CLIENT)
+        existing_node: AnyNode = create_test_node("client_1", NodeType.CLIENT)
         invalid_edge: Edge = create_test_edge("client_1", "non_existent_server")
 
         graph: ArchitectureGraph = ArchitectureGraph(
@@ -134,8 +168,8 @@ class TestStructuralTopologyValidator:
         self,
     ) -> None:
         # Arrange: Direct Load Balancer -> Database connection is forbidden
-        load_balancer_node: BaseNode = create_test_node("lb_1", NodeType.LOAD_BALANCER)
-        database_node: BaseNode = create_test_node("db_1", NodeType.DATABASE)
+        load_balancer_node: AnyNode = create_test_node("lb_1", NodeType.LOAD_BALANCER)
+        database_node: AnyNode = create_test_node("db_1", NodeType.DATABASE)
         forbidden_edge: Edge = create_test_edge("lb_1", "db_1")
 
         graph: ArchitectureGraph = ArchitectureGraph(
@@ -160,8 +194,8 @@ class TestStructuralTopologyValidator:
         self,
     ) -> None:
         # Arrange: compute_1 -> compute_2 -> compute_1 (cycle)
-        compute_node_1: BaseNode = create_test_node("compute_1", NodeType.COMPUTE)
-        compute_node_2: BaseNode = create_test_node("compute_2", NodeType.COMPUTE)
+        compute_node_1: AnyNode = create_test_node("compute_1", NodeType.COMPUTE)
+        compute_node_2: AnyNode = create_test_node("compute_2", NodeType.COMPUTE)
 
         cycle_edges: list[Edge] = [
             create_test_edge("compute_1", "compute_2"),
@@ -190,9 +224,9 @@ class TestStructuralTopologyValidator:
         self,
     ) -> None:
         # Arrange
-        client_node: BaseNode = create_test_node("client_1", NodeType.CLIENT)
-        compute_node: BaseNode = create_test_node("compute_1", NodeType.COMPUTE)
-        isolated_database: BaseNode = create_test_node("db_orphan", NodeType.DATABASE)
+        client_node: AnyNode = create_test_node("client_1", NodeType.CLIENT)
+        compute_node: AnyNode = create_test_node("compute_1", NodeType.COMPUTE)
+        isolated_database: AnyNode = create_test_node("db_orphan", NodeType.DATABASE)
 
         connected_edges: list[Edge] = [create_test_edge("client_1", "compute_1")]
         graph: ArchitectureGraph = ArchitectureGraph(
@@ -217,7 +251,7 @@ class TestStructuralTopologyValidator:
         self,
     ) -> None:
         # Arrange
-        single_node: BaseNode = create_test_node("standalone_worker", NodeType.COMPUTE)
+        single_node: AnyNode = create_test_node("standalone_worker", NodeType.COMPUTE)
         graph: ArchitectureGraph = ArchitectureGraph(nodes=[single_node], edges=[])
         validator: StructuralTopologyValidator = StructuralTopologyValidator()
 

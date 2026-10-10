@@ -1,9 +1,13 @@
-from pydantic import BaseModel, Field
+import math
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from domain.models.enums import Operator
 
 
 class BaseRequirement(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     def is_met_requirement(self, actual_value: float) -> bool:
         raise NotImplementedError()
 
@@ -19,7 +23,8 @@ class ThresholdRequirement(BaseRequirement):
             case Operator.LESS_THAN_OR_EQUAL:
                 return actual_value <= self.threshold_value
             case Operator.EQUAL:
-                return actual_value == self.threshold_value
+                # Exact float equality is brittle; compare approximately instead.
+                return math.isclose(actual_value, self.threshold_value)
             case Operator.GREATER_THAN_OR_EQUAL:
                 return actual_value >= self.threshold_value
             case Operator.GREATER_THAN:
@@ -31,6 +36,14 @@ class ThresholdRequirement(BaseRequirement):
 class IntervalRequirement(BaseRequirement):
     minimum_value: float
     maximum_value: float
+
+    @model_validator(mode="after")
+    def _validate_interval_bounds(self) -> "IntervalRequirement":
+        if self.minimum_value > self.maximum_value:
+            raise ValueError(
+                "minimum_value must be less than or equal to maximum_value"
+            )
+        return self
 
     def is_met_requirement(self, actual_value: float) -> bool:
         return self.minimum_value <= actual_value <= self.maximum_value

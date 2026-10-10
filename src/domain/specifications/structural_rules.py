@@ -53,7 +53,7 @@ def check_edge_referential_integrity(
 
 def check_connection_rules(
     graph: ArchitectureGraph,
-    allowed_connection_types: set[ConnectionType],
+    allowed_connection_types: frozenset[ConnectionType],
 ) -> list[ArchitectureValidationError]:
     """Validates that edge transitions strictly match the allowed architectural whitelist."""
     errors: list[ArchitectureValidationError] = []

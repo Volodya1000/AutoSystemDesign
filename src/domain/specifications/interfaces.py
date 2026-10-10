@@ -7,10 +7,13 @@ from domain.models.topology import ArchitectureGraph
 
 
 class ValidationResult(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
-    is_successful: bool
     errors: list[ArchitectureValidationError] = Field(default_factory=list)
+
+    @property
+    def is_successful(self) -> bool:
+        return not self.errors
 
     @property
     def has_errors(self) -> bool:

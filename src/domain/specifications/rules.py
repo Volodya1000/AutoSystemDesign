@@ -10,17 +10,20 @@ class ConnectionType(NamedTuple):
     target: NodeType
 
 
-DEFAULT_ALLOWED_CONNECTION_TYPES: set[ConnectionType] = {
-    # Entry points
-    ConnectionType(source=NodeType.CLIENT, target=NodeType.LOAD_BALANCER),
-    ConnectionType(source=NodeType.CLIENT, target=NodeType.COMPUTE),
-    # Traffic distribution
-    ConnectionType(source=NodeType.LOAD_BALANCER, target=NodeType.COMPUTE),
-    # Application backend communication
-    ConnectionType(source=NodeType.COMPUTE, target=NodeType.COMPUTE),
-    ConnectionType(source=NodeType.COMPUTE, target=NodeType.DATABASE),
-    ConnectionType(source=NodeType.COMPUTE, target=NodeType.CACHE),
-    ConnectionType(source=NodeType.COMPUTE, target=NodeType.MESSAGE_BROKER),
-    # Asynchronous consumer workers
-    ConnectionType(source=NodeType.MESSAGE_BROKER, target=NodeType.COMPUTE),
-}
+# Immutable by design: the default rule set is shared module-wide.
+DEFAULT_ALLOWED_CONNECTION_TYPES: frozenset[ConnectionType] = frozenset(
+    {
+        # Entry points
+        ConnectionType(source=NodeType.CLIENT, target=NodeType.LOAD_BALANCER),
+        ConnectionType(source=NodeType.CLIENT, target=NodeType.COMPUTE),
+        # Traffic distribution
+        ConnectionType(source=NodeType.LOAD_BALANCER, target=NodeType.COMPUTE),
+        # Application backend communication
+        ConnectionType(source=NodeType.COMPUTE, target=NodeType.COMPUTE),
+        ConnectionType(source=NodeType.COMPUTE, target=NodeType.DATABASE),
+        ConnectionType(source=NodeType.COMPUTE, target=NodeType.CACHE),
+        ConnectionType(source=NodeType.COMPUTE, target=NodeType.MESSAGE_BROKER),
+        # Asynchronous consumer workers
+        ConnectionType(source=NodeType.MESSAGE_BROKER, target=NodeType.COMPUTE),
+    }
+)

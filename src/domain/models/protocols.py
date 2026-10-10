@@ -1,7 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ConnectionProtocol(BaseModel):
+    """Immutable value object: protocol singletons are shared across edges."""
+
+    model_config = ConfigDict(frozen=True)
+
     name: str
     is_asynchronous: bool
 
