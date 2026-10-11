@@ -4,6 +4,9 @@ Usage (from the repository root, with LM Studio running):
     uv run python scripts/generate_design.py
     uv run python scripts/generate_design.py --scenario scenarios/ecommerce_checkout.yaml
     uv run python scripts/generate_design.py --out output/graph.json
+    uv run python scripts/generate_design.py --diagram-format png
+    uv run python scripts/generate_design.py --plantuml-server http://localhost:8080
+    uv run python scripts/generate_design.py --no-diagram
     uv run python scripts/generate_design.py --verbose
 
 Connection settings come from .env / environment variables (see
@@ -14,6 +17,15 @@ failure.
 --verbose switches logging to DEBUG: the agent then logs the raw LLM output
 of every completion, which is the primary diagnostic artifact for parse
 failures (truncation, preambles, code fences).
+
+When a run produces a parsable graph, the final topology is also rendered
+as a PlantUML C4 Container diagram (see infrastructure.visualisation.plantuml):
+the .puml source is always saved, and the image is fetched best-effort
+from the public PlantUML server with the public Kroki gateway as an
+automatic fallback (network required). Rendering or saving failures only
+downgrade the log to warnings and never change the exit code. Use
+--no-diagram to skip diagrams, or --plantuml-server to point at a
+self-hosted plantuml-server instance.
 """
 
 import argparse
@@ -21,7 +33,7 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 import yaml
 from pydantic import ValidationError
@@ -34,6 +46,7 @@ from application.results import (
 from application.usage import TokenUsage
 from config.root import AppSettings, load_app_settings
 from domain.models import (
+    ArchitectureGraph,
     BudgetRequirement,
     DesignScenario,
     LatencyRequirement,
@@ -42,8 +55,19 @@ from domain.models import (
 from infrastructure.composition import build_design_generation_service
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
 from infrastructure.prompts.fragments import render_scenario_summary
+from infrastructure.visualisation.plantuml import (
+    DiagramArtifacts,
+    DiagramFileWriter,
+    DiagramImageFormat,
+    DiagramRenderingError,
+    DiagramSavingError,
+    DiagramService,
+    build_default_image_renderer,
+)
 
 _logger: logging.Logger = logging.getLogger("generate_design")
+
+_DEFAULT_DIAGRAM_DIR: Final[str] = "output/diagrams"
 
 _DEFAULT_SCENARIO: DesignScenario = DesignScenario(
     identifier="ecommerce_checkout",
@@ -93,6 +117,7 @@ def main() -> int:
     _log_graph(result)
     if args.out is not None:
         _save_graph(result, args.out)
+    _render_diagram(result, scenario, args)
     return 0 if result.status is GenerationStatus.SUCCEEDED else 1
 
 
@@ -112,6 +137,33 @@ def _parse_args() -> argparse.Namespace:
         type=str,
         default=None,
         help="Path to save the final ArchitectureGraph as JSON",
+    )
+    parser.add_argument(
+        "--diagram-dir",
+        type=str,
+        default=_DEFAULT_DIAGRAM_DIR,
+        help=f"Directory for diagram artifacts (default: {_DEFAULT_DIAGRAM_DIR})",
+    )
+    parser.add_argument(
+        "--diagram-format",
+        type=DiagramImageFormat,
+        choices=[fmt.value for fmt in DiagramImageFormat],
+        default=DiagramImageFormat.SVG,
+        help="Image format of the C4 diagram (default: svg)",
+    )
+    parser.add_argument(
+        "--plantuml-server",
+        type=str,
+        default=None,
+        help=(
+            "PlantUML server base URL (default: public server with the "
+            "public Kroki gateway as fallback)"
+        ),
+    )
+    parser.add_argument(
+        "--no-diagram",
+        action="store_true",
+        help="Skip PlantUML C4 diagram generation",
     )
     parser.add_argument(
         "--verbose",
@@ -255,6 +307,73 @@ def _save_graph(result: DesignGenerationResult, output_path: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(graph.model_dump_json(indent=2) + "\n", encoding="utf-8")
     _logger.info("Graph JSON saved to: %s", path)
+
+
+def _render_diagram(
+    result: DesignGenerationResult,
+    scenario: DesignScenario,
+    args: argparse.Namespace,
+) -> None:
+    """Renders the final graph as a PlantUML C4 Container diagram.
+
+    Even a graph that failed validation is rendered: the diagram doubles
+    as a diagnostic artifact for repair analysis. All diagram steps are
+    best-effort presentation and never change the run's exit code.
+    """
+    if args.no_diagram:
+        _logger.info("Diagram: skipped (--no-diagram)")
+        return
+    graph: ArchitectureGraph | None = result.graph
+    if graph is None:
+        _logger.info("Diagram: skipped (no attempt produced a parsable graph)")
+        return
+    artifacts: DiagramArtifacts = _generate_diagram(graph, scenario, args)
+    _save_diagram(artifacts, scenario, args)
+
+
+def _generate_diagram(
+    graph: ArchitectureGraph,
+    scenario: DesignScenario,
+    args: argparse.Namespace,
+) -> DiagramArtifacts:
+    """Builds the diagram source and fetches the image best-effort."""
+    service = DiagramService(
+        image_renderer=build_default_image_renderer(args.plantuml_server),
+        image_format=args.diagram_format,
+    )
+    artifacts: DiagramArtifacts = service.generate(
+        graph, title=f"Container diagram for {scenario.identifier}"
+    )
+    try:
+        rendered_image: bytes = service.render_image(artifacts)
+    except DiagramRenderingError as error:
+        _logger.warning("Diagram image rendering failed: %s", error)
+        _logger.warning(
+            "The .puml source is still saved; open the diagram URL below in a "
+            "browser or render the source with any local PlantUML tool."
+        )
+    else:
+        artifacts = artifacts.with_image(rendered_image)
+    return artifacts
+
+
+def _save_diagram(
+    artifacts: DiagramArtifacts,
+    scenario: DesignScenario,
+    args: argparse.Namespace,
+) -> None:
+    """Writes the diagram artifacts into the diagram directory."""
+    try:
+        written_paths: list[Path] = DiagramFileWriter().write(
+            artifacts, Path(args.diagram_dir), scenario.identifier
+        )
+    except DiagramSavingError as error:
+        _logger.warning("Saving diagram artifacts failed: %s", error)
+        return
+    path: Path
+    for path in written_paths:
+        _logger.info("Diagram artifact written: %s", path)
+    _logger.info("Diagram image URL (rendered on demand): %s", artifacts.image_url)
 
 
 if __name__ == "__main__":

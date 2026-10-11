@@ -44,7 +44,12 @@ def _load_yaml_config(config_file: Path) -> dict[str, Any]:
     with config_file.open("r", encoding="utf-8") as stream:
         data: Any = yaml.safe_load(stream) or {}
     if not isinstance(data, dict):
-        raise ValueError(f"Config file {config_file} must contain a yaml mapping")
+        # A malformed config file is a user configuration problem, not a
+        # programming type error: ValueError is intentional here so the
+        # caller's except (ValidationError, ValueError) keeps working.
+        raise ValueError(  # noqa: TRY004
+            f"Config file {config_file} must contain a yaml mapping"
+        )
     misplaced: frozenset[str] = _ENV_OWNED_FIELDS & frozenset(data)
     if misplaced:
         raise ValueError(
