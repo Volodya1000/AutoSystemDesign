@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, ConfigDict, Field
 
 from domain.exceptions.architecture_errors import ArchitectureValidationError
+from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 
 
@@ -29,4 +30,21 @@ class BaseValidator(ABC):
 
     @abstractmethod
     def validate(self, graph: ArchitectureGraph) -> ValidationResult:
+        raise NotImplementedError()
+
+
+class ScenarioValidator(ABC):
+    """Abstract interface for validators that check a graph against a scenario.
+
+    Scenario validators verify workload-dependent guarantees (budget,
+    resource utilization, latency) and therefore need the DesignScenario.
+    Implementations must tolerate graphs that already failed structural
+    validation: skip what cannot be checked and report via errors instead
+    of raising.
+    """
+
+    @abstractmethod
+    def validate(
+        self, graph: ArchitectureGraph, scenario: DesignScenario
+    ) -> ValidationResult:
         raise NotImplementedError()

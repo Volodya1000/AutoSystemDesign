@@ -13,7 +13,11 @@ from application.tasks import (
 )
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
-from domain.specifications.interfaces import BaseValidator, ValidationResult
+from domain.specifications.interfaces import (
+    BaseValidator,
+    ScenarioValidator,
+    ValidationResult,
+)
 
 _MIN_ATTEMPTS: int = 1
 _MAX_ATTEMPTS: int = 10
@@ -53,9 +57,10 @@ class DesignGenerationService:
     """Runs the design loop: propose, validate, feed errors back for repair.
 
     Parsing failures are caught (tokens were spent and must be accounted
-    for); infrastructure errors propagate to the caller. Multiple
-    validators are all executed and their errors aggregated, so new
-    validators (TMO, simulation) plug in without changing this class.
+    for); infrastructure errors propagate to the caller. Topology
+    validators and scenario validators are all executed on every attempt
+    and their errors aggregated, so new validators plug in without
+    changing this class.
     """
 
     def __init__(
@@ -63,6 +68,7 @@ class DesignGenerationService:
         designer: ArchitectureDesigner,
         validators: Sequence[BaseValidator],
         max_attempts: int,
+        scenario_validators: Sequence[ScenarioValidator] = (),
     ) -> None:
         if not _MIN_ATTEMPTS <= max_attempts <= _MAX_ATTEMPTS:
             raise ValueError(
@@ -72,6 +78,9 @@ class DesignGenerationService:
         self._validators: tuple[BaseValidator, ...] = tuple(validators)
         if not self._validators:
             raise ValueError("At least one validator is required")
+        self._scenario_validators: tuple[ScenarioValidator, ...] = tuple(
+            scenario_validators
+        )
         self._designer = designer
         self._max_attempts = max_attempts
 
@@ -96,7 +105,7 @@ class DesignGenerationService:
                 task = _build_parsing_repair_task(scenario, parsing_error)
                 continue
 
-            validation: ValidationResult = self._validate(proposal.graph)
+            validation: ValidationResult = self._validate(proposal.graph, scenario)
             attempts.append(
                 GenerationAttempt(
                     attempt_number=attempt_number,
@@ -113,11 +122,18 @@ class DesignGenerationService:
 
         return DesignGenerationResult(attempts=attempts)
 
-    def _validate(self, graph: ArchitectureGraph) -> ValidationResult:
-        """Runs every configured validator and aggregates their errors."""
+    def _validate(
+        self, graph: ArchitectureGraph, scenario: DesignScenario
+    ) -> ValidationResult:
+        """Runs every topology and scenario validator, aggregating errors."""
         errors = [
             error
             for validator in self._validators
             for error in validator.validate(graph).errors
+        ]
+        errors += [
+            error
+            for validator in self._scenario_validators
+            for error in validator.validate(graph, scenario).errors
         ]
         return ValidationResult(errors=errors)

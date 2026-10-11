@@ -1,5 +1,6 @@
 from domain.specifications.interfaces import (
     BaseValidator,
+    ScenarioValidator,
     ValidationResult,
 )
 from domain.specifications.rules import (
@@ -21,6 +22,7 @@ __all__ = [
     "DEFAULT_ALLOWED_CONNECTION_TYPES",
     "BaseValidator",
     "ConnectionType",
+    "ScenarioValidator",
     "StructuralTopologyValidator",
     "ValidationResult",
     "check_acyclicity",
