@@ -19,8 +19,9 @@ from infrastructure.visualisation.plantuml.models import (
     DiagramImageFormat,
 )
 from infrastructure.visualisation.plantuml.renderer import (
+    AUTO_SERVER_SELECTION,
     PlantumlImageRenderer,
-    build_default_image_renderer,
+    resolve_image_renderer,
 )
 
 
@@ -47,7 +48,7 @@ class DiagramService:
         self._image_renderer: PlantumlImageRenderer = (
             image_renderer
             if image_renderer is not None
-            else build_default_image_renderer()
+            else resolve_image_renderer(AUTO_SERVER_SELECTION)
         )
         self._image_format: DiagramImageFormat = image_format
 

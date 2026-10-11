@@ -5,7 +5,8 @@ Usage (from the repository root, with LM Studio running):
     uv run python scripts/generate_design.py --scenario scenarios/ecommerce_checkout.yaml
     uv run python scripts/generate_design.py --out output/graph.json
     uv run python scripts/generate_design.py --diagram-format png
-    uv run python scripts/generate_design.py --plantuml-server http://localhost:8080
+    uv run python scripts/generate_design.py --diagram-server kroki
+    uv run python scripts/generate_design.py --diagram-server http://localhost:8080
     uv run python scripts/generate_design.py --no-diagram
     uv run python scripts/generate_design.py --verbose
 
@@ -21,11 +22,12 @@ failures (truncation, preambles, code fences).
 When a run produces a parsable graph, the final topology is also rendered
 as a PlantUML C4 Container diagram (see infrastructure.visualisation.plantuml):
 the .puml source is always saved, and the image is fetched best-effort
-from the public PlantUML server with the public Kroki gateway as an
-automatic fallback (network required). Rendering or saving failures only
-downgrade the log to warnings and never change the exit code. Use
---no-diagram to skip diagrams, or --plantuml-server to point at a
-self-hosted plantuml-server instance.
+from the diagram server configured in config.yaml (visualisation.server:
+"auto" - public PlantUML server with the public Kroki gateway as an
+automatic fallback; "plantuml"; "kroki"; or a self-hosted plantuml-server
+URL, see deploy/plantuml). CLI flags override the config. Rendering or
+saving failures only downgrade the log to warnings and never change the
+exit code; use --no-diagram to skip diagram generation entirely.
 """
 
 import argparse
@@ -33,7 +35,7 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Any, Final
+from typing import Any
 
 import yaml
 from pydantic import ValidationError
@@ -45,6 +47,7 @@ from application.results import (
 )
 from application.usage import TokenUsage
 from config.root import AppSettings, load_app_settings
+from config.visualisation import VisualisationSettings
 from domain.models import (
     ArchitectureGraph,
     BudgetRequirement,
@@ -62,12 +65,10 @@ from infrastructure.visualisation.plantuml import (
     DiagramRenderingError,
     DiagramSavingError,
     DiagramService,
-    build_default_image_renderer,
+    resolve_image_renderer,
 )
 
 _logger: logging.Logger = logging.getLogger("generate_design")
-
-_DEFAULT_DIAGRAM_DIR: Final[str] = "output/diagrams"
 
 _DEFAULT_SCENARIO: DesignScenario = DesignScenario(
     identifier="ecommerce_checkout",
@@ -117,7 +118,7 @@ def main() -> int:
     _log_graph(result)
     if args.out is not None:
         _save_graph(result, args.out)
-    _render_diagram(result, scenario, args)
+    _render_diagram(result, scenario, settings.visualisation, args)
     return 0 if result.status is GenerationStatus.SUCCEEDED else 1
 
 
@@ -139,26 +140,26 @@ def _parse_args() -> argparse.Namespace:
         help="Path to save the final ArchitectureGraph as JSON",
     )
     parser.add_argument(
-        "--diagram-dir",
+        "--diagram-server",
         type=str,
-        default=_DEFAULT_DIAGRAM_DIR,
-        help=f"Directory for diagram artifacts (default: {_DEFAULT_DIAGRAM_DIR})",
+        default=None,
+        help=(
+            "Diagram server: auto, plantuml, kroki or a plantuml-server URL "
+            "(default: visualisation.server from config.yaml)"
+        ),
     )
     parser.add_argument(
         "--diagram-format",
         type=DiagramImageFormat,
         choices=[fmt.value for fmt in DiagramImageFormat],
-        default=DiagramImageFormat.SVG,
-        help="Image format of the C4 diagram (default: svg)",
+        default=None,
+        help="Image format of the C4 diagram (default: config visualisation)",
     )
     parser.add_argument(
-        "--plantuml-server",
+        "--diagram-dir",
         type=str,
         default=None,
-        help=(
-            "PlantUML server base URL (default: public server with the "
-            "public Kroki gateway as fallback)"
-        ),
+        help="Directory for diagram artifacts (default: config visualisation)",
     )
     parser.add_argument(
         "--no-diagram",
@@ -204,6 +205,7 @@ def _log_header(settings: AppSettings, scenario: DesignScenario) -> None:
     _logger.info("  timeout      : %s s", settings.llm.timeout_seconds)
     _logger.info("  output mode  : %s", settings.llm.structured_output_mode.value)
     _logger.info("  max_attempts : %s", settings.generation.max_attempts)
+    _logger.info("  diagram srv  : %s", settings.visualisation.server)
     _logger.info("Scenario")
     for line in render_scenario_summary(scenario).splitlines():
         _logger.info("  %s", line)
@@ -312,6 +314,7 @@ def _save_graph(result: DesignGenerationResult, output_path: str) -> None:
 def _render_diagram(
     result: DesignGenerationResult,
     scenario: DesignScenario,
+    visualisation: VisualisationSettings,
     args: argparse.Namespace,
 ) -> None:
     """Renders the final graph as a PlantUML C4 Container diagram.
@@ -327,19 +330,36 @@ def _render_diagram(
     if graph is None:
         _logger.info("Diagram: skipped (no attempt produced a parsable graph)")
         return
-    artifacts: DiagramArtifacts = _generate_diagram(graph, scenario, args)
-    _save_diagram(artifacts, scenario, args)
+    server, image_format, diagram_dir = _resolve_diagram_settings(visualisation, args)
+    artifacts: DiagramArtifacts = _generate_diagram(
+        graph, scenario, server, image_format
+    )
+    _save_diagram(artifacts, scenario, diagram_dir)
+
+
+def _resolve_diagram_settings(
+    visualisation: VisualisationSettings,
+    args: argparse.Namespace,
+) -> tuple[str, DiagramImageFormat, str]:
+    """Merges the CLI flags over the yaml config for diagram rendering."""
+    server: str = args.diagram_server or visualisation.server
+    image_format: DiagramImageFormat = DiagramImageFormat(
+        args.diagram_format or visualisation.image_format
+    )
+    diagram_dir: str = args.diagram_dir or visualisation.diagram_dir
+    return server, image_format, diagram_dir
 
 
 def _generate_diagram(
     graph: ArchitectureGraph,
     scenario: DesignScenario,
-    args: argparse.Namespace,
+    server: str,
+    image_format: DiagramImageFormat,
 ) -> DiagramArtifacts:
     """Builds the diagram source and fetches the image best-effort."""
     service = DiagramService(
-        image_renderer=build_default_image_renderer(args.plantuml_server),
-        image_format=args.diagram_format,
+        image_renderer=resolve_image_renderer(server),
+        image_format=image_format,
     )
     artifacts: DiagramArtifacts = service.generate(
         graph, title=f"Container diagram for {scenario.identifier}"
@@ -360,12 +380,12 @@ def _generate_diagram(
 def _save_diagram(
     artifacts: DiagramArtifacts,
     scenario: DesignScenario,
-    args: argparse.Namespace,
+    diagram_dir: str,
 ) -> None:
     """Writes the diagram artifacts into the diagram directory."""
     try:
         written_paths: list[Path] = DiagramFileWriter().write(
-            artifacts, Path(args.diagram_dir), scenario.identifier
+            artifacts, Path(diagram_dir), scenario.identifier
         )
     except DiagramSavingError as error:
         _logger.warning("Saving diagram artifacts failed: %s", error)

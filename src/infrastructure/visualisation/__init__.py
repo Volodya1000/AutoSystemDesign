@@ -10,7 +10,7 @@ from infrastructure.visualisation.plantuml import (
     DiagramSavingError,
     DiagramService,
     PlantumlServerImageRenderer,
-    build_default_image_renderer,
+    resolve_image_renderer,
 )
 
 __all__ = [
@@ -23,5 +23,5 @@ __all__ = [
     "DiagramSavingError",
     "DiagramService",
     "PlantumlServerImageRenderer",
-    "build_default_image_renderer",
+    "resolve_image_renderer",
 ]

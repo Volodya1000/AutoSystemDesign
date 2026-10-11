@@ -11,3 +11,15 @@ llm:
   structured_output_mode: prompt
 generation:
   max_attempts: 3
+# Diagram rendering backend:
+#   server       - auto | plantuml | kroki | http(s)://<self-hosted plantuml-server>
+#                  "auto" = public PlantUML server with the public Kroki
+#                  gateway as an automatic fallback.
+#   image_format - png | svg
+#   diagram_dir  - where .puml and image files are written.
+# Per-run CLI overrides: --diagram-server / --diagram-format / --diagram-dir.
+# Environment override example: ASD_VISUALISATION__SERVER=kroki
+visualisation:
+  server: auto
+  image_format: png
+  diagram_dir: output/diagrams

@@ -28,6 +28,7 @@ from infrastructure.visualisation.plantuml.models import (
     DiagramImageFormat,
 )
 from infrastructure.visualisation.plantuml.renderer import (
+    AUTO_SERVER_SELECTION,
     KROKI_PUBLIC_SERVER_URL,
     PLANTUML_PUBLIC_SERVER_URL,
     DiagramRenderingError,
@@ -35,10 +36,11 @@ from infrastructure.visualisation.plantuml.renderer import (
     KrokiImageRenderer,
     PlantumlImageRenderer,
     PlantumlServerImageRenderer,
-    build_default_image_renderer,
+    resolve_image_renderer,
 )
 
 __all__ = [
+    "AUTO_SERVER_SELECTION",
     "C4_STDLIB_BUNDLED_INCLUDE",
     "C4_STDLIB_REMOTE_INCLUDE_URL",
     "DEFAULT_ELEMENT_SPECS",
@@ -57,9 +59,9 @@ __all__ = [
     "KrokiImageRenderer",
     "PlantumlImageRenderer",
     "PlantumlServerImageRenderer",
-    "build_default_image_renderer",
     "build_kroki_url",
     "build_plantuml_url",
     "encode_kroki_text",
     "encode_plantuml_text",
+    "resolve_image_renderer",
 ]

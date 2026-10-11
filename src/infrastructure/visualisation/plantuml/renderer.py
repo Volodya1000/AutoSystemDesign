@@ -1,5 +1,13 @@
-"""PlantUML image rendering: the port and the HTTP adapters."""
+"""PlantUML image rendering: the port, the HTTP adapters and the resolver.
 
+Two public server protocols are implemented over plain GET requests:
+PlantUML servers (the public plantuml.com endpoint and self-hosted
+plantuml-server instances) and Kroki gateways (the public kroki.io
+endpoint), which accept programmatic clients without bot protection
+and therefore serve as the automatic fallback in "auto" mode.
+"""
+
+import logging
 import urllib.error
 import urllib.request
 from collections.abc import Sequence
@@ -13,9 +21,12 @@ from infrastructure.visualisation.plantuml.models import DiagramImageFormat
 
 PLANTUML_PUBLIC_SERVER_URL: Final[str] = "https://www.plantuml.com/plantuml"
 KROKI_PUBLIC_SERVER_URL: Final[str] = "https://kroki.io"
+AUTO_SERVER_SELECTION: Final[str] = "auto"
 
 _USER_AGENT: Final[str] = "Mozilla/5.0 (compatible; AutoSystemDesign/1.0)"
 _DEFAULT_TIMEOUT_SECONDS: Final[float] = 30.0
+
+_logger: logging.Logger = logging.getLogger(__name__)
 
 
 class DiagramRenderingError(Exception):
@@ -40,7 +51,8 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
 
     A custom user agent is required: the Cloudflare in front of the
     public PlantUML server answers HTTP 403 to the default
-    python-urllib agent.
+    python-urllib agent. The INFO log identifies which server actually
+    rendered the image when several are configured.
     """
     request = urllib.request.Request(
         url, headers={"User-Agent": _USER_AGENT}, method="GET"
@@ -54,6 +66,7 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
         ) from error
     except OSError as error:
         raise DiagramRenderingError(f"Cannot reach {server_label}: {error}") from error
+    _logger.info("Diagram image rendered by %s", server_label)
     return content
 
 
@@ -61,8 +74,9 @@ class PlantumlServerImageRenderer:
     """Fetches images from a PlantUML HTTP server over GET.
 
     Works with the public plantuml.com server and with self-hosted
-    plantuml-server instances (for example the official Docker image):
-    point `server_url` at them. No local Java installation is required.
+    plantuml-server instances (for example the docker compose
+    deployment in deploy/plantuml): point `server_url` at them. No
+    local Java installation is required.
     """
 
     def __init__(
@@ -137,27 +151,43 @@ class FallbackImageRenderer:
         renderer: PlantumlImageRenderer
         for renderer in self._renderers:
             try:
-                return renderer.render(source, image_format)
+                image_bytes: bytes = renderer.render(source, image_format)
             except DiagramRenderingError as error:
                 failures.append(str(error))
-        raise DiagramRenderingError("; ".join(failures))
+                _logger.warning("Diagram server failed, trying the next one: %s", error)
+                continue
+            return image_bytes
+        raise DiagramRenderingError(
+            "All diagram servers failed: " + "; ".join(failures)
+        )
 
 
-def build_default_image_renderer(
-    plantuml_server_url: str | None = None,
-) -> PlantumlImageRenderer:
-    """Composes the default image rendering strategy.
+def resolve_image_renderer(server: str) -> PlantumlImageRenderer:
+    """Builds the renderer for a server selection string.
 
-    A custom `plantuml_server_url` pins a single PlantUML server (for
-    example a local plantuml-server container); by default the public
-    PlantUML server is used with the public Kroki gateway as an
-    automatic fallback, so one picky server cannot break a run.
+    Supported selections:
+    - "auto": the public PlantUML server with the public Kroki gateway
+      as an automatic fallback (the default);
+    - "plantuml": the public PlantUML server only;
+    - "kroki": the public Kroki gateway only;
+    - an http(s) URL of a self-hosted plantuml-server instance, for
+      example the docker compose deployment in deploy/plantuml.
     """
-    if plantuml_server_url is not None:
-        return PlantumlServerImageRenderer(server_url=plantuml_server_url)
-    return FallbackImageRenderer(
-        renderers=[
-            PlantumlServerImageRenderer(),
-            KrokiImageRenderer(),
-        ]
+    selection: str = server.strip().lower()
+    if selection == AUTO_SERVER_SELECTION:
+        return FallbackImageRenderer(
+            renderers=[
+                PlantumlServerImageRenderer(),
+                KrokiImageRenderer(),
+            ]
+        )
+    if selection == "plantuml":
+        return PlantumlServerImageRenderer()
+    if selection == "kroki":
+        return KrokiImageRenderer()
+    if selection.startswith(("http://", "https://")):
+        return PlantumlServerImageRenderer(server_url=server.strip())
+    raise ValueError(
+        f"Unknown diagram server selection {server!r}: expected 'auto', "
+        "'plantuml', 'kroki' or an http(s) plantuml-server URL"
     )

@@ -29,6 +29,7 @@ from pydantic_settings.sources import (
 from config.generation import GenerationSettings
 from config.llm import LlmSettings
 from config.testing import IntegrationSettings
+from config.visualisation import VisualisationSettings
 
 CONFIG_FILE_ENV_VAR: Final[str] = "APP_CONFIG_FILE"
 _DEFAULT_CONFIG_FILE: Final[Path] = Path("config.yaml")
@@ -75,6 +76,7 @@ class AppSettings(BaseSettings):
     llm: LlmSettings
     generation: GenerationSettings = Field(default_factory=GenerationSettings)
     testing: IntegrationSettings = Field(default_factory=IntegrationSettings)
+    visualisation: VisualisationSettings = Field(default_factory=VisualisationSettings)
 
     @classmethod
     def settings_customise_sources(
