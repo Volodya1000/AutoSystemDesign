@@ -1,8 +1,12 @@
-"""Scenario validator: total monthly cost must satisfy the budget limits.
+"""Requirement validator: total monthly cost must satisfy the budget limit.
 
 Pure domain logic: no I/O, no logging, no clock. Errors carry both the
 observed total and the violated limit so the repair prompt can show the
 model exactly how much it overshot.
+
+Scope note: this validator knows only about a single BudgetRequirement.
+Matching requirements to validators is the dispatcher's job
+(RequirementValidationDispatcher), not this class's.
 """
 
 from domain.exceptions.architecture_errors import (
@@ -11,46 +15,32 @@ from domain.exceptions.architecture_errors import (
 )
 from domain.models.nodes import CapacityNode
 from domain.models.requirements import BudgetRequirement
-from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
-from domain.specifications.interfaces import ScenarioValidator, ValidationResult
+from domain.specifications.interfaces import RequirementValidator
 
 
-class BudgetValidator(ScenarioValidator):
-    """Checks the total monthly cost of the topology against the budget.
+class BudgetRequirementValidator(RequirementValidator[BudgetRequirement]):
+    """Checks the total monthly cost of the topology against one budget.
 
-    A scenario may declare zero, one or several BudgetRequirement entries.
-    Every violated requirement produces its own error so the repair loop
-    can point at each constraint separately. A scenario without budget
-    requirements is a no-op, which keeps older scenarios working.
-
-    Client nodes carry no cost attribute and are naturally excluded from
-    the total: only CapacityNode subclasses contribute.
+    Client nodes carry no cost attribute and are naturally excluded:
+    only CapacityNode subclasses contribute to the total.
     """
 
-    def validate(
-        self, graph: ArchitectureGraph, scenario: DesignScenario
-    ) -> ValidationResult:
-        budget_requirements: list[BudgetRequirement] = [
-            requirement
-            for requirement in scenario.requirements
-            if isinstance(requirement, BudgetRequirement)
-        ]
-        if not budget_requirements:
-            return ValidationResult(errors=[])
+    requirement_type = BudgetRequirement
 
+    def validate(
+        self, graph: ArchitectureGraph, requirement: BudgetRequirement
+    ) -> list[ArchitectureValidationError]:
         total_monthly_cost_usd: float = sum(
             float(node.monthly_cost_usd)
             for node in graph.nodes
             if isinstance(node, CapacityNode)
         )
-
-        errors: list[ArchitectureValidationError] = [
+        if requirement.is_met_requirement(total_monthly_cost_usd):
+            return []
+        return [
             BudgetExceededError(
                 total_monthly_cost_usd=total_monthly_cost_usd,
                 budget_limit_usd=requirement.threshold_value,
             )
-            for requirement in budget_requirements
-            if not requirement.is_met_requirement(total_monthly_cost_usd)
         ]
-        return ValidationResult(errors=errors)

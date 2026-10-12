@@ -17,7 +17,10 @@ from domain.models.nodes import ComputeNode
 from domain.models.requirements import BudgetRequirement
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
-from domain.specifications.budget_validator import BudgetValidator
+from domain.specifications.budget_validator import BudgetRequirementValidator
+from domain.specifications.requirement_dispatch import (
+    RequirementValidationDispatcher,
+)
 from domain.specifications.structural_validator import StructuralTopologyValidator
 
 pytestmark = pytest.mark.unit
@@ -74,6 +77,11 @@ def _scenario() -> DesignScenario:
     )
 
 
+def _budget_dispatcher() -> RequirementValidationDispatcher:
+    """One dispatcher wired to the budget validator (single source of truth)."""
+    return RequirementValidationDispatcher([BudgetRequirementValidator()])
+
+
 def test_budget_violation_triggers_repair_attempt() -> None:
     """First answer is over budget, second fits: loop must succeed."""
     designer: _ScriptedDesigner = _ScriptedDesigner(
@@ -83,7 +91,7 @@ def test_budget_violation_triggers_repair_attempt() -> None:
         designer=designer,  # type: ignore[arg-type]
         validators=[StructuralTopologyValidator()],
         max_attempts=2,
-        scenario_validators=[BudgetValidator()],
+        scenario_validators=[_budget_dispatcher()],
     )
 
     result: DesignGenerationResult = service.generate(_scenario())
@@ -118,7 +126,7 @@ def test_budget_failure_after_max_attempts_is_validation_failed() -> None:
         designer=designer,  # type: ignore[arg-type]
         validators=[StructuralTopologyValidator()],
         max_attempts=2,
-        scenario_validators=[BudgetValidator()],
+        scenario_validators=[_budget_dispatcher()],
     )
 
     result: DesignGenerationResult = service.generate(_scenario())

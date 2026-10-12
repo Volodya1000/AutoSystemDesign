@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, ConfigDict, Field
 
 from domain.exceptions.architecture_errors import ArchitectureValidationError
+from domain.models.base_constraints import BaseRequirement
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 
@@ -36,15 +37,31 @@ class BaseValidator(ABC):
 class ScenarioValidator(ABC):
     """Abstract interface for validators that check a graph against a scenario.
 
-    Scenario validators verify workload-dependent guarantees (budget,
-    resource utilization, latency) and therefore need the DesignScenario.
-    Implementations must tolerate graphs that already failed structural
-    validation: skip what cannot be checked and report via errors instead
-    of raising.
+    Workload-driven validators (F3 flow computation, F4 utilization, ...)
+    still live behind this port. Requirement-driven validators use the
+    narrower RequirementValidator port and are aggregated by
+    RequirementValidationDispatcher.
     """
 
     @abstractmethod
     def validate(
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> ValidationResult:
+        raise NotImplementedError()
+
+
+class RequirementValidator[ReqT: BaseRequirement](ABC):
+    """Abstract interface for validators that check exactly one requirement.
+
+    Concrete implementations declare `requirement_type` and receive only
+    requirements of that type: the narrow input keeps each validator small
+    (SRP) and free of isinstance-scanning (ISP).
+    """
+
+    requirement_type: type[ReqT]
+
+    @abstractmethod
+    def validate(
+        self, graph: ArchitectureGraph, requirement: ReqT
+    ) -> list[ArchitectureValidationError]:
         raise NotImplementedError()
