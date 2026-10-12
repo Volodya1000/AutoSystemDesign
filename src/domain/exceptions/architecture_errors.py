@@ -120,3 +120,20 @@ class TheoreticalLatencyViolationError(ArchitectureValidationError):
             message=message,
             affected_node_identifiers=critical_path_node_identifiers,
         )
+
+
+class BudgetExceededError(ArchitectureValidationError):
+    error_code: str = "BUDGET_EXCEEDED"
+
+    def __init__(
+        self,
+        total_monthly_cost_usd: float,
+        budget_limit_usd: float,
+    ) -> None:
+        message: str = (
+            f"Total monthly cost ${total_monthly_cost_usd:.2f} exceeds "
+            f"budget limit ${budget_limit_usd:.2f}."
+        )
+        super().__init__(message=message)
+        self.total_monthly_cost_usd: float = total_monthly_cost_usd
+        self.budget_limit_usd: float = budget_limit_usd

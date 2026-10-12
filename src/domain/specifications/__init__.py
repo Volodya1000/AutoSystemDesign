@@ -1,3 +1,4 @@
+from domain.specifications.budget_validator import BudgetValidator
 from domain.specifications.interfaces import (
     BaseValidator,
     ScenarioValidator,
@@ -21,6 +22,7 @@ from domain.specifications.structural_validator import (
 __all__ = [
     "DEFAULT_ALLOWED_CONNECTION_TYPES",
     "BaseValidator",
+    "BudgetValidator",
     "ConnectionType",
     "ScenarioValidator",
     "StructuralTopologyValidator",
