@@ -2,25 +2,24 @@ import logging
 
 from application.tasks import (
     DesignTaskMode,
-    SequenceContextProposal,
-    SequenceContextTask,
     SequenceInteractionProposal,
     SequenceInteractionTask,
+    SequenceRoleProposal,
+    SequenceRoleTask,
 )
 from config.root import AppSettings
+from domain.models.roles import ProjectRolesCatalog
 from domain.models.sequence import InteractionScenario
-from domain.models.system_design import SystemContextOutput
 from infrastructure.design.sequence_parser import (
-    extract_json_payload,
     parse_interaction_scenario,
-    parse_system_context,
+    parse_roles_catalog,
 )
 from infrastructure.llm.models import CompletionRequest
 from infrastructure.prompts.sequence_generation import (
-    build_context_initial_messages,
-    build_context_repair_messages,
     build_interaction_initial_messages,
     build_interaction_repair_messages,
+    build_roles_initial_messages,
+    build_roles_repair_messages,
 )
 
 
@@ -30,29 +29,27 @@ class SequenceDesignerAgent:
         self._settings = settings
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def propose_context(self, task: SequenceContextTask) -> SequenceContextProposal:
+    def propose_roles(self, task: SequenceRoleTask) -> SequenceRoleProposal:
         if task.mode is DesignTaskMode.INITIAL:
-            messages = build_context_initial_messages(task)
+            messages = build_roles_initial_messages(task)
         else:
-            messages = build_context_repair_messages(task)
+            messages = build_roles_repair_messages(task)
 
         request = CompletionRequest(
             messages=messages,
             temperature=self._settings.llm.temperature,
             max_tokens=self._settings.llm.max_tokens,
             timeout_seconds=self._settings.llm.timeout_seconds,
-            response_schema=SystemContextOutput.model_json_schema(),
-            response_schema_name="system_context_output",
+            response_schema=ProjectRolesCatalog.model_json_schema(),
+            response_schema_name="project_roles_catalog",
         )
 
         completion = self._client.complete(request)
-        self.logger.debug("Raw Context LLM output:\n%s", completion.content)
+        self.logger.debug("Raw Roles LLM output:\n%s", completion.content)
 
-        payload = extract_json_payload(completion.content)
-        context_output = parse_system_context(payload, usage=completion.usage)
-
-        return SequenceContextProposal(
-            context_output=context_output,
+        catalog = parse_roles_catalog(completion.content, usage=completion.usage)
+        return SequenceRoleProposal(
+            payload=catalog,
             raw_content=completion.content,
             usage=completion.usage,
             latency_seconds=completion.latency_seconds,
@@ -82,11 +79,11 @@ class SequenceDesignerAgent:
             completion.content,
         )
 
-        payload = extract_json_payload(completion.content)
-        scenario_output = parse_interaction_scenario(payload, usage=completion.usage)
-
+        scenario = parse_interaction_scenario(
+            completion.content, usage=completion.usage
+        )
         return SequenceInteractionProposal(
-            interaction_scenario=scenario_output,
+            payload=scenario,
             raw_content=completion.content,
             usage=completion.usage,
             latency_seconds=completion.latency_seconds,

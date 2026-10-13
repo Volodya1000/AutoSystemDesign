@@ -1,24 +1,21 @@
-from __future__ import annotations
+"""Domain models for business roles and catalog."""
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class BusinessRole(BaseModel):
+    """A user or actor role within the business domain."""
+
     model_config = ConfigDict(extra="forbid")
 
-    role_id: str = Field(
-        description="Stable unique identifier for the business role (e.g., 'buyer', 'seller')"
-    )
-    name: str = Field(description="Human-readable name of the role (e.g., 'Buyer')")
-    description: str = Field(
-        description="Description of the role within the business domain"
-    )
+    role_id: str = Field(description="Stable unique identifier (e.g., 'buyer')")
+    name: str = Field(description="Human-readable name")
+    description: str = Field(description="Domain description of the role")
 
 
 class ProjectRolesCatalog(BaseModel):
+    """Global registry of all business roles in the project."""
+
     model_config = ConfigDict(extra="forbid")
 
-    roles: list[BusinessRole] = Field(
-        min_length=1,
-        description="Global project registry of business roles (cannot be empty)",
-    )
+    roles: list[BusinessRole] = Field(min_length=1)

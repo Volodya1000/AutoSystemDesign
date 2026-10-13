@@ -60,7 +60,9 @@ class InteractionScenario(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     scenario_id: str = Field(description="Unique scenario ID")
-    requirement_name: str = Field(description="Name of the functional requirement")
+    requirement_identifier: str = Field(
+        description="Identifier of the functional requirement being fulfilled"
+    )
     description: str = Field(description="Description of what this scenario validates")
     lifelines: list[ScenarioLifeline] = Field(
         min_length=1, description="All participants in the scenario. Cannot be empty."
@@ -81,7 +83,7 @@ class InteractionScenario(BaseModel):
                 )
             lifeline_ids.add(lifeline.lifeline_id)
 
-        def check_steps(steps_list: list[ScenarioStep]):
+        def check_steps(steps_list: list[ScenarioStep]) -> None:
             for step in steps_list:
                 if isinstance(step, MessageStep):
                     if step.from_lifeline not in lifeline_ids:
@@ -95,7 +97,7 @@ class InteractionScenario(BaseModel):
                 elif isinstance(step, AltStep):
                     for branch in step.branches:
                         check_steps(branch.steps)
-                elif isinstance(step, OptStep) or isinstance(step, LoopStep):
+                elif isinstance(step, (OptStep, LoopStep)):
                     check_steps(step.steps)
 
         check_steps(self.steps)

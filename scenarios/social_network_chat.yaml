@@ -12,13 +12,13 @@ requirements:
     threshold_value: 99.99
     operator: ">="
 functional_requirements:
-  - id: "req_msg_01"
+  - identifier: "req_msg_01"
     name: "Direct Message Delivery"
     text: >
       Sender sends a direct message to a recipient. The system checks the recipient's presence status.
       If the recipient is online, the message is delivered immediately via an active WebSocket connection.
       If the recipient is offline, the message is queued and a Push Notification is sent to their device.
-  - id: "req_msg_02"
+  - identifier: "req_msg_02"
     name: "Read Receipt Acknowledgment"
     text: >
       When the recipient opens the chat window, the client application sends a read receipt event.

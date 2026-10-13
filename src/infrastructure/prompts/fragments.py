@@ -1,9 +1,10 @@
+import json
 from typing import Final
 
 from domain.models import protocols as domain_protocols
-from domain.models.enums import NodeType
 from domain.models.protocols import ConnectionProtocol
 from domain.models.scenarios import DesignScenario
+from domain.models.topology import ArchitectureGraph
 from domain.specifications.rules import DEFAULT_ALLOWED_CONNECTION_TYPES
 
 STRUCTURED_OUTPUT_SYSTEM_PROMPT: Final[str] = (
@@ -25,11 +26,6 @@ _KNOWN_PROTOCOLS: Final[tuple[ConnectionProtocol, ...]] = tuple(
         key=lambda protocol: protocol.name,
     )
 )
-_PROTOCOL_DESCRIPTIONS: Final[str] = ", ".join(
-    f"{protocol.name} (is_asynchronous={str(protocol.is_asynchronous).lower()})"
-    for protocol in _KNOWN_PROTOCOLS
-)
-_NODE_TYPE_VALUES: Final[str] = ", ".join(node_type.value for node_type in NodeType)
 
 OUTPUT_HARD_RULES: Final[str] = (
     "Hard rules:\n"
@@ -66,9 +62,15 @@ def render_scenario_summary(scenario: DesignScenario) -> str:
         lines.extend(
             [
                 "Workload:",
-                f"- Baseline load: {scenario.workload.baseline_requests_per_second} RPS",
-                f"- Peak load: {scenario.workload.peak_requests_per_second} RPS",
-                f"- Read ratio: {scenario.workload.read_ratio:.2f}, write ratio: {scenario.workload.write_ratio:.2f}",
+                (
+                    f"- Baseline load: "
+                    f"{scenario.workload.baseline_requests_per_second} RPS"
+                ),
+                (f"- Peak load: {scenario.workload.peak_requests_per_second} RPS"),
+                (
+                    f"- Read ratio: {scenario.workload.read_ratio:.2f}, "
+                    f"write ratio: {scenario.workload.write_ratio:.2f}"
+                ),
             ]
         )
     if scenario.functional_requirements:
@@ -89,39 +91,50 @@ def render_scenario_summary(scenario: DesignScenario) -> str:
     return "\n".join(lines)
 
 
+def _render_known_protocols() -> str:
+    """Lists the protocol singletons an edge may reference by name.
+
+    The JSON Schema cannot express this on its own: ConnectionProtocol.name
+    is a plain string in the model, so the valid values are not part of the
+    schema. The list is derived at import time from the domain module, so
+    adding a new protocol constant is enough: this fragment follows.
+    """
+    lines: list[str] = ["Allowed protocol values for edge.protocol.name:"]
+    lines.extend(
+        f"- {protocol.name} (is_asynchronous={str(protocol.is_asynchronous).lower()})"
+        for protocol in _KNOWN_PROTOCOLS
+    )
+    return "\n".join(lines)
+
+
 def render_output_schema() -> str:
+    """Renders the output contract for the architecture graph.
+
+    The structural part is generated from ArchitectureGraph.model_json_schema()
+    so any change to the pydantic models is reflected in the prompt with no
+    extra edits (single source of truth). Field descriptions declared with
+    Field(description=...) carry through into the schema automatically.
+
+    The protocol-value list is appended separately because the schema only
+    knows ConnectionProtocol.name as a plain string; without it, the model
+    would invent arbitrary protocol names.
+    """
+    schema_text: str = json.dumps(ArchitectureGraph.model_json_schema(), indent=2)
     return (
-        'Output format: a single JSON object with exactly two keys, "nodes" and "edges".\n'
-        "\n"
-        "Node object:\n"
-        '- "identifier": string, unique in the graph, snake_case (example: "orders_api");\n'
-        f'- "node_type": one of: {_NODE_TYPE_VALUES};\n'
-        '- "replicas_count": integer >= 1, optional (default 1);\n'
-        '- capacity fields, REQUIRED for every node_type except "client":\n'
-        '    "maximum_concurrency": integer > 0,\n'
-        '    "maximum_queue_size": integer >= 0,\n'
-        '    "mean_processing_time_milliseconds": number > 0,\n'
-        '    "standard_deviation_processing_time": number >= 0,\n'
-        '    "monthly_cost_usd": number >= 0;\n'
-        '- optional type-specific fields: "database_role" ("primary" or "replica") and '
-        '"shards_count" (integer >= 1) for database; "cache_hit_rate_probability" '
-        '(number in [0, 1]) for cache; "retention_period_hours" (integer >= 0) for '
-        "message_broker.\n"
-        "\n"
-        "Edge object:\n"
-        '- "source_identifier" and "target_identifier": identifiers of nodes declared '
-        'in "nodes";\n'
-        f'- "protocol": object with exactly two fields: "name" (one of: {_PROTOCOL_DESCRIPTIONS}) '
-        'and "is_asynchronous": boolean matching the chosen protocol;\n'
-        '- "network_latency_milliseconds": number >= 0.\n'
-        "\n"
+        "Output format: a single JSON object matching the following JSON Schema "
+        "(generated from the domain models).\n"
+        f"{schema_text}\n\n"
+        f"{_render_known_protocols()}\n\n"
         "Do not add any other fields: unknown fields are rejected."
     )
 
 
 def render_allowed_connections() -> str:
     lines: list[str] = [
-        "Allowed node type transitions (an edge may connect ONLY these source -> target pairs):"
+        (
+            "Allowed node type transitions (an edge may connect ONLY these "
+            "source -> target pairs):"
+        )
     ]
     allowed_pairs: list[tuple[str, str]] = sorted(
         (connection.source.value, connection.target.value)

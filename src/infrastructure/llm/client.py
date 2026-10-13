@@ -1,9 +1,6 @@
 import logging
-import os
 import time
 from typing import Any, Final
-
-os.environ.setdefault("LITELLM_LOG", "ERROR")
 
 import litellm
 
@@ -135,7 +132,7 @@ class LiteLlmClient:
                 if content
                 else 0
             )
-        except Exception:
+        except (ValueError, KeyError, TypeError):
             return TokenUsage(prompt_tokens=0, completion_tokens=0, estimated=True)
         return TokenUsage(
             prompt_tokens=prompt_tokens,

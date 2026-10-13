@@ -9,7 +9,6 @@ from domain.models.functional import FunctionalRequirement
 from domain.models.roles import ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
 from domain.models.sequence import InteractionScenario
-from domain.models.system_design import SystemContextOutput
 from domain.models.topology import ArchitectureGraph
 
 JSON_DECODE_ERROR_TYPE: Final[str] = "json_decode"
@@ -51,29 +50,6 @@ class DesignTask(BaseModel):
     parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
 
 
-class SequenceContextTask(BaseModel):
-    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-
-    scenario: DesignScenario
-    architecture_graph: ArchitectureGraph
-    mode: DesignTaskMode
-    previous_payload: str | None = None
-    parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
-
-
-class SequenceInteractionTask(BaseModel):
-    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-
-    scenario: DesignScenario
-    architecture_graph: ArchitectureGraph
-    requirement: FunctionalRequirement
-    roles_catalog: ProjectRolesCatalog
-    mode: DesignTaskMode
-    previous_payload: str | None = None
-    validation_feedback: list[ValidationErrorFeedback] = Field(default_factory=list)
-    parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
-
-
 class DesignProposal(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -83,19 +59,41 @@ class DesignProposal(BaseModel):
     latency_seconds: float = Field(default=0.0, ge=0.0)
 
 
-class SequenceContextProposal(BaseModel):
+class SequenceRoleTask(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    context_output: SystemContextOutput
+    scenario: DesignScenario
+    mode: DesignTaskMode
+    previous_payload: str | None = None
+    validation_feedback: list[ValidationErrorFeedback] = Field(default_factory=list)
+    parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
+
+
+class SequenceRoleProposal(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    payload: ProjectRolesCatalog
     raw_content: str
     usage: TokenUsage
     latency_seconds: float = Field(default=0.0, ge=0.0)
 
 
+class SequenceInteractionTask(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    requirement: FunctionalRequirement
+    roles_catalog: ProjectRolesCatalog
+    architecture_graph: ArchitectureGraph
+    mode: DesignTaskMode
+    previous_payload: str | None = None
+    validation_feedback: list[ValidationErrorFeedback] = Field(default_factory=list)
+    parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
+
+
 class SequenceInteractionProposal(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    interaction_scenario: InteractionScenario
+    payload: InteractionScenario
     raw_content: str
     usage: TokenUsage
     latency_seconds: float = Field(default=0.0, ge=0.0)

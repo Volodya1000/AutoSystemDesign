@@ -1,4 +1,10 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_validator,
+)
 
 from domain.models.enums import NodeType
 from domain.models.functional import FunctionalRequirement
@@ -27,7 +33,10 @@ class WorkloadProfile(BaseModel):
 class DesignScenario(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
-    identifier: str = Field(alias="project_name", default="project")
+    identifier: str = Field(
+        default="project",
+        validation_alias=AliasChoices("identifier", "project_name"),
+    )
     description: str
 
     workload: WorkloadProfile | None = None

@@ -1,9 +1,13 @@
-from pydantic import BaseModel, ConfigDict, Field
+"""Domain models for functional requirements."""
+
+from pydantic import BaseModel, ConfigDict
 
 
 class FunctionalRequirement(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    """Specification of a single functional requirement."""
 
-    identifier: str = Field(alias="id")
+    model_config = ConfigDict(extra="forbid")
+
+    identifier: str
     name: str
     text: str

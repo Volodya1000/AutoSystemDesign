@@ -30,10 +30,13 @@ class AlternativeBranch(BaseModel):
 
     condition: str | None = Field(
         default=None,
-        description="Branch condition. If null (None), it acts as the default (else) branch.",
+        description=(
+            "Branch condition. If null (None), it acts as the default (else) branch."
+        ),
     )
     steps: list[ScenarioStep] = Field(
-        min_length=1, description="List of steps in this branch (minimum one step)"
+        min_length=1,
+        description="List of steps in this branch (minimum one step)",
     )
 
 
@@ -45,7 +48,10 @@ class AltStep(BaseModel):
     )
     branches: list[AlternativeBranch] = Field(
         min_length=2,
-        description="List of branches. If an else branch exists (condition=None), it must be unique and last.",
+        description=(
+            "List of branches. If an else branch exists (condition=None), "
+            "it must be unique and last."
+        ),
     )
 
     @model_validator(mode="after")
@@ -56,12 +62,14 @@ class AltStep(BaseModel):
                 else_count += 1
                 if i != len(self.branches) - 1:
                     raise ValueError(
-                        "The default branch (else / condition=None) must be the last one in an alt block."
+                        "The default branch (else / condition=None) "
+                        "must be the last one in an alt block."
                     )
             else:
                 if not branch.condition.strip():
                     raise ValueError(
-                        "A conditional branch cannot have an empty condition or consist only of spaces."
+                        "A conditional branch cannot have an empty "
+                        "condition or consist only of spaces."
                     )
 
         if else_count > 1:

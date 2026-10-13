@@ -1,30 +1,38 @@
 import logging
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
+from application.protocols import SequenceDesigner
 from application.results import (
-    SequenceGenerationAttempt,
+    GenerationAttempt,
     SequenceGenerationResult,
+    SequenceScenarioResult,
 )
+from application.services.design_generation_service import _MAX_ATTEMPTS, _MIN_ATTEMPTS
 from application.tasks import (
     DesignTaskMode,
-    SequenceContextTask,
     SequenceInteractionTask,
+    SequenceRoleTask,
     ValidationErrorFeedback,
 )
+from domain.models.functional import FunctionalRequirement
+from domain.models.roles import ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
 from domain.models.sequence import InteractionScenario
-from domain.models.system_design import SystemContextOutput, SystemDesignOutput
 from domain.models.topology import ArchitectureGraph
+from domain.specifications.interfaces import ValidationResult
 from domain.specifications.sequence_validator import SequenceValidator
 
 
 class SequenceGenerationService:
     def __init__(
-        self, designer, validator: SequenceValidator, max_attempts: int
+        self,
+        designer: SequenceDesigner,
+        validator: SequenceValidator,
+        max_attempts: int,
     ) -> None:
-        if not 1 <= max_attempts <= 10:
+        if not _MIN_ATTEMPTS <= max_attempts <= _MAX_ATTEMPTS:
             raise ValueError(
-                f"max_attempts must be between 1 and 10, got {max_attempts}"
+                f"max_attempts must be between {_MIN_ATTEMPTS} and {_MAX_ATTEMPTS}"
             )
         self._designer = designer
         self._validator = validator
@@ -34,124 +42,74 @@ class SequenceGenerationService:
     def generate(
         self, scenario: DesignScenario, graph: ArchitectureGraph
     ) -> SequenceGenerationResult:
-        all_attempts = []
-
-        context_output = self._generate_context(scenario, graph, all_attempts)
-        if context_output is None:
-            return SequenceGenerationResult(attempts=all_attempts)
-
-        interaction_scenarios = []
-        for req in context_output.functional_requirements:
-            interaction_scenario = self._generate_interaction(
-                scenario, graph, req, context_output.roles_catalog, all_attempts
+        if not scenario.functional_requirements:
+            self.logger.warning(
+                "No functional requirements provided. Skipping sequence generation."
             )
-            if interaction_scenario is not None:
-                interaction_scenarios.append(interaction_scenario)
-            else:
-                self.logger.warning(
-                    "Failed to generate interaction for requirement %s. Skipping.",
-                    req.identifier,
-                )
+            return SequenceGenerationResult(
+                roles_attempts=[], roles_catalog=None, scenarios_results={}
+            )
 
-        system_design = SystemDesignOutput(
-            functional_requirements=context_output.functional_requirements,
-            roles_catalog=context_output.roles_catalog,
-            interaction_scenarios=interaction_scenarios,
+        roles_attempts, catalog = self._generate_roles(scenario)
+        if catalog is None:
+            self.logger.error(
+                "Failed to generate Roles Catalog. Aborting sequence generation."
+            )
+            return SequenceGenerationResult(
+                roles_attempts=roles_attempts, roles_catalog=None, scenarios_results={}
+            )
+
+        scenarios_results: dict[str, SequenceScenarioResult] = {}
+        for req in scenario.functional_requirements:
+            self.logger.info(
+                "Generating sequence scenario for requirement: %s", req.identifier
+            )
+            attempts, interaction = self._generate_interaction(req, catalog, graph)
+            scenarios_results[req.identifier] = SequenceScenarioResult(
+                attempts=attempts,
+                interaction_scenario=interaction,
+            )
+
+        return SequenceGenerationResult(
+            roles_attempts=roles_attempts,
+            roles_catalog=catalog,
+            scenarios_results=scenarios_results,
         )
 
-        last_attempt = all_attempts[-1]
-        all_attempts[-1] = last_attempt.model_copy(
-            update={"system_design": system_design}
-        )
+    def _generate_roles(
+        self, scenario: DesignScenario
+    ) -> tuple[list[GenerationAttempt], ProjectRolesCatalog | None]:
+        task = SequenceRoleTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
+        attempts: list[GenerationAttempt] = []
 
-        return SequenceGenerationResult(attempts=all_attempts)
-
-    def _generate_context(
-        self, scenario: DesignScenario, graph: ArchitectureGraph, all_attempts: list
-    ) -> SystemContextOutput | None:
-        task = SequenceContextTask(
-            scenario=scenario, architecture_graph=graph, mode=DesignTaskMode.INITIAL
-        )
-        for attempt_number in range(1, self._max_attempts + 1):
+        for attempt_num in range(1, self._max_attempts + 1):
             try:
-                proposal = self._designer.propose_context(task)
-                all_attempts.append(
-                    SequenceGenerationAttempt(
-                        attempt_number=attempt_number,
-                        parsed=True,
-                        validation=None,
-                        usage=proposal.usage,
-                        latency_seconds=proposal.latency_seconds,
-                    )
-                )
-                return proposal.context_output
-            except DesignProposalParsingError as parsing_error:
-                all_attempts.append(
-                    SequenceGenerationAttempt(
-                        attempt_number=attempt_number,
+                proposal = self._designer.propose_roles(task)
+            except DesignProposalParsingError as pe:
+                attempts.append(
+                    GenerationAttempt(
+                        attempt_number=attempt_num,
                         parsed=False,
-                        usage=parsing_error.usage,
-                        parsing_failures=parsing_error.failure_details,
+                        usage=pe.usage,
+                        parsing_failures=pe.failure_details,
                     )
                 )
-                task = SequenceContextTask(
+                task = SequenceRoleTask(
                     scenario=scenario,
-                    architecture_graph=graph,
                     mode=DesignTaskMode.REPAIR,
-                    previous_payload=parsing_error.raw_content,
-                    parsing_failures=parsing_error.failure_details,
-                )
-        return None
-
-    def _generate_interaction(
-        self,
-        scenario: DesignScenario,
-        graph: ArchitectureGraph,
-        req,
-        roles,
-        all_attempts: list,
-    ) -> InteractionScenario | None:
-        task = SequenceInteractionTask(
-            scenario=scenario,
-            architecture_graph=graph,
-            requirement=req,
-            roles_catalog=roles,
-            mode=DesignTaskMode.INITIAL,
-        )
-        for attempt_number in range(1, self._max_attempts + 1):
-            try:
-                proposal = self._designer.propose_interaction(task)
-            except DesignProposalParsingError as parsing_error:
-                all_attempts.append(
-                    SequenceGenerationAttempt(
-                        attempt_number=attempt_number,
-                        parsed=False,
-                        usage=parsing_error.usage,
-                        parsing_failures=parsing_error.failure_details,
-                    )
-                )
-                task = SequenceInteractionTask(
-                    scenario=scenario,
-                    architecture_graph=graph,
-                    requirement=req,
-                    roles_catalog=roles,
-                    mode=DesignTaskMode.REPAIR,
-                    previous_payload=parsing_error.raw_content,
-                    parsing_failures=parsing_error.failure_details,
+                    previous_payload=pe.raw_content,
+                    parsing_failures=pe.failure_details,
                 )
                 continue
 
-            mock_design = SystemDesignOutput(
-                functional_requirements=[req],
-                roles_catalog=roles,
-                interaction_scenarios=[proposal.interaction_scenario],
+            validation: ValidationResult = self._validator.validate_catalog(
+                proposal.payload
             )
-            validation = self._validator.validate(mock_design, graph)
-
-            all_attempts.append(
-                SequenceGenerationAttempt(
-                    attempt_number=attempt_number,
+            attempts.append(
+                GenerationAttempt(
+                    attempt_number=attempt_num,
                     parsed=True,
+                    payload=proposal.payload,
                     validation=validation,
                     usage=proposal.usage,
                     latency_seconds=proposal.latency_seconds,
@@ -159,18 +117,83 @@ class SequenceGenerationService:
             )
 
             if validation.is_successful:
-                return proposal.interaction_scenario
+                return attempts, proposal.payload
 
             feedback = [
-                ValidationErrorFeedback.from_error(error) for error in validation.errors
+                ValidationErrorFeedback.from_error(e) for e in validation.errors
             ]
-            task = SequenceInteractionTask(
+            task = SequenceRoleTask(
                 scenario=scenario,
-                architecture_graph=graph,
-                requirement=req,
-                roles_catalog=roles,
                 mode=DesignTaskMode.REPAIR,
-                previous_payload=proposal.interaction_scenario.model_dump_json(),
+                previous_payload=proposal.payload.model_dump_json(),
                 validation_feedback=feedback,
             )
-        return None
+
+        return attempts, None
+
+    def _generate_interaction(
+        self,
+        req: FunctionalRequirement,
+        catalog: ProjectRolesCatalog,
+        graph: ArchitectureGraph,
+    ) -> tuple[list[GenerationAttempt], InteractionScenario | None]:
+        task = SequenceInteractionTask(
+            requirement=req,
+            roles_catalog=catalog,
+            architecture_graph=graph,
+            mode=DesignTaskMode.INITIAL,
+        )
+        attempts: list[GenerationAttempt] = []
+
+        for attempt_num in range(1, self._max_attempts + 1):
+            try:
+                proposal = self._designer.propose_interaction(task)
+            except DesignProposalParsingError as pe:
+                attempts.append(
+                    GenerationAttempt(
+                        attempt_number=attempt_num,
+                        parsed=False,
+                        usage=pe.usage,
+                        parsing_failures=pe.failure_details,
+                    )
+                )
+                task = SequenceInteractionTask(
+                    requirement=req,
+                    roles_catalog=catalog,
+                    architecture_graph=graph,
+                    mode=DesignTaskMode.REPAIR,
+                    previous_payload=pe.raw_content,
+                    parsing_failures=pe.failure_details,
+                )
+                continue
+
+            validation: ValidationResult = self._validator.validate_scenario(
+                proposal.payload, catalog, graph, req.identifier
+            )
+            attempts.append(
+                GenerationAttempt(
+                    attempt_number=attempt_num,
+                    parsed=True,
+                    payload=proposal.payload,
+                    validation=validation,
+                    usage=proposal.usage,
+                    latency_seconds=proposal.latency_seconds,
+                )
+            )
+
+            if validation.is_successful:
+                return attempts, proposal.payload
+
+            feedback = [
+                ValidationErrorFeedback.from_error(e) for e in validation.errors
+            ]
+            task = SequenceInteractionTask(
+                requirement=req,
+                roles_catalog=catalog,
+                architecture_graph=graph,
+                mode=DesignTaskMode.REPAIR,
+                previous_payload=proposal.payload.model_dump_json(),
+                validation_feedback=feedback,
+            )
+
+        return attempts, None

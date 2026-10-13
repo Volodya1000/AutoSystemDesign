@@ -10,13 +10,15 @@ from domain.models.sequence import InteractionScenario, UserLifeline
 
 class SequenceDiagramBuilder:
     def build(self, scenario: InteractionScenario, title: str | None = None) -> str:
-        display_title = title or scenario.requirement_name
+        display_title = title or scenario.description
         lines = ["@startuml", f"title {display_title}"]
 
         for lifeline in scenario.lifelines:
             if isinstance(lifeline, UserLifeline):
                 lines.append(
-                    f'actor "{lifeline.scenario_role}\\n({lifeline.business_role_id})" as {lifeline.lifeline_id}'
+                    f'actor "{lifeline.scenario_role}\\n'
+                    f'({lifeline.business_role_id})" '
+                    f"as {lifeline.lifeline_id}"
                 )
             else:
                 lines.append(
@@ -36,7 +38,8 @@ class SequenceDiagramBuilder:
                 arrow = "->>" if step.delivery_mode == "async" else "->"
                 desc = f" [{step.description}]" if step.description else ""
                 lines.append(
-                    f"{indent}{step.from_lifeline} {arrow} {step.to_lifeline} : {step.action_name}{desc}"
+                    f"{indent}{step.from_lifeline} {arrow} {step.to_lifeline} "
+                    f": {step.action_name}{desc}"
                 )
             elif isinstance(step, AltStep):
                 for i, branch in enumerate(step.branches):
