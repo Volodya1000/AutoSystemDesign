@@ -1,5 +1,6 @@
+"""Typed result objects of the design and sequence generation services."""
+
 from enum import StrEnum
-from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,15 +18,22 @@ class GenerationStatus(StrEnum):
     PARSING_FAILED = "parsing_failed"
 
 
-class GenerationAttempt(BaseModel):
+class GenerationAttempt[PayloadT](BaseModel):
+    """One propose -> validate cycle for any proposal payload type.
+
+    `payload` carries the typed proposal: an ArchitectureGraph for the
+    design flow, a ProjectRolesCatalog or InteractionScenario for the
+    sequence flow. `usage` is required: every attempt must account for
+    the tokens it spent, even when parsing failed.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     attempt_number: int = Field(ge=1)
     parsed: bool
-    graph: ArchitectureGraph | None = None
-    payload: Any | None = None
+    payload: PayloadT | None = None
     validation: ValidationResult | None = None
-    usage: TokenUsage = Field(default_factory=TokenUsage)
+    usage: TokenUsage
     latency_seconds: float = Field(default=0.0, ge=0.0)
     parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
 
@@ -33,7 +41,7 @@ class GenerationAttempt(BaseModel):
 class DesignGenerationResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    attempts: list[GenerationAttempt] = Field(min_length=1)
+    attempts: list[GenerationAttempt[ArchitectureGraph]] = Field(min_length=1)
 
     @property
     def status(self) -> GenerationStatus:
@@ -50,8 +58,8 @@ class DesignGenerationResult(BaseModel):
     @property
     def graph(self) -> ArchitectureGraph | None:
         for attempt in reversed(self.attempts):
-            if attempt.graph is not None:
-                return attempt.graph
+            if attempt.payload is not None:
+                return attempt.payload
         return None
 
     @property
@@ -62,7 +70,7 @@ class DesignGenerationResult(BaseModel):
 class SequenceScenarioResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    attempts: list[GenerationAttempt] = Field(default_factory=list)
+    attempts: list[GenerationAttempt[InteractionScenario]] = Field(default_factory=list)
     interaction_scenario: InteractionScenario | None = None
 
     @property
@@ -73,7 +81,9 @@ class SequenceScenarioResult(BaseModel):
 class SequenceGenerationResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    roles_attempts: list[GenerationAttempt] = Field(default_factory=list)
+    roles_attempts: list[GenerationAttempt[ProjectRolesCatalog]] = Field(
+        default_factory=list
+    )
     roles_catalog: ProjectRolesCatalog | None = None
     scenarios_results: dict[str, SequenceScenarioResult] = Field(default_factory=dict)
 

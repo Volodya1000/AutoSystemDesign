@@ -119,7 +119,7 @@ class TestDesignGenerationService:
         assert result.attempts[0].validation is not None
         assert result.attempts[0].validation.is_successful
         assert result.attempts[0].latency_seconds == 5.0
-        assert result.graph is result.attempts[0].graph
+        assert result.graph is result.attempts[0].payload
         assert result.total_usage == TokenUsage(prompt_tokens=100, completion_tokens=50)
         assert len(designer.received_tasks) == 1
 
@@ -132,7 +132,7 @@ class TestDesignGenerationService:
         assert len(result.attempts) == 2
         assert result.attempts[0].validation is not None
         assert result.attempts[0].validation.has_error(IsolatedNodeError)
-        first_graph: ArchitectureGraph | None = result.attempts[0].graph
+        first_graph: ArchitectureGraph | None = result.attempts[0].payload
         assert first_graph is not None
         repair_task: DesignTask = designer.received_tasks[1]
         assert repair_task.mode is DesignTaskMode.REPAIR
@@ -152,7 +152,7 @@ class TestDesignGenerationService:
         assert result.status is GenerationStatus.SUCCEEDED
         first_attempt = result.attempts[0]
         assert first_attempt.parsed is False
-        assert first_attempt.graph is None
+        assert first_attempt.payload is None
         assert first_attempt.validation is None
         assert first_attempt.usage.prompt_tokens == 90
         assert first_attempt.parsing_failures == parsing_failure.failure_details

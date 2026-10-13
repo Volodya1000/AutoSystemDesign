@@ -1,3 +1,5 @@
+"""Orchestration of the sequence-diagram generation stage."""
+
 import logging
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
@@ -7,13 +9,13 @@ from application.results import (
     SequenceGenerationResult,
     SequenceScenarioResult,
 )
-from application.services.design_generation_service import _MAX_ATTEMPTS, _MIN_ATTEMPTS
 from application.tasks import (
     DesignTaskMode,
     SequenceInteractionTask,
     SequenceRoleTask,
     ValidationErrorFeedback,
 )
+from config.generation import MAX_ATTEMPTS, MIN_ATTEMPTS
 from domain.models.functional import FunctionalRequirement
 from domain.models.roles import ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
@@ -24,15 +26,25 @@ from domain.specifications.sequence_validator import SequenceValidator
 
 
 class SequenceGenerationService:
+    """Generates the roles catalog and one interaction scenario per requirement.
+
+    The service is deliberately small: it drives two repair loops (roles,
+    then per-requirement interaction), delegating validation to a
+    SequenceValidator and LLM transport to a SequenceDesigner. Partial
+    results are preserved: a failing requirement does not discard the
+    interactions that already succeeded.
+    """
+
     def __init__(
         self,
         designer: SequenceDesigner,
         validator: SequenceValidator,
         max_attempts: int,
     ) -> None:
-        if not _MIN_ATTEMPTS <= max_attempts <= _MAX_ATTEMPTS:
+        if not MIN_ATTEMPTS <= max_attempts <= MAX_ATTEMPTS:
             raise ValueError(
-                f"max_attempts must be between {_MIN_ATTEMPTS} and {_MAX_ATTEMPTS}"
+                f"max_attempts must be between {MIN_ATTEMPTS} and {MAX_ATTEMPTS}, "
+                f"got {max_attempts}"
             )
         self._designer = designer
         self._validator = validator
@@ -78,16 +90,19 @@ class SequenceGenerationService:
 
     def _generate_roles(
         self, scenario: DesignScenario
-    ) -> tuple[list[GenerationAttempt], ProjectRolesCatalog | None]:
+    ) -> tuple[
+        list[GenerationAttempt[ProjectRolesCatalog]],
+        ProjectRolesCatalog | None,
+    ]:
         task = SequenceRoleTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
-        attempts: list[GenerationAttempt] = []
+        attempts: list[GenerationAttempt[ProjectRolesCatalog]] = []
 
         for attempt_num in range(1, self._max_attempts + 1):
             try:
                 proposal = self._designer.propose_roles(task)
             except DesignProposalParsingError as pe:
                 attempts.append(
-                    GenerationAttempt(
+                    GenerationAttempt[ProjectRolesCatalog](
                         attempt_number=attempt_num,
                         parsed=False,
                         usage=pe.usage,
@@ -106,7 +121,7 @@ class SequenceGenerationService:
                 proposal.payload
             )
             attempts.append(
-                GenerationAttempt(
+                GenerationAttempt[ProjectRolesCatalog](
                     attempt_number=attempt_num,
                     parsed=True,
                     payload=proposal.payload,
@@ -136,21 +151,24 @@ class SequenceGenerationService:
         req: FunctionalRequirement,
         catalog: ProjectRolesCatalog,
         graph: ArchitectureGraph,
-    ) -> tuple[list[GenerationAttempt], InteractionScenario | None]:
+    ) -> tuple[
+        list[GenerationAttempt[InteractionScenario]],
+        InteractionScenario | None,
+    ]:
         task = SequenceInteractionTask(
             requirement=req,
             roles_catalog=catalog,
             architecture_graph=graph,
             mode=DesignTaskMode.INITIAL,
         )
-        attempts: list[GenerationAttempt] = []
+        attempts: list[GenerationAttempt[InteractionScenario]] = []
 
         for attempt_num in range(1, self._max_attempts + 1):
             try:
                 proposal = self._designer.propose_interaction(task)
             except DesignProposalParsingError as pe:
                 attempts.append(
-                    GenerationAttempt(
+                    GenerationAttempt[InteractionScenario](
                         attempt_number=attempt_num,
                         parsed=False,
                         usage=pe.usage,
@@ -171,7 +189,7 @@ class SequenceGenerationService:
                 proposal.payload, catalog, graph, req.identifier
             )
             attempts.append(
-                GenerationAttempt(
+                GenerationAttempt[InteractionScenario](
                     attempt_number=attempt_num,
                     parsed=True,
                     payload=proposal.payload,

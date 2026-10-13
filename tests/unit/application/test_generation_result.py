@@ -29,16 +29,16 @@ def _attempt(
     successful: bool | None,
     graph: ArchitectureGraph | None = None,
     attempt_number: int = 1,
-) -> GenerationAttempt:
+) -> GenerationAttempt[ArchitectureGraph]:
     validation: ValidationResult | None = None
     if successful is not None:
         validation = ValidationResult(
             errors=[] if successful else [IsolatedNodeError("x")]
         )
-    return GenerationAttempt(
+    return GenerationAttempt[ArchitectureGraph](
         attempt_number=attempt_number,
         parsed=parsed,
-        graph=graph,
+        payload=graph,
         validation=validation,
         usage=TokenUsage(prompt_tokens=1, completion_tokens=1),
     )

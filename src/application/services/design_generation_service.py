@@ -11,6 +11,7 @@ from application.tasks import (
     DesignTaskMode,
     ValidationErrorFeedback,
 )
+from config.generation import MAX_ATTEMPTS, MIN_ATTEMPTS
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import (
@@ -18,9 +19,6 @@ from domain.specifications.interfaces import (
     ScenarioValidator,
     ValidationResult,
 )
-
-_MIN_ATTEMPTS: int = 1
-_MAX_ATTEMPTS: int = 10
 
 
 def _build_parsing_repair_task(
@@ -70,9 +68,9 @@ class DesignGenerationService:
         max_attempts: int,
         scenario_validators: Sequence[ScenarioValidator] = (),
     ) -> None:
-        if not _MIN_ATTEMPTS <= max_attempts <= _MAX_ATTEMPTS:
+        if not MIN_ATTEMPTS <= max_attempts <= MAX_ATTEMPTS:
             raise ValueError(
-                f"max_attempts must be between {_MIN_ATTEMPTS} and {_MAX_ATTEMPTS}, "
+                f"max_attempts must be between {MIN_ATTEMPTS} and {MAX_ATTEMPTS}, "
                 f"got {max_attempts}"
             )
         self._validators: tuple[BaseValidator, ...] = tuple(validators)
@@ -86,17 +84,17 @@ class DesignGenerationService:
 
     def generate(self, scenario: DesignScenario) -> DesignGenerationResult:
         task: DesignTask = DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
-        attempts: list[GenerationAttempt] = []
+        attempts: list[GenerationAttempt[ArchitectureGraph]] = []
 
         for attempt_number in range(1, self._max_attempts + 1):
             try:
                 proposal: DesignProposal = self._designer.propose(task)
             except DesignProposalParsingError as parsing_error:
                 attempts.append(
-                    GenerationAttempt(
+                    GenerationAttempt[ArchitectureGraph](
                         attempt_number=attempt_number,
                         parsed=False,
-                        graph=None,
+                        payload=None,
                         validation=None,
                         usage=parsing_error.usage,
                         parsing_failures=parsing_error.failure_details,
@@ -107,10 +105,10 @@ class DesignGenerationService:
 
             validation: ValidationResult = self._validate(proposal.graph, scenario)
             attempts.append(
-                GenerationAttempt(
+                GenerationAttempt[ArchitectureGraph](
                     attempt_number=attempt_number,
                     parsed=True,
-                    graph=proposal.graph,
+                    payload=proposal.graph,
                     validation=validation,
                     usage=proposal.usage,
                     latency_seconds=proposal.latency_seconds,
