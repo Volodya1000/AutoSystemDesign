@@ -1,9 +1,3 @@
-"""Reusable prompt fragments; all LLM-facing text lives in this package.
-
-Domain vocabularies (node types, protocols, allowed connections) are
-derived automatically, not hardcoded.
-"""
-
 from typing import Final
 
 from domain.models import protocols as domain_protocols
@@ -21,9 +15,6 @@ STRUCTURED_OUTPUT_SYSTEM_PROMPT: Final[str] = (
     "no extra fields."
 )
 
-# Auto-discovery instead of a hand-maintained list: every ConnectionProtocol
-# singleton exported by the domain module is picked up automatically, so a
-# new protocol constant added to the domain requires no change here.
 _KNOWN_PROTOCOLS: Final[tuple[ConnectionProtocol, ...]] = tuple(
     sorted(
         (
@@ -67,43 +58,38 @@ FEW_SHOT_GRAPH_JSON: Final[str] = """{
 
 
 def render_scenario_summary(scenario: DesignScenario) -> str:
-    """Renders the typed scenario into prompt text."""
     lines: list[str] = [
         f"Scenario: {scenario.identifier}",
         f"Description: {scenario.description}",
-        "Workload:",
-        (
-            f"- Baseline load: {scenario.workload.baseline_requests_per_second} "
-            "requests per second"
-        ),
-        (
-            f"- Peak load: {scenario.workload.peak_requests_per_second} "
-            "requests per second"
-        ),
-        (
-            f"- Read ratio: {scenario.workload.read_ratio:.2f}, "
-            f"write ratio: {scenario.workload.write_ratio:.2f}"
-        ),
     ]
+    if scenario.workload is not None:
+        lines.extend(
+            [
+                "Workload:",
+                f"- Baseline load: {scenario.workload.baseline_requests_per_second} RPS",
+                f"- Peak load: {scenario.workload.peak_requests_per_second} RPS",
+                f"- Read ratio: {scenario.workload.read_ratio:.2f}, write ratio: {scenario.workload.write_ratio:.2f}",
+            ]
+        )
+    if scenario.functional_requirements:
+        lines.append("Functional requirements:")
+        lines.extend(
+            f"- [{req.identifier}] {req.name}: {req.text}"
+            for req in scenario.functional_requirements
+        )
     if scenario.requirements:
-        lines.append("Requirements that the design must satisfy:")
+        lines.append("Non-functional requirements that the design must satisfy:")
         lines.extend(
             f"- {requirement.model_dump_json()}"
             for requirement in scenario.requirements
         )
     if scenario.allowed_node_types is not None:
-        allowed: str = ", ".join(
-            sorted(node_type.value for node_type in scenario.allowed_node_types)
-        )
+        allowed: str = ", ".join(sorted(nt.value for nt in scenario.allowed_node_types))
         lines.append(f"Allowed node types (use ONLY these): {allowed}")
     return "\n".join(lines)
 
 
 def render_output_schema() -> str:
-    """Compact hand-written schema; deliberately NOT model_json_schema().
-
-    The discriminated-union JSON schema is unreadable for a small local model.
-    """
     return (
         'Output format: a single JSON object with exactly two keys, "nodes" and "edges".\n'
         "\n"
@@ -134,12 +120,8 @@ def render_output_schema() -> str:
 
 
 def render_allowed_connections() -> str:
-    """Renders the connection whitelist straight from the domain rule set."""
     lines: list[str] = [
-        (
-            "Allowed node type transitions (an edge may connect ONLY these "
-            "source -> target pairs):"
-        )
+        "Allowed node type transitions (an edge may connect ONLY these source -> target pairs):"
     ]
     allowed_pairs: list[tuple[str, str]] = sorted(
         (connection.source.value, connection.target.value)

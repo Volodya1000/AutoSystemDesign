@@ -1,0 +1,25 @@
+project_name: "social_network_chat"
+description: "High-load messaging module for a social network platform"
+workload:
+  baseline_requests_per_second: 500.0
+  peak_requests_per_second: 2500.0
+  read_ratio: 0.6
+requirements:
+  - type_identifier: latency
+    threshold_value: 150.0
+    percentile: 99.0
+  - type_identifier: availability
+    threshold_value: 99.99
+    operator: ">="
+functional_requirements:
+  - id: "req_msg_01"
+    name: "Direct Message Delivery"
+    text: >
+      Sender sends a direct message to a recipient. The system checks the recipient's presence status.
+      If the recipient is online, the message is delivered immediately via an active WebSocket connection.
+      If the recipient is offline, the message is queued and a Push Notification is sent to their device.
+  - id: "req_msg_02"
+    name: "Read Receipt Acknowledgment"
+    text: >
+      When the recipient opens the chat window, the client application sends a read receipt event.
+      The system updates the message status in the database and pushes the updated status back to the sender.

@@ -1,5 +1,3 @@
-"""Typed request/response models for the LLM transport layer."""
-
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -14,8 +12,6 @@ class MessageRole(StrEnum):
 
 
 class Message(BaseModel):
-    """A single chat message crossing the transport boundary."""
-
     model_config = ConfigDict(extra="forbid")
 
     role: MessageRole
@@ -23,12 +19,6 @@ class Message(BaseModel):
 
 
 class FinishReason(StrEnum):
-    """Provider completion outcomes (not an error taxonomy).
-
-    LENGTH is diagnostic gold: a truncated JSON plus LENGTH means
-    "increase max_tokens", not "the model is bad".
-    """
-
     STOP = "stop"
     LENGTH = "length"
     CONTENT_FILTER = "content_filter"
@@ -47,12 +37,15 @@ class FinishReason(StrEnum):
 
 
 class CompletionRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     messages: list[Message] = Field(min_length=1)
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     max_tokens: int = Field(default=2048, gt=0)
     timeout_seconds: float = Field(default=180.0, gt=0)
+
+    response_schema: dict | None = None
+    response_schema_name: str | None = None
 
 
 class CompletionResult(BaseModel):

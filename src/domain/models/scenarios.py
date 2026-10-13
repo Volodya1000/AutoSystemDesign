@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from domain.models.enums import NodeType
+from domain.models.functional import FunctionalRequirement
 from domain.models.requirements import Requirement
 
 
@@ -24,10 +25,13 @@ class WorkloadProfile(BaseModel):
 
 
 class DesignScenario(BaseModel):
-    identifier: str
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    identifier: str = Field(alias="project_name", default="project")
     description: str
 
-    workload: WorkloadProfile
-    requirements: list[Requirement]
+    workload: WorkloadProfile | None = None
+    requirements: list[Requirement] = Field(default_factory=list)
+    functional_requirements: list[FunctionalRequirement] = Field(default_factory=list)
 
     allowed_node_types: set[NodeType] | None = None

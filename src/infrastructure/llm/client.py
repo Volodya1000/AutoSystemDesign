@@ -1,12 +1,9 @@
-# pylint: disable=wrong-import-position
-"""Thin synchronous adapter over litellm.completion for local endpoints."""
-
 import logging
 import os
 import time
 from typing import Any, Final
 
-os.environ.setdefault("LITELLM_LOG", "ERROR")  # must run before importing litellm
+os.environ.setdefault("LITELLM_LOG", "ERROR")
 
 import litellm
 
@@ -26,13 +23,6 @@ _ARCHITECTURE_GRAPH_SCHEMA_NAME: Final[str] = "architecture_graph"
 
 
 class LiteLlmClient:
-    """Typed transport adapter over litellm.completion.
-
-    Knows litellm only: converts transport failures into LlmConnectionError,
-    takes usage from the endpoint (falling back to litellm.token_counter),
-    and measures latency. Knows nothing about graphs or prompts.
-    """
-
     def __init__(self, settings: AppSettings) -> None:
         self._settings = settings
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
@@ -49,7 +39,7 @@ class LiteLlmClient:
             "drop_params": True,
             "num_retries": 0,
         }
-        response_format: dict[str, Any] | None = self._build_response_format()
+        response_format: dict[str, Any] | None = self._build_response_format(request)
         if response_format is not None:
             call_kwargs["response_format"] = response_format
 
@@ -79,17 +69,23 @@ class LiteLlmClient:
         )
         return result
 
-    def _build_response_format(self) -> dict[str, Any] | None:
+    def _build_response_format(
+        self, request: CompletionRequest
+    ) -> dict[str, Any] | None:
         mode = self._settings.llm.structured_output_mode
         if mode.value == "prompt":
             return None
         if mode.value == "json_object":
             return {"type": mode.value}
+
+        schema = request.response_schema or ArchitectureGraph.model_json_schema()
+        name = request.response_schema_name or _ARCHITECTURE_GRAPH_SCHEMA_NAME
+
         return {
             "type": mode.value,
             "json_schema": {
-                "name": _ARCHITECTURE_GRAPH_SCHEMA_NAME,
-                "schema": ArchitectureGraph.model_json_schema(),
+                "name": name,
+                "schema": schema,
                 "strict": True,
             },
         }
@@ -103,7 +99,7 @@ class LiteLlmClient:
         if choices:
             first_choice: Any = choices[0]
             message: Any = getattr(first_choice, "message", None)
-            content = getattr(message, "content", None) or ""  # reasoning models
+            content = getattr(message, "content", None) or ""
             raw_finish_reason = getattr(first_choice, "finish_reason", None)
         model_name: str = getattr(response, "model", None) or self._settings.llm.model
         return CompletionResult(
@@ -127,7 +123,6 @@ class LiteLlmClient:
         return self._estimate_usage(request, content)
 
     def _estimate_usage(self, request: CompletionRequest, content: str) -> TokenUsage:
-        """Fallback counting when the endpoint does not report usage."""
         try:
             prompt_tokens: int = int(
                 litellm.token_counter(
@@ -140,9 +135,7 @@ class LiteLlmClient:
                 if content
                 else 0
             )
-        except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
-            # token_counter may fail for many provider/dependency reasons;
-            # the usage fallback must never break the actual completion.
+        except Exception:
             return TokenUsage(prompt_tokens=0, completion_tokens=0, estimated=True)
         return TokenUsage(
             prompt_tokens=prompt_tokens,

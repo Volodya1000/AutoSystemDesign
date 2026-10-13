@@ -1,5 +1,3 @@
-"""Task and proposal DTOs crossing the ArchitectureDesigner port."""
-
 from enum import StrEnum
 from typing import Final
 
@@ -7,35 +5,30 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from application.usage import TokenUsage
 from domain.exceptions.architecture_errors import ArchitectureValidationError
+from domain.models.functional import FunctionalRequirement
+from domain.models.roles import ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
+from domain.models.sequence import InteractionScenario
+from domain.models.system_design import SystemContextOutput
 from domain.models.topology import ArchitectureGraph
 
 JSON_DECODE_ERROR_TYPE: Final[str] = "json_decode"
 
 
 class DesignTaskMode(StrEnum):
-    """State of the generation loop: first attempt or a repair iteration.
-
-    Application-level concept: the domain knows nothing about LLM attempts.
-    """
-
     INITIAL = "initial"
     REPAIR = "repair"
 
 
 class ProposalFailureDetail(BaseModel):
-    """A single field-level failure of an LLM payload against the graph schema."""
-
     model_config = ConfigDict(extra="forbid")
 
-    location: str  # JSONPath-style location, e.g. "$.nodes[0].node_type"
+    location: str
     message: str
-    error_type: str  # JSON_DECODE_ERROR_TYPE or a pydantic error type
+    error_type: str
 
 
 class ValidationErrorFeedback(BaseModel):
-    """Validator error mapped into a compact, prompt-friendly form."""
-
     model_config = ConfigDict(extra="forbid")
 
     error_code: str
@@ -49,12 +42,6 @@ class ValidationErrorFeedback(BaseModel):
 
 
 class DesignTask(BaseModel):
-    """One iteration of the generation loop (wraps the domain scenario).
-
-    DesignScenario is the WHAT (domain); DesignTask is the HOW: the loop
-    mode, the previous answer and the accumulated feedback for the repair.
-    """
-
     model_config = ConfigDict(extra="forbid")
 
     scenario: DesignScenario
@@ -64,17 +51,51 @@ class DesignTask(BaseModel):
     parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
 
 
+class SequenceContextTask(BaseModel):
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+    scenario: DesignScenario
+    architecture_graph: ArchitectureGraph
+    mode: DesignTaskMode
+    previous_payload: str | None = None
+    parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
+
+
+class SequenceInteractionTask(BaseModel):
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+    scenario: DesignScenario
+    architecture_graph: ArchitectureGraph
+    requirement: FunctionalRequirement
+    roles_catalog: ProjectRolesCatalog
+    mode: DesignTaskMode
+    previous_payload: str | None = None
+    validation_feedback: list[ValidationErrorFeedback] = Field(default_factory=list)
+    parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
+
+
 class DesignProposal(BaseModel):
-    """Parsed LLM proposal.
-
-    `raw_content` is diagnostic-only: it preserves what the model actually
-    returned (including fields silently dropped during parsing) and is the
-    primary debugging artifact when the capability gate fails.
-    """
-
     model_config = ConfigDict(extra="forbid")
 
     graph: ArchitectureGraph
+    raw_content: str
+    usage: TokenUsage
+    latency_seconds: float = Field(default=0.0, ge=0.0)
+
+
+class SequenceContextProposal(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    context_output: SystemContextOutput
+    raw_content: str
+    usage: TokenUsage
+    latency_seconds: float = Field(default=0.0, ge=0.0)
+
+
+class SequenceInteractionProposal(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    interaction_scenario: InteractionScenario
     raw_content: str
     usage: TokenUsage
     latency_seconds: float = Field(default=0.0, ge=0.0)
