@@ -1,0 +1,81 @@
+"""Ordered execution of stages. Contains no domain logic."""
+
+from __future__ import annotations
+
+import logging
+from collections.abc import Sequence
+from pathlib import Path
+from types import MappingProxyType
+
+from application.pipeline.context import StageContext
+from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.ports import ArtifactWriter, PipelineReporter
+from application.pipeline.stage import PipelineStage
+from domain.models import DesignScenario
+
+_logger = logging.getLogger("pipeline.runner")
+
+
+class PipelineRunner:
+    def __init__(
+        self,
+        stages: Sequence[PipelineStage],
+        reporter: PipelineReporter,
+    ) -> None:
+        stages_tuple: tuple[PipelineStage, ...] = tuple(stages)
+        if not stages_tuple:
+            raise ValueError("PipelineRunner requires at least one stage")
+        self._validate_stages(stages_tuple)
+        self._stages: tuple[PipelineStage, ...] = stages_tuple
+        self._reporter: PipelineReporter = reporter
+
+    def run(
+        self,
+        scenario: DesignScenario,
+        out_dir: Path,
+        writer: ArtifactWriter,
+    ) -> int:
+        upstream: dict[str, StageOutcome[object]] = {}
+        outcomes: list[StageOutcome[object]] = []
+
+        for stage in self._stages:
+            _logger.info("=== STAGE: %s ===", stage.name)
+            context = StageContext(
+                scenario=scenario,
+                out_dir=out_dir,
+                writer=writer,
+                upstream=MappingProxyType(dict(upstream)),
+            )
+            outcome: StageOutcome[object] = stage.run(context)
+            outcomes.append(outcome)
+            upstream[stage.name] = outcome
+
+            if outcome.status is StageStatus.FAILED:
+                self._reporter.report(outcomes)
+                return 1
+
+        self._reporter.report(outcomes)
+        return 0 if all(o.status is StageStatus.SUCCEEDED for o in outcomes) else 1
+
+    @staticmethod
+    def _validate_stages(stages: tuple[PipelineStage, ...]) -> None:
+        """Validates stage-name uniqueness and dependency ordering.
+
+        Results are keyed by stage name in ``upstream``, so duplicate names
+        would silently overwrite each other; dependencies must reference
+        stages scheduled before them.
+        """
+        seen: set[str] = set()
+        for stage in stages:
+            if stage.name in seen:
+                raise ValueError(
+                    f"Duplicate stage name '{stage.name}'; stage names must "
+                    f"be unique because outcomes are keyed by name"
+                )
+            for dependency in stage.depends_on:
+                if dependency not in seen:
+                    raise ValueError(
+                        f"Stage '{stage.name}' depends on '{dependency}', "
+                        f"which is not scheduled before it"
+                    )
+            seen.add(stage.name)

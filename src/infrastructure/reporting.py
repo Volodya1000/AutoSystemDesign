@@ -1,25 +1,29 @@
-"""Console reporting shared by the design and pipeline runners.
+"""Logging utilities and port adapters.
 
-Extracted from scripts/generate_design.py so the pipeline runner
-(scripts/generate_pipeline.py) can reuse the same attempt-level and
-token-level diagnostics instead of dropping them.
+This module implements the application-level reporting ports. It is the
+only place where application-level reporting meets the ``logging`` module.
 """
+
+from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
-from typing import Any
 
+from application.pipeline.outcome import StageOutcome, StageStatus
 from application.results import GenerationAttempt
 from application.usage import TokenUsage
 from config.root import AppSettings
-from domain.models.scenarios import DesignScenario
+from domain.models import DesignScenario
 from infrastructure.prompts.fragments import render_scenario_summary
 
-_logger: logging.Logger = logging.getLogger(__name__)
+_logger = logging.getLogger("pipeline.report")
+
+
+# --- existing helpers -------------------------------------------------------
 
 
 def log_header(settings: AppSettings, scenario: DesignScenario) -> None:
-    """Logs the effective configuration and the scenario being generated."""
+    """Logs the effective configuration and the scenario summary."""
     _logger.info("=" * 64)
     _logger.info("AutoSystemDesign - architecture generation run")
     _logger.info("=" * 64)
@@ -37,12 +41,9 @@ def log_header(settings: AppSettings, scenario: DesignScenario) -> None:
         _logger.info("  %s", line)
 
 
-def log_attempts(
-    attempts: Sequence[GenerationAttempt[Any]],
-    label: str = "Generation attempts",
-) -> None:
-    """Logs per-attempt parsed/validation/latency/token details."""
-    _logger.info("%s", label)
+def log_attempts(attempts: Sequence[GenerationAttempt], label: str) -> None:
+    """Logs per-attempt outcomes of a repair loop."""
+    _logger.info(label)
     for attempt in attempts:
         parsed_mark: str = "parsed" if attempt.parsed else "UNPARSEABLE"
         if attempt.validation is None:
@@ -76,16 +77,73 @@ def log_attempts(
             )
 
 
-def log_token_totals(
-    total_usage: TokenUsage,
-    wall_seconds: float | None = None,
-) -> None:
-    """Logs the aggregated token accounting and, optionally, wall time."""
+def log_token_totals(usage: TokenUsage, generation_seconds: float) -> None:
+    """Logs token accounting and generation wall time for one call."""
     _logger.info(
         "Tokens: prompt=%d, completion=%d, total=%d",
-        total_usage.prompt_tokens,
-        total_usage.completion_tokens,
-        total_usage.total_tokens,
+        usage.prompt_tokens,
+        usage.completion_tokens,
+        usage.total_tokens,
     )
-    if wall_seconds is not None:
-        _logger.info("Wall time: %.1f s", wall_seconds)
+    _logger.info("Generation time: %.1f s", generation_seconds)
+
+
+# --- port adapters ----------------------------------------------------------
+
+
+class LoggingGenerationReporter:
+    """Adapter: GenerationReporter port -> existing logging helpers."""
+
+    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None:
+        log_attempts(attempts, label)
+
+    def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:
+        log_token_totals(usage, generation_seconds)
+
+
+class LoggingPipelineReporter:
+    """Adapter: PipelineReporter port -> aggregated INFO summary."""
+
+    def report(self, outcomes: Sequence[StageOutcome[object]]) -> None:
+        overall: StageStatus = self._overall_status(outcomes)
+        _logger.info("=" * 64)
+        _logger.info("Pipeline summary")
+        _logger.info("  status : %s", overall.value)
+
+        total_seconds: float = 0.0
+        total_tokens: int = 0
+        total_artifacts: int = 0
+
+        for outcome in outcomes:
+            total_seconds += outcome.duration_seconds
+            total_tokens += outcome.total_tokens
+            total_artifacts += len(outcome.artifacts)
+            _logger.info(
+                "  stage %-10s : %-9s  %.1f s  %d tok  %d artifacts%s",
+                outcome.name,
+                outcome.status.value,
+                outcome.duration_seconds,
+                outcome.total_tokens,
+                len(outcome.artifacts),
+                f"  ({outcome.message})" if outcome.message else "",
+            )
+            for warning in outcome.warnings:
+                _logger.warning("    [%s] %s", outcome.name, warning)
+
+        _logger.info(
+            "  total              : %.1f s  %d tok  %d artifacts",
+            total_seconds,
+            total_tokens,
+            total_artifacts,
+        )
+        _logger.info("=" * 64)
+
+    @staticmethod
+    def _overall_status(
+        outcomes: Sequence[StageOutcome[object]],
+    ) -> StageStatus:
+        if any(o.status is StageStatus.FAILED for o in outcomes):
+            return StageStatus.FAILED
+        if any(o.status is StageStatus.PARTIAL for o in outcomes):
+            return StageStatus.PARTIAL
+        return StageStatus.SUCCEEDED

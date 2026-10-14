@@ -7,7 +7,7 @@ llm:
   model: openai/qwen2.5-coder-14b-instruct
   temperature: 0.2
   max_tokens: 16000
-  timeout_seconds: 380.0
+  timeout_seconds: 500.0
   structured_output_mode: prompt
 generation:
   max_attempts: 3
