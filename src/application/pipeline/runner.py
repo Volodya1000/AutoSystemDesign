@@ -1,4 +1,10 @@
-"""Ordered execution of stages. Contains no domain logic."""
+"""Ordered execution of stages. Contains no domain logic.
+
+Exit-code contract:
+    0 - every stage produced its required artifacts (SUCCEEDED or PARTIAL)
+    1 - at least one stage FAILED (required artifacts missing)
+    2 - configuration, scenario, or LLM endpoint failure (handled by CLI)
+"""
 
 from __future__ import annotations
 
@@ -55,7 +61,12 @@ class PipelineRunner:
                 return 1
 
         self._reporter.report(outcomes)
-        return 0 if all(o.status is StageStatus.SUCCEEDED for o in outcomes) else 1
+        # PARTIAL is not a failure: diagram rendering is best-effort by
+        # design. Required artifacts (JSON graph, roles catalog, ASTs) are
+        # produced whenever the stage is not FAILED. Callers that want to
+        # gate on diagrams should inspect the summary line instead of the
+        # exit code.
+        return 0
 
     @staticmethod
     def _validate_stages(stages: tuple[PipelineStage, ...]) -> None:

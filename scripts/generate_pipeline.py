@@ -10,10 +10,11 @@ Usage (from the repository root, with LM Studio running):
 CLI flags override visualisation settings from config.yaml.
 
 Exit codes:
-    0 - all stages succeeded
-    1 - a required stage failed, or optional artifacts (diagrams) were lost
-        (see the PARTIAL summary in the log)
-    2 - configuration, scenario, or LLM endpoint failure
+    0 - all required artifacts produced; PARTIAL (diagram failures only)
+        is still 0 because diagrams are best-effort. Inspect the summary
+        line for the exact status.
+    1 - a required stage failed (missing JSON/AST artifacts).
+    2 - configuration, scenario, or LLM endpoint failure.
 """
 
 from __future__ import annotations
@@ -58,8 +59,6 @@ def main() -> int:
 
     log_header(settings, scenario)
 
-    # Wrapping both the composition and the run: some factories could, in
-    # principle, raise LlmConnectionError when constructing the LLM client.
     try:
         wiring = build_pipeline(
             diagram_server=server,

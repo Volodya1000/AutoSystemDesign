@@ -42,7 +42,7 @@ class PlantUmlC4Renderer:
         base_name: str,
         out_dir: Path,
     ) -> DiagramRenderResult:
-        return _render_and_write(
+        return render_and_write(
             service_factory=lambda: DiagramService(
                 image_renderer=resolve_image_renderer(self._server),
                 image_format=self._image_format,
@@ -67,7 +67,7 @@ class PlantUmlSequenceRenderer:
         base_name: str,
         out_dir: Path,
     ) -> DiagramRenderResult:
-        return _render_and_write(
+        return render_and_write(
             service_factory=lambda: DiagramService(
                 source_builder=SequenceDiagramBuilder(),
                 image_renderer=resolve_image_renderer(self._server),
@@ -80,7 +80,7 @@ class PlantUmlSequenceRenderer:
         )
 
 
-def _render_and_write(
+def render_and_write(
     *,
     service_factory: Callable[[], DiagramService],
     subject: ArchitectureGraph | InteractionScenario,
@@ -88,13 +88,13 @@ def _render_and_write(
     base_name: str,
     out_dir: Path,
 ) -> DiagramRenderResult:
-    """Builds the service, generates source, renders, writes; never raises
-    for expected visualization errors."""
+    """Builds the service, generates source, renders, writes.
+
+    Never raises for expected visualization errors: they become warnings.
+    Unexpected exceptions (programming errors) propagate untouched.
+    """
     warnings: list[str] = []
 
-    # Service construction + source generation: both are treated as
-    # rendering-side operations and must not surface as exceptions for
-    # expected failures.
     try:
         service = service_factory()
         artifacts = service.generate(subject, title=title)

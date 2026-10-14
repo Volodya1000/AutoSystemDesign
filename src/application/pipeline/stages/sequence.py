@@ -14,6 +14,7 @@ from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.ports import DiagramRenderer, GenerationReporter
 from application.pipeline.services import SequenceGenerator
 from application.results import GenerationAttempt, SequenceGenerationResult
+from domain.models import DesignScenario
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 
@@ -55,6 +56,30 @@ def plan_base_names(
     return base_names
 
 
+def _functional_requirement_ids(scenario: DesignScenario) -> list[str]:
+    """Best-effort extraction of functional-requirement identifiers.
+
+    Supports both common layouts and returns [] when the model does not
+    expose them; a fail-fast check is only possible when they are visible.
+    """
+    ids: list[str] = []
+
+    functional = getattr(scenario, "functional_requirements", None)
+    if functional:
+        for req in functional:
+            identifier = getattr(req, "identifier", None)
+            if identifier:
+                ids.append(str(identifier))
+        return ids
+
+    for req in getattr(scenario, "requirements", []) or []:
+        if getattr(req, "type_identifier", None) == "functional":
+            identifier = getattr(req, "identifier", None)
+            if identifier:
+                ids.append(str(identifier))
+    return ids
+
+
 class SequenceStage:
     name: str = "sequence"
     depends_on: tuple[str, ...] = ("c4",)
@@ -76,12 +101,22 @@ class SequenceStage:
         graph: ArchitectureGraph = require_payload(
             context, upstream_name, ArchitectureGraph
         )
+        scenario = context.scenario
+
+        # Fail-fast: detect identifier collisions before spending tokens on
+        # LLM calls. Skips silently if the scenario model does not expose
+        # functional requirement identifiers.
+        early_ids = _functional_requirement_ids(scenario)
+        if early_ids:
+            try:
+                plan_base_names(scenario.identifier, early_ids)
+            except ValueError as error:
+                _logger.error("Identifier collision: %s", error)
+                return self._failed(0.0, 0, str(error))
 
         stage_start: float = time.perf_counter()
         generation_start: float = time.perf_counter()
-        result: SequenceGenerationResult = self._service.generate(
-            context.scenario, graph
-        )
+        result: SequenceGenerationResult = self._service.generate(scenario, graph)
         generation_seconds: float = time.perf_counter() - generation_start
 
         _logger.info(
@@ -91,11 +126,21 @@ class SequenceStage:
         self._reporter.attempts(result.roles_attempts, "Roles catalog attempts")
         self._reporter.tokens(result.total_usage, generation_seconds)
 
+        # Post-generation guard: catches collisions that the early check
+        # could not see (e.g. the model did not expose the identifiers).
+        try:
+            base_names: Mapping[str, str] = plan_base_names(
+                scenario.identifier, list(result.scenarios_results)
+            )
+        except ValueError as error:
+            _logger.error("Identifier collision: %s", error)
+            return self._failed(
+                time.perf_counter() - stage_start,
+                result.total_usage.total_tokens,
+                str(error),
+            )
+
         artifacts: list[Path] = self._write_roles_catalog(context, result)
-        base_names: Mapping[str, str] = plan_base_names(
-            context.scenario.identifier,
-            list(result.scenarios_results),
-        )
         req_artifacts, warnings = self._process_all_requirements(
             context, base_names, result.scenarios_results
         )
@@ -112,6 +157,21 @@ class SequenceStage:
         )
 
     # ----------------------------------------------------------------- helpers
+
+    def _failed(
+        self,
+        duration_seconds: float,
+        total_tokens: int,
+        message: str,
+    ) -> StageOutcome[None]:
+        return StageOutcome(
+            name=self.name,
+            status=StageStatus.FAILED,
+            duration_seconds=duration_seconds,
+            total_tokens=total_tokens,
+            payload=None,
+            message=message,
+        )
 
     def _write_roles_catalog(
         self,

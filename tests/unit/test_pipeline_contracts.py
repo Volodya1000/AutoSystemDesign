@@ -24,6 +24,11 @@ from application.pipeline.stages.sequence import plan_base_names
 from application.results import GenerationAttempt
 from application.usage import TokenUsage
 from domain.models.topology import ArchitectureGraph
+from infrastructure.visualisation.plantuml import (
+    DiagramRenderingError,
+    DiagramSavingError,
+)
+from infrastructure.visualisation.plantuml import renderers as renderers_mod
 
 # --- fakes ------------------------------------------------------------------
 
@@ -74,10 +79,6 @@ class FakeStage:
             total_tokens=0,
             payload=self.payload,
         )
-
-
-def _usage(tokens: int = 0) -> TokenUsage:
-    return MagicMock(spec=TokenUsage, total_tokens=tokens)
 
 
 def _scenario() -> MagicMock:
@@ -166,12 +167,15 @@ def test_runner_returns_1_on_stage_failed(tmp_path: Path) -> None:
     assert reporter.reports[-1][0].status is StageStatus.FAILED
 
 
-def test_runner_returns_1_on_partial(tmp_path: Path) -> None:
+def test_runner_partial_is_not_a_failure(tmp_path: Path) -> None:
+    """PARTIAL means optional artifacts (diagrams) failed; exit code is 0."""
+    reporter = CapturingPipelineReporter()
     runner = PipelineRunner(
         stages=[FakeStage(name="c4", status=StageStatus.PARTIAL)],
-        reporter=CapturingPipelineReporter(),
+        reporter=reporter,
     )
-    assert runner.run(_scenario(), tmp_path, InMemoryWriter()) == 1
+    assert runner.run(_scenario(), tmp_path, InMemoryWriter()) == 0
+    assert reporter.reports[-1][0].status is StageStatus.PARTIAL
 
 
 def test_runner_stops_after_failed_stage(tmp_path: Path) -> None:
@@ -219,18 +223,101 @@ def test_require_payload_rejects_wrong_type(tmp_path: Path) -> None:
         require_payload(ctx, "c4", ArchitectureGraph)
 
 
-# --- renderer contract ------------------------------------------------------
+# --- render_and_write contract ---------------------------------------------
 
 
-def test_renderer_captures_expected_errors_as_warnings() -> None:
-    """DiagramRenderResult never raises for expected visualization errors."""
-    result = DiagramRenderResult(
-        artifacts=(),
-        warnings=("Rendering failed for x: boom",),
-        image_rendered=False,
+def test_render_and_write_captures_source_generation_error() -> None:
+    """DiagramRenderingError during service.generate() becomes a warning."""
+    service = MagicMock()
+    service.generate.side_effect = DiagramRenderingError("server down")
+    result = renderers_mod.render_and_write(
+        service_factory=lambda: service,
+        subject=MagicMock(),
+        title="t",
+        base_name="b",
+        out_dir=Path("."),
     )
-    assert result.warnings
+    assert result.warnings and "server down" in result.warnings[0]
     assert not result.artifacts
+    assert result.image_rendered is False
+
+
+def test_render_and_write_image_failure_keeps_source(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """render_image() fails but the source is still written to disk."""
+    service = MagicMock()
+    service.generate.return_value = "artifacts"
+    service.render_image.side_effect = DiagramRenderingError("no server")
+
+    written_paths: list[Path] = [tmp_path / "b.puml"]
+    fake_writer = MagicMock()
+    fake_writer.write.return_value = written_paths
+    monkeypatch.setattr(renderers_mod, "DiagramFileWriter", lambda: fake_writer)
+
+    result = renderers_mod.render_and_write(
+        service_factory=lambda: service,
+        subject=MagicMock(),
+        title="t",
+        base_name="b",
+        out_dir=tmp_path,
+    )
+    assert result.artifacts == tuple(written_paths)
+    assert result.warnings and "no server" in result.warnings[0]
+    assert result.image_rendered is False
+
+
+def test_render_and_write_saving_failure_returns_warning(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """DiagramSavingError on write() becomes a warning, artifacts empty."""
+    service = MagicMock()
+    service.generate.return_value = "artifacts"
+    service.render_image.return_value = b"img"
+
+    fake_writer = MagicMock()
+    fake_writer.write.side_effect = DiagramSavingError("disk full")
+    monkeypatch.setattr(renderers_mod, "DiagramFileWriter", lambda: fake_writer)
+
+    result = renderers_mod.render_and_write(
+        service_factory=lambda: service,
+        subject=MagicMock(),
+        title="t",
+        base_name="b",
+        out_dir=tmp_path,
+    )
+    assert not result.artifacts
+    assert result.warnings and "disk full" in result.warnings[0]
+    assert result.image_rendered is True
+
+
+def test_render_and_write_propagates_unexpected_error() -> None:
+    """Programming errors (e.g. ValueError) are not swallowed."""
+
+    def bad_factory() -> object:
+        raise ValueError("programming error")
+
+    with pytest.raises(ValueError, match="programming error"):
+        renderers_mod.render_and_write(
+            service_factory=bad_factory,  # type: ignore[arg-type]
+            subject=MagicMock(),
+            title="t",
+            base_name="b",
+            out_dir=Path("."),
+        )
+
+
+def test_render_and_write_propagates_unexpected_generate_error() -> None:
+    service = MagicMock()
+    service.generate.side_effect = RuntimeError("not a diagram error")
+    with pytest.raises(RuntimeError, match="not a diagram error"):
+        renderers_mod.render_and_write(
+            service_factory=lambda: service,
+            subject=MagicMock(),
+            title="t",
+            base_name="b",
+            out_dir=Path("."),
+        )
 
 
 # --- requirement id collisions ----------------------------------------------
@@ -244,3 +331,16 @@ def test_requirement_id_collision_detected() -> None:
 def test_requirement_ids_do_not_collide() -> None:
     names = plan_base_names("scn", ["REQ-1", "REQ-2"])
     assert set(names.values()) == {"scn_seq_req_1", "scn_seq_req_2"}
+
+
+# --- DiagramRenderResult sanity --------------------------------------------
+
+
+def test_diagram_render_result_is_a_value_object() -> None:
+    result = DiagramRenderResult(
+        artifacts=(),
+        warnings=("boom",),
+        image_rendered=False,
+    )
+    assert result.warnings
+    assert not result.artifacts
