@@ -3,6 +3,11 @@
 Contract: expected visualization errors (DiagramRenderingError,
 DiagramSavingError) are converted to warnings. Any other exception is a
 programming error and is propagated.
+
+This module is diagram-type agnostic: the concrete ``DiagramSourceBuilder``
+injected into ``PlantUmlDiagramRenderer`` decides what is rendered. Adding a
+new diagram type means implementing a builder and wiring it once in the
+composition root; this module does not change.
 """
 
 from __future__ import annotations
@@ -12,31 +17,42 @@ from collections.abc import Callable
 from pathlib import Path
 
 from application.pipeline.outcome import DiagramRenderResult
-from domain.models.sequence import InteractionScenario
-from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml import (
     DiagramFileWriter,
     DiagramImageFormat,
     DiagramRenderingError,
     DiagramSavingError,
     DiagramService,
+    DiagramSourceBuilder,
     resolve_image_renderer,
-)
-from infrastructure.visualisation.plantuml.sequence_builder import (
-    SequenceDiagramBuilder,
 )
 
 _logger = logging.getLogger("pipeline.diagram")
 
 
-class PlantUmlC4Renderer:
-    def __init__(self, *, server: str, image_format: DiagramImageFormat) -> None:
+class PlantUmlDiagramRenderer[SubjectT]:
+    """Generic PlantUML renderer driven by an injected source builder.
+
+    The renderer is diagram-type agnostic: ``source_builder`` decides what
+    is rendered. Adding a new diagram type only requires a new
+    ``DiagramSourceBuilder`` implementation and one wiring line in
+    ``infrastructure.composition``.
+    """
+
+    def __init__(
+        self,
+        *,
+        source_builder: DiagramSourceBuilder,
+        server: str,
+        image_format: DiagramImageFormat,
+    ) -> None:
+        self._source_builder: DiagramSourceBuilder = source_builder
         self._server: str = server
         self._image_format: DiagramImageFormat = image_format
 
     def render(
         self,
-        subject: ArchitectureGraph,
+        subject: SubjectT,
         *,
         title: str,
         base_name: str,
@@ -44,6 +60,7 @@ class PlantUmlC4Renderer:
     ) -> DiagramRenderResult:
         return render_and_write(
             service_factory=lambda: DiagramService(
+                source_builder=self._source_builder,
                 image_renderer=resolve_image_renderer(self._server),
                 image_format=self._image_format,
             ),
@@ -54,36 +71,10 @@ class PlantUmlC4Renderer:
         )
 
 
-class PlantUmlSequenceRenderer:
-    def __init__(self, *, server: str, image_format: DiagramImageFormat) -> None:
-        self._server: str = server
-        self._image_format: DiagramImageFormat = image_format
-
-    def render(
-        self,
-        subject: InteractionScenario,
-        *,
-        title: str,
-        base_name: str,
-        out_dir: Path,
-    ) -> DiagramRenderResult:
-        return render_and_write(
-            service_factory=lambda: DiagramService(
-                source_builder=SequenceDiagramBuilder(),
-                image_renderer=resolve_image_renderer(self._server),
-                image_format=self._image_format,
-            ),
-            subject=subject,
-            title=title,
-            base_name=base_name,
-            out_dir=out_dir,
-        )
-
-
-def render_and_write(
+def render_and_write[SubjectT](
     *,
     service_factory: Callable[[], DiagramService],
-    subject: ArchitectureGraph | InteractionScenario,
+    subject: SubjectT,
     title: str,
     base_name: str,
     out_dir: Path,

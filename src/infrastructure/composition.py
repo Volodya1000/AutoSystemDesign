@@ -1,6 +1,10 @@
 """Single composition root for the application.
 
-Every service is wired here explicitly; there is no DI container.
+Every service is wired here explicitly; there is no DI container. This
+module is expected to change when a new component (a stage, a renderer,
+a validator) is added: that is the point of a composition root. The
+diagram renderer itself is diagram-type agnostic, so adding a new
+diagram type touches only this file plus the new builder.
 """
 
 from __future__ import annotations
@@ -42,9 +46,17 @@ from infrastructure.reporting import (
 )
 from infrastructure.visualisation.openapi.renderers import DefaultApiArtifactRenderer
 from infrastructure.visualisation.plantuml import DiagramImageFormat
+from infrastructure.visualisation.plantuml.c4_container_builder import (
+    C4ContainerDiagramBuilder,
+)
+from infrastructure.visualisation.plantuml.diagram_service import (
+    DiagramSourceBuilder,
+)
 from infrastructure.visualisation.plantuml.renderers import (
-    PlantUmlC4Renderer,
-    PlantUmlSequenceRenderer,
+    PlantUmlDiagramRenderer,
+)
+from infrastructure.visualisation.plantuml.sequence_builder import (
+    SequenceDiagramBuilder,
 )
 
 
@@ -99,6 +111,28 @@ def build_api_generation_service() -> ApiGenerationService:
     )
 
 
+def _build_diagram_renderer(
+    source_builder: DiagramSourceBuilder,
+    *,
+    server: str,
+    image_format: DiagramImageFormat,
+    render: bool,
+) -> PlantUmlDiagramRenderer[object] | None:
+    """Factory that wires a PlantUML renderer for any diagram type.
+
+    Kept private to the composition root: adding a diagram type is a new
+    ``source_builder`` plus one call to this helper, with no change to
+    ``infrastructure.visualisation.plantuml.renderers``.
+    """
+    if not render:
+        return None
+    return PlantUmlDiagramRenderer(
+        source_builder=source_builder,
+        server=server,
+        image_format=image_format,
+    )
+
+
 @dataclass(frozen=True)
 class PipelineWiring:
     runner: PipelineRunner
@@ -112,15 +146,17 @@ def build_pipeline(
     render_diagrams: bool,
 ) -> PipelineWiring:
     """Builds the full C4 + Sequence + REST API design pipeline."""
-    c4_renderer = (
-        PlantUmlC4Renderer(server=diagram_server, image_format=image_format)
-        if render_diagrams
-        else None
+    c4_renderer = _build_diagram_renderer(
+        C4ContainerDiagramBuilder(),
+        server=diagram_server,
+        image_format=image_format,
+        render=render_diagrams,
     )
-    sequence_renderer = (
-        PlantUmlSequenceRenderer(server=diagram_server, image_format=image_format)
-        if render_diagrams
-        else None
+    sequence_renderer = _build_diagram_renderer(
+        SequenceDiagramBuilder(),
+        server=diagram_server,
+        image_format=image_format,
+        render=render_diagrams,
     )
     generation_reporter = LoggingGenerationReporter()
 
