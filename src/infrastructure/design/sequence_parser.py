@@ -1,3 +1,5 @@
+"""JSON extraction and parsing for sequence-diagram models."""
+
 import json
 from typing import Any
 
@@ -8,7 +10,8 @@ from application.tasks import JSON_DECODE_ERROR_TYPE, ProposalFailureDetail
 from application.usage import TokenUsage
 from domain.models.roles import ProjectRolesCatalog
 from domain.models.sequence import InteractionScenario
-from infrastructure.design.parser import _format_error_location, extract_json_payload
+from infrastructure.design._error_location import format_error_location
+from infrastructure.design.parser import extract_json_payload
 
 
 def parse_roles_catalog(payload: str, usage: TokenUsage) -> ProjectRolesCatalog:
@@ -33,7 +36,7 @@ def parse_roles_catalog(payload: str, usage: TokenUsage) -> ProjectRolesCatalog:
     except ValidationError as validation_error:
         failure_details = [
             ProposalFailureDetail(
-                location=_format_error_location(tuple(entry["loc"])),
+                location=format_error_location(tuple(entry["loc"])),
                 message=entry["msg"],
                 error_type=entry["type"],
             )
@@ -68,7 +71,7 @@ def parse_interaction_scenario(payload: str, usage: TokenUsage) -> InteractionSc
     except ValidationError as validation_error:
         failure_details = [
             ProposalFailureDetail(
-                location=_format_error_location(tuple(entry["loc"])),
+                location=format_error_location(tuple(entry["loc"])),
                 message=entry["msg"],
                 error_type=entry["type"],
             )
