@@ -1,10 +1,16 @@
+"""litellm transport adapter: request assembly and response translation.
+
+Request kwargs, response parsing, finish-reason mapping and logging stay
+here because they describe the transport. Token accounting lives in
+``usage_extractor`` and is delegated from ``_to_completion_result``.
+"""
+
 import logging
 import time
 from typing import Any, Final
 
 import litellm
 
-from application.usage import TokenUsage
 from config.root import AppSettings
 from domain.models.topology import ArchitectureGraph
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
@@ -13,6 +19,7 @@ from infrastructure.llm.models import (
     CompletionResult,
     FinishReason,
 )
+from infrastructure.llm.usage_extractor import extract_usage
 
 litellm.suppress_debug_info = True
 
@@ -103,39 +110,11 @@ class LiteLlmClient:
             model=model_name,
             content=content,
             finish_reason=FinishReason.from_raw(raw_finish_reason),
-            usage=self._extract_usage(response, request, content),
+            usage=extract_usage(
+                getattr(response, "usage", None),
+                request,
+                content,
+                model=self._settings.llm.model,
+            ),
             latency_seconds=latency_seconds,
-        )
-
-    def _extract_usage(
-        self, response: Any, request: CompletionRequest, content: str
-    ) -> TokenUsage:
-        raw_usage: Any = getattr(response, "usage", None)
-        prompt_tokens: int = int(getattr(raw_usage, "prompt_tokens", 0) or 0)
-        completion_tokens: int = int(getattr(raw_usage, "completion_tokens", 0) or 0)
-        if prompt_tokens > 0 or completion_tokens > 0:
-            return TokenUsage(
-                prompt_tokens=prompt_tokens, completion_tokens=completion_tokens
-            )
-        return self._estimate_usage(request, content)
-
-    def _estimate_usage(self, request: CompletionRequest, content: str) -> TokenUsage:
-        try:
-            prompt_tokens: int = int(
-                litellm.token_counter(
-                    model=self._settings.llm.model,
-                    messages=[message.model_dump() for message in request.messages],
-                )
-            )
-            completion_tokens: int = (
-                int(litellm.token_counter(model=self._settings.llm.model, text=content))
-                if content
-                else 0
-            )
-        except (ValueError, KeyError, TypeError):
-            return TokenUsage(prompt_tokens=0, completion_tokens=0, estimated=True)
-        return TokenUsage(
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-            estimated=True,
         )
