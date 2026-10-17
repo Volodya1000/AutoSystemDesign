@@ -12,7 +12,6 @@ from typing import Any, Final
 import litellm
 
 from config.root import AppSettings
-from domain.models.topology import ArchitectureGraph
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
 from infrastructure.llm.models import (
     CompletionRequest,
@@ -23,7 +22,7 @@ from infrastructure.llm.usage_extractor import extract_usage
 
 litellm.suppress_debug_info = True
 
-_ARCHITECTURE_GRAPH_SCHEMA_NAME: Final[str] = "architecture_graph"
+_DEFAULT_SCHEMA_NAME: Final[str] = "response"
 
 
 class LiteLlmClient:
@@ -82,14 +81,18 @@ class LiteLlmClient:
         if mode.value == "json_object":
             return {"type": mode.value}
 
-        schema = request.response_schema or ArchitectureGraph.model_json_schema()
-        name = request.response_schema_name or _ARCHITECTURE_GRAPH_SCHEMA_NAME
-
+        if request.response_schema is None:
+            raise ValueError(
+                "structured_output_mode='json_schema' requires "
+                "request.response_schema; pass the target model's JSON "
+                "Schema at the call site."
+            )
+        name = request.response_schema_name or _DEFAULT_SCHEMA_NAME
         return {
             "type": mode.value,
             "json_schema": {
                 "name": name,
-                "schema": schema,
+                "schema": request.response_schema,
                 "strict": True,
             },
         }

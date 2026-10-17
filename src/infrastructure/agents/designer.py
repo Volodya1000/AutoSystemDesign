@@ -41,6 +41,8 @@ class ArchitectureDesignerAgent:
             temperature=self._settings.llm.temperature,
             max_tokens=self._settings.llm.max_tokens,
             timeout_seconds=self._settings.llm.timeout_seconds,
+            response_schema=ArchitectureGraph.model_json_schema(),
+            response_schema_name="architecture_graph",
         )
         completion: CompletionResult = self._client.complete(request)
         self.logger.debug("Raw LLM output:\n%s", completion.content)

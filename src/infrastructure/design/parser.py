@@ -10,6 +10,7 @@ from application.exceptions.generation_exceptions import DesignProposalParsingEr
 from application.tasks import JSON_DECODE_ERROR_TYPE, ProposalFailureDetail
 from application.usage import TokenUsage
 from domain.models.topology import ArchitectureGraph
+from infrastructure.design._error_location import format_error_location
 
 _THINK_BLOCK_PATTERN: re.Pattern[str] = re.compile(r"", re.DOTALL)
 _CODE_FENCE_PATTERN: re.Pattern[str] = re.compile(
@@ -20,7 +21,7 @@ _CODE_FENCE_PATTERN: re.Pattern[str] = re.compile(
 def extract_json_payload(raw: str) -> str:
     """Extracts the JSON payload from a raw LLM completion.
 
-    Steps: strip Qwen-style  think blocks, unwrap markdown code fences, then
+    Steps: strip Qwen-style think blocks, unwrap markdown code fences, then
     fall back to the substring between the first '{' and the last '}'.
     """
     text: str = _THINK_BLOCK_PATTERN.sub("", raw).strip()
@@ -61,7 +62,7 @@ def parse_architecture_graph(payload: str, usage: TokenUsage) -> ArchitectureGra
     except ValidationError as validation_error:
         failure_details: list[ProposalFailureDetail] = [
             ProposalFailureDetail(
-                location=_format_error_location(tuple(entry["loc"])),
+                location=format_error_location(tuple(entry["loc"])),
                 message=entry["msg"],
                 error_type=entry["type"],
             )
@@ -72,16 +73,3 @@ def parse_architecture_graph(payload: str, usage: TokenUsage) -> ArchitectureGra
             failure_details=failure_details,
             usage=usage,
         ) from validation_error
-
-
-def _format_error_location(loc: tuple[int | str, ...]) -> str:
-    """Formats a pydantic error location as a JSONPath-like string."""
-    if not loc:
-        return "$"
-    path: str = str(loc[0])
-    for part in loc[1:]:
-        if isinstance(part, int):
-            path = f"{path}[{part}]"
-        else:
-            path = f"{path}.{part}"
-    return f"$.{path}"

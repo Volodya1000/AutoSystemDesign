@@ -11,7 +11,8 @@ from application.exceptions.generation_exceptions import DesignProposalParsingEr
 from application.tasks import JSON_DECODE_ERROR_TYPE, ProposalFailureDetail
 from application.usage import TokenUsage
 from domain.models.api import ApiDesign
-from infrastructure.design.parser import _format_error_location, extract_json_payload
+from infrastructure.design._error_location import format_error_location
+from infrastructure.design.parser import extract_json_payload
 
 
 def parse_api_design(payload: str, usage: TokenUsage) -> ApiDesign:
@@ -36,7 +37,7 @@ def parse_api_design(payload: str, usage: TokenUsage) -> ApiDesign:
     except ValidationError as validation_error:
         failure_details: list[ProposalFailureDetail] = [
             ProposalFailureDetail(
-                location=_format_error_location(tuple(entry["loc"])),
+                location=format_error_location(tuple(entry["loc"])),
                 message=entry["msg"],
                 error_type=entry["type"],
             )
