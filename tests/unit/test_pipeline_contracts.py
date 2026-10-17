@@ -20,7 +20,7 @@ from application.pipeline.outcome import (
     StageStatus,
 )
 from application.pipeline.runner import PipelineRunner
-from application.pipeline.stages.sequence import plan_base_names
+from application.pipeline.stages._naming import plan_base_names
 from application.results import GenerationAttempt
 from application.usage import TokenUsage
 from domain.models.topology import ArchitectureGraph

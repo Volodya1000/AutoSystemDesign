@@ -1,11 +1,15 @@
-"""Stage 2: roles catalog + per-requirement sequence diagrams."""
+"""Stage 2: roles catalog + per-requirement sequence diagrams.
+
+Pure naming and requirement-extraction helpers live in ``_naming.py``;
+this module owns only stage orchestration, artifact persistence, and
+per-requirement result handling.
+"""
 
 from __future__ import annotations
 
 import logging
-import re
 import time
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Protocol
 
@@ -13,14 +17,20 @@ from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.ports import DiagramRenderer, GenerationReporter
 from application.pipeline.services import SequenceGenerator
+from application.pipeline.stages._naming import (
+    functional_requirement_ids,
+    plan_base_names,
+)
 from application.results import GenerationAttempt, SequenceGenerationResult
 from domain.models import DesignScenario
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 
-_logger = logging.getLogger("pipeline.sequence")
+# ``plan_base_names`` historically lived in this module; keep it importable
+# from here so existing callers (e.g. contract tests) are unaffected.
+__all__ = ["SequenceStage", "plan_base_names"]
 
-_SAFE_ID_PATTERN: re.Pattern[str] = re.compile(r"[^A-Za-z0-9_]")
+_logger = logging.getLogger("pipeline.sequence")
 
 
 class _InteractionResult(Protocol):
@@ -29,55 +39,6 @@ class _InteractionResult(Protocol):
 
     @property
     def interaction_scenario(self) -> InteractionScenario | None: ...
-
-
-def plan_base_names(
-    scenario_id: str,
-    requirement_ids: Iterable[str],
-) -> Mapping[str, str]:
-    """Precomputes unique base names; detects normalization collisions.
-
-    "REQ-1" and "REQ_1" both normalize to "req_1" and would overwrite each
-    other's artifacts. Refuse to silently lose data.
-    """
-    base_names: dict[str, str] = {}
-    seen: dict[str, str] = {}
-    for req_id in requirement_ids:
-        safe_id: str = _SAFE_ID_PATTERN.sub("_", req_id).lower()
-        previous: str | None = seen.get(safe_id)
-        if previous is not None:
-            raise ValueError(
-                f"Requirement identifier collision: '{previous}' and "
-                f"'{req_id}' both normalize to '{safe_id}'. Rename one of "
-                f"them in the scenario so artifacts stay distinct."
-            )
-        seen[safe_id] = req_id
-        base_names[req_id] = f"{scenario_id}_seq_{safe_id}"
-    return base_names
-
-
-def _functional_requirement_ids(scenario: DesignScenario) -> list[str]:
-    """Best-effort extraction of functional-requirement identifiers.
-
-    Supports both common layouts and returns [] when the model does not
-    expose them; a fail-fast check is only possible when they are visible.
-    """
-    ids: list[str] = []
-
-    functional = getattr(scenario, "functional_requirements", None)
-    if functional:
-        for req in functional:
-            identifier = getattr(req, "identifier", None)
-            if identifier:
-                ids.append(str(identifier))
-        return ids
-
-    for req in getattr(scenario, "requirements", []) or []:
-        if getattr(req, "type_identifier", None) == "functional":
-            identifier = getattr(req, "identifier", None)
-            if identifier:
-                ids.append(str(identifier))
-    return ids
 
 
 class SequenceStage:
@@ -152,7 +113,7 @@ class SequenceStage:
 
     @staticmethod
     def _check_early_collisions(scenario: DesignScenario) -> str | None:
-        early_ids = _functional_requirement_ids(scenario)
+        early_ids = functional_requirement_ids(scenario)
         if early_ids:
             try:
                 plan_base_names(scenario.identifier, early_ids)
