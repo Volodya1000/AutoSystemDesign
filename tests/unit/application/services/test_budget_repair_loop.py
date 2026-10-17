@@ -1,4 +1,8 @@
-"""Integration test: a budget violation drives the repair loop."""
+"""Unit tests: a budget violation drives the design repair loop.
+
+Exercises DesignGenerationService and RequirementValidationDispatcher with
+a scripted fake designer; no LLM is involved.
+"""
 
 from collections.abc import Sequence
 

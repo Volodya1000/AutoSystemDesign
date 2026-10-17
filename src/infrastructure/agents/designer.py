@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from application.tasks import DesignProposal, DesignTask, DesignTaskMode
 from config.root import AppSettings
 from domain.models.topology import ArchitectureGraph
-from infrastructure.design.parser import extract_json_payload, parse_architecture_graph
+from infrastructure.design.parser import parse_architecture_graph
 from infrastructure.llm.models import CompletionRequest, CompletionResult, Message
 from infrastructure.prompts.design_generation import build_initial_messages
 from infrastructure.prompts.design_repair import build_repair_messages
@@ -47,9 +47,8 @@ class ArchitectureDesignerAgent:
         completion: CompletionResult = self._client.complete(request)
         self.logger.debug("Raw LLM output:\n%s", completion.content)
 
-        payload: str = extract_json_payload(completion.content)
         graph: ArchitectureGraph = parse_architecture_graph(
-            payload, usage=completion.usage
+            completion.content, usage=completion.usage
         )
         return DesignProposal(
             graph=graph,
