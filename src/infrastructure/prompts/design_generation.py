@@ -2,13 +2,13 @@
 
 from application.tasks import DesignTask
 from infrastructure.llm.models import Message, MessageRole
-from infrastructure.prompts.fragments import (
+from infrastructure.prompts.fragments_scenario import render_scenario_summary
+from infrastructure.prompts.fragments_schema import (
     FEW_SHOT_GRAPH_JSON,
     OUTPUT_HARD_RULES,
     STRUCTURED_OUTPUT_SYSTEM_PROMPT,
     render_allowed_connections,
     render_output_schema,
-    render_scenario_summary,
 )
 
 

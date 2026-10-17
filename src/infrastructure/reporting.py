@@ -14,7 +14,7 @@ from application.results import GenerationAttempt
 from application.usage import TokenUsage
 from config.root import AppSettings
 from domain.models import DesignScenario
-from infrastructure.prompts.fragments import render_scenario_summary
+from infrastructure.prompts.fragments_scenario import render_scenario_summary
 
 _logger = logging.getLogger("pipeline.report")
 

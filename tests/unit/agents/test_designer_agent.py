@@ -16,7 +16,7 @@ from infrastructure.llm.models import (
     CompletionResult,
     FinishReason,
 )
-from infrastructure.prompts.fragments import FEW_SHOT_GRAPH_JSON
+from infrastructure.prompts.fragments_schema import FEW_SHOT_GRAPH_JSON
 
 pytestmark = pytest.mark.unit
 

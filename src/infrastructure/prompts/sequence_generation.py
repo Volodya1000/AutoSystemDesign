@@ -2,7 +2,7 @@ import json
 
 from application.tasks import SequenceInteractionTask, SequenceRoleTask
 from infrastructure.llm.models import Message, MessageRole
-from infrastructure.prompts.fragments import render_scenario_summary
+from infrastructure.prompts.fragments_scenario import render_scenario_summary
 from infrastructure.prompts.sequence_fragments import (
     SEQUENCE_SYSTEM_PROMPT,
     render_c4_context,

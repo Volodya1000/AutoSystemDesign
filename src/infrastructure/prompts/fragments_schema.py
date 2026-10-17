@@ -1,11 +1,17 @@
+"""Rendering of the architecture-graph output contract for prompts.
+
+Contains the structural JSON Schema fragment, the allowed-connection
+whitelist, the system prompt for structured output, and the few-shot
+example. All of these change together with the ArchitectureGraph model,
+so they live in one module.
+"""
+
 import json
 from typing import Final
 
-from domain.models import protocols as domain_protocols
-from domain.models.protocols import ConnectionProtocol
-from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.rules import DEFAULT_ALLOWED_CONNECTION_TYPES
+from infrastructure.prompts.fragments_protocols import render_known_protocols
 
 STRUCTURED_OUTPUT_SYSTEM_PROMPT: Final[str] = (
     "You are a senior software architect that designs distributed system topologies. "
@@ -14,17 +20,6 @@ STRUCTURED_OUTPUT_SYSTEM_PROMPT: Final[str] = (
     "fences, no comments, no explanations, no thinking out loud, and no text before "
     "or after the JSON object. Keep the JSON compact: one node or edge per line, "
     "no extra fields."
-)
-
-_KNOWN_PROTOCOLS: Final[tuple[ConnectionProtocol, ...]] = tuple(
-    sorted(
-        (
-            value
-            for value in vars(domain_protocols).values()
-            if isinstance(value, ConnectionProtocol)
-        ),
-        key=lambda protocol: protocol.name,
-    )
 )
 
 OUTPUT_HARD_RULES: Final[str] = (
@@ -53,60 +48,6 @@ FEW_SHOT_GRAPH_JSON: Final[str] = """{
 }"""
 
 
-def render_scenario_summary(scenario: DesignScenario) -> str:
-    lines: list[str] = [
-        f"Scenario: {scenario.identifier}",
-        f"Description: {scenario.description}",
-    ]
-    if scenario.workload is not None:
-        lines.extend(
-            [
-                "Workload:",
-                (
-                    f"- Baseline load: "
-                    f"{scenario.workload.baseline_requests_per_second} RPS"
-                ),
-                (f"- Peak load: {scenario.workload.peak_requests_per_second} RPS"),
-                (
-                    f"- Read ratio: {scenario.workload.read_ratio:.2f}, "
-                    f"write ratio: {scenario.workload.write_ratio:.2f}"
-                ),
-            ]
-        )
-    if scenario.functional_requirements:
-        lines.append("Functional requirements:")
-        lines.extend(
-            f"- [{req.identifier}] {req.name}: {req.text}"
-            for req in scenario.functional_requirements
-        )
-    if scenario.requirements:
-        lines.append("Non-functional requirements that the design must satisfy:")
-        lines.extend(
-            f"- {requirement.model_dump_json()}"
-            for requirement in scenario.requirements
-        )
-    if scenario.allowed_node_types is not None:
-        allowed: str = ", ".join(sorted(nt.value for nt in scenario.allowed_node_types))
-        lines.append(f"Allowed node types (use ONLY these): {allowed}")
-    return "\n".join(lines)
-
-
-def _render_known_protocols() -> str:
-    """Lists the protocol singletons an edge may reference by name.
-
-    The JSON Schema cannot express this on its own: ConnectionProtocol.name
-    is a plain string in the model, so the valid values are not part of the
-    schema. The list is derived at import time from the domain module, so
-    adding a new protocol constant is enough: this fragment follows.
-    """
-    lines: list[str] = ["Allowed protocol values for edge.protocol.name:"]
-    lines.extend(
-        f"- {protocol.name} (is_asynchronous={str(protocol.is_asynchronous).lower()})"
-        for protocol in _KNOWN_PROTOCOLS
-    )
-    return "\n".join(lines)
-
-
 def render_output_schema() -> str:
     """Renders the output contract for the architecture graph.
 
@@ -124,7 +65,7 @@ def render_output_schema() -> str:
         "Output format: a single JSON object matching the following JSON Schema "
         "(generated from the domain models).\n"
         f"{schema_text}\n\n"
-        f"{_render_known_protocols()}\n\n"
+        f"{render_known_protocols()}\n\n"
         "Do not add any other fields: unknown fields are rejected."
     )
 

@@ -11,7 +11,7 @@ from domain.models.protocols import (
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.rules import DEFAULT_ALLOWED_CONNECTION_TYPES
 from domain.specifications.structural_validator import StructuralTopologyValidator
-from infrastructure.prompts.fragments import (
+from infrastructure.prompts.fragments_schema import (
     FEW_SHOT_GRAPH_JSON,
     render_allowed_connections,
     render_output_schema,

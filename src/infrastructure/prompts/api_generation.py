@@ -9,7 +9,7 @@ from domain.models.api import ApiDesign
 from domain.models.sequence import InteractionScenario, MessageStep
 from domain.models.topology import ArchitectureGraph
 from infrastructure.llm.models import Message, MessageRole
-from infrastructure.prompts.fragments import render_scenario_summary
+from infrastructure.prompts.fragments_scenario import render_scenario_summary
 
 API_DESIGN_SYSTEM_PROMPT: str = (
     "You are a principal software architect designing RESTful APIs (OpenAPI 3.1 compatible). "
