@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Protocol
 
 from application.results import (
+    ApiGenerationResult,
     DesignGenerationResult,
     SequenceGenerationResult,
 )
 from domain.models import DesignScenario
+from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 
 
@@ -22,3 +25,12 @@ class SequenceGenerator(Protocol):
         scenario: DesignScenario,
         graph: ArchitectureGraph,
     ) -> SequenceGenerationResult: ...
+
+
+class ApiGenerator(Protocol):
+    def generate(
+        self,
+        scenario: DesignScenario,
+        graph: ArchitectureGraph,
+        sequences: Mapping[str, InteractionScenario],
+    ) -> ApiGenerationResult: ...

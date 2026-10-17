@@ -94,25 +94,19 @@ class SequenceStage:
         self._renderer: DiagramRenderer[InteractionScenario] | None = renderer
         self._reporter: GenerationReporter = reporter
 
-    def run(self, context: StageContext) -> StageOutcome[None]:
-        # Upstream stage name comes from depends_on; no separate parameter
-        # can drift out of sync with the declared dependency.
+    def run(
+        self, context: StageContext
+    ) -> StageOutcome[dict[str, InteractionScenario]]:
         upstream_name: str = self.depends_on[0]
         graph: ArchitectureGraph = require_payload(
             context, upstream_name, ArchitectureGraph
         )
         scenario = context.scenario
 
-        # Fail-fast: detect identifier collisions before spending tokens on
-        # LLM calls. Skips silently if the scenario model does not expose
-        # functional requirement identifiers.
-        early_ids = _functional_requirement_ids(scenario)
-        if early_ids:
-            try:
-                plan_base_names(scenario.identifier, early_ids)
-            except ValueError as error:
-                _logger.error("Identifier collision: %s", error)
-                return self._failed(0.0, 0, str(error))
+        early_collision_error = self._check_early_collisions(scenario)
+        if early_collision_error is not None:
+            _logger.error("Identifier collision: %s", early_collision_error)
+            return self._failed(0.0, 0, early_collision_error)
 
         stage_start: float = time.perf_counter()
         generation_start: float = time.perf_counter()
@@ -126,8 +120,6 @@ class SequenceStage:
         self._reporter.attempts(result.roles_attempts, "Roles catalog attempts")
         self._reporter.tokens(result.total_usage, generation_seconds)
 
-        # Post-generation guard: catches collisions that the early check
-        # could not see (e.g. the model did not expose the identifiers).
         try:
             base_names: Mapping[str, str] = plan_base_names(
                 scenario.identifier, list(result.scenarios_results)
@@ -152,18 +144,38 @@ class SequenceStage:
             duration_seconds=time.perf_counter() - stage_start,
             total_tokens=result.total_usage.total_tokens,
             artifacts=tuple(artifacts),
-            payload=None,
+            payload=self._extract_successful_scenarios(result),
             warnings=tuple(warnings),
         )
 
     # ----------------------------------------------------------------- helpers
+
+    @staticmethod
+    def _check_early_collisions(scenario: DesignScenario) -> str | None:
+        early_ids = _functional_requirement_ids(scenario)
+        if early_ids:
+            try:
+                plan_base_names(scenario.identifier, early_ids)
+            except ValueError as error:
+                return str(error)
+        return None
+
+    @staticmethod
+    def _extract_successful_scenarios(
+        result: SequenceGenerationResult,
+    ) -> dict[str, InteractionScenario]:
+        return {
+            req_id: req_res.interaction_scenario
+            for req_id, req_res in result.scenarios_results.items()
+            if req_res.interaction_scenario is not None
+        }
 
     def _failed(
         self,
         duration_seconds: float,
         total_tokens: int,
         message: str,
-    ) -> StageOutcome[None]:
+    ) -> StageOutcome[dict[str, InteractionScenario]]:
         return StageOutcome(
             name=self.name,
             status=StageStatus.FAILED,

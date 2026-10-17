@@ -9,6 +9,7 @@ from typing import Protocol
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome
 from application.results import GenerationAttempt
 from application.usage import TokenUsage
+from domain.models.api import ApiDesign
 
 
 class ArtifactWriter(Protocol):
@@ -47,3 +48,16 @@ class PipelineReporter(Protocol):
     """Reports the final outcome of a pipeline run."""
 
     def report(self, outcomes: Sequence[StageOutcome[object]]) -> None: ...
+
+
+class ApiArtifactRenderer(Protocol):
+    """Renders OpenAPI specification and interactive documentation."""
+
+    def render(
+        self,
+        subject: ApiDesign,
+        *,
+        title: str,
+        base_name: str,
+        out_dir: Path,
+    ) -> DiagramRenderResult: ...

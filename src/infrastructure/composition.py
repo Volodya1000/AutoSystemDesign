@@ -10,8 +10,10 @@ from dataclasses import dataclass
 from application.pipeline.ports import ArtifactWriter
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stage import PipelineStage
+from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.sequence import SequenceStage
+from application.services.api_generation_service import ApiGenerationService
 from application.services.design_generation_service import (
     DesignGenerationService,
 )
@@ -19,6 +21,7 @@ from application.services.sequence_generation_service import (
     SequenceGenerationService,
 )
 from config.root import AppSettings, load_app_settings
+from domain.specifications.api_validator import ApiDesignValidator
 from domain.specifications.budget_validator import BudgetRequirementValidator
 from domain.specifications.interfaces import BaseValidator, ScenarioValidator
 from domain.specifications.requirement_dispatch import (
@@ -28,6 +31,7 @@ from domain.specifications.sequence_validator import SequenceValidator
 from domain.specifications.structural_validator import (
     StructuralTopologyValidator,
 )
+from infrastructure.agents.api_designer import ApiDesignerAgent
 from infrastructure.agents.designer import ArchitectureDesignerAgent
 from infrastructure.agents.sequence_designer import SequenceDesignerAgent
 from infrastructure.llm.client import LiteLlmClient
@@ -36,6 +40,7 @@ from infrastructure.reporting import (
     LoggingGenerationReporter,
     LoggingPipelineReporter,
 )
+from infrastructure.visualisation.openapi.renderers import DefaultApiArtifactRenderer
 from infrastructure.visualisation.plantuml import DiagramImageFormat
 from infrastructure.visualisation.plantuml.renderers import (
     PlantUmlC4Renderer,
@@ -81,6 +86,19 @@ def build_sequence_generation_service() -> SequenceGenerationService:
     )
 
 
+def build_api_generation_service() -> ApiGenerationService:
+    """Wires config -> LiteLlmClient -> ApiDesignerAgent -> ApiGenerationService."""
+    settings: AppSettings = load_app_settings()
+    client: LiteLlmClient = LiteLlmClient(settings=settings)
+    designer: ApiDesignerAgent = ApiDesignerAgent(client=client, settings=settings)
+    validator: ApiDesignValidator = ApiDesignValidator()
+    return ApiGenerationService(
+        designer=designer,
+        validator=validator,
+        max_attempts=settings.generation.max_attempts,
+    )
+
+
 @dataclass(frozen=True)
 class PipelineWiring:
     runner: PipelineRunner
@@ -93,7 +111,7 @@ def build_pipeline(
     image_format: DiagramImageFormat,
     render_diagrams: bool,
 ) -> PipelineWiring:
-    """Builds the full C4 + sequence pipeline."""
+    """Builds the full C4 + Sequence + REST API design pipeline."""
     c4_renderer = (
         PlantUmlC4Renderer(server=diagram_server, image_format=image_format)
         if render_diagrams
@@ -115,6 +133,11 @@ def build_pipeline(
         SequenceStage(
             service=build_sequence_generation_service(),
             renderer=sequence_renderer,
+            reporter=generation_reporter,
+        ),
+        ApiStage(
+            service=build_api_generation_service(),
+            renderer=DefaultApiArtifactRenderer(),
             reporter=generation_reporter,
         ),
     ]

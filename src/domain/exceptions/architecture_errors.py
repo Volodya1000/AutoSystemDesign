@@ -137,3 +137,98 @@ class BudgetExceededError(ArchitectureValidationError):
         super().__init__(message=message)
         self.total_monthly_cost_usd: float = total_monthly_cost_usd
         self.budget_limit_usd: float = budget_limit_usd
+
+
+class DuplicateOperationIdError(ArchitectureValidationError):
+    error_code: str = "DUPLICATE_OPERATION_ID"
+
+    def __init__(self, operation_id: str) -> None:
+        message: str = (
+            f"Operation ID '{operation_id}' is duplicated across the API design."
+        )
+        super().__init__(message=message)
+        self.operation_id: str = operation_id
+
+
+class PathCollisionError(ArchitectureValidationError):
+    error_code: str = "PATH_COLLISION_DETECTED"
+
+    def __init__(self, method: str, path: str, normalized_path: str) -> None:
+        message: str = (
+            f"Path collision detected: method '{method.upper()}' with path '{path}' "
+            f"collides with another endpoint normalizing to '{normalized_path}'."
+        )
+        super().__init__(message=message)
+        self.method: str = method
+        self.path: str = path
+        self.normalized_path: str = normalized_path
+
+
+class MissingPathParameterError(ArchitectureValidationError):
+    error_code: str = "MISSING_PATH_PARAMETER"
+
+    def __init__(self, operation_id: str, missing_parameters: list[str]) -> None:
+        message: str = (
+            f"Operation '{operation_id}' defines URL path variables {sorted(missing_parameters)} "
+            "that are missing from the declared parameters list with in='path'."
+        )
+        super().__init__(message=message)
+        self.operation_id: str = operation_id
+        self.missing_parameters: list[str] = missing_parameters
+
+
+class UndeclaredPathParameterError(ArchitectureValidationError):
+    error_code: str = "UNDECLARED_PATH_PARAMETER"
+
+    def __init__(self, operation_id: str, undeclared_parameters: list[str]) -> None:
+        message: str = (
+            f"Operation '{operation_id}' declares path parameters {sorted(undeclared_parameters)} "
+            "that do not exist in the URL path template."
+        )
+        super().__init__(message=message)
+        self.operation_id: str = operation_id
+        self.undeclared_parameters: list[str] = undeclared_parameters
+
+
+class UnresolvedSchemaReferenceError(ArchitectureValidationError):
+    error_code: str = "UNRESOLVED_SCHEMA_REFERENCE"
+
+    def __init__(self, operation_id: str, target: str, missing_schema_ref: str) -> None:
+        message: str = (
+            f"Operation '{operation_id}' ({target}) references unknown schema "
+            f"'{missing_schema_ref}', which is not registered in central schemas."
+        )
+        super().__init__(message=message)
+        self.operation_id: str = operation_id
+        self.target: str = target
+        self.missing_schema_ref: str = missing_schema_ref
+
+
+class NonExistentComponentReferenceError(ArchitectureValidationError):
+    error_code: str = "NON_EXISTENT_COMPONENT_REFERENCE"
+
+    def __init__(self, operation_id: str, role: str, component_id: str) -> None:
+        message: str = (
+            f"Operation '{operation_id}' {role} references component '{component_id}', "
+            "which does not exist in the C4 architecture graph."
+        )
+        super().__init__(
+            message=message,
+            affected_node_identifiers=[component_id],
+        )
+        self.operation_id: str = operation_id
+        self.role: str = role
+        self.component_id: str = component_id
+
+
+class NonExistentRequirementReferenceError(ArchitectureValidationError):
+    error_code: str = "NON_EXISTENT_REQUIREMENT_REFERENCE"
+
+    def __init__(self, operation_id: str, requirement_id: str) -> None:
+        message: str = (
+            f"Operation '{operation_id}' references unknown requirement '{requirement_id}', "
+            "which is not declared in scenario functional requirements."
+        )
+        super().__init__(message=message)
+        self.operation_id: str = operation_id
+        self.requirement_id: str = requirement_id

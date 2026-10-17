@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from application.usage import TokenUsage
 from domain.exceptions.architecture_errors import ArchitectureValidationError
+from domain.models.api import ApiDesign
 from domain.models.functional import FunctionalRequirement
 from domain.models.roles import ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
@@ -94,6 +95,27 @@ class SequenceInteractionProposal(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     payload: InteractionScenario
+    raw_content: str
+    usage: TokenUsage
+    latency_seconds: float = Field(default=0.0, ge=0.0)
+
+
+class ApiDesignTask(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    scenario: DesignScenario
+    architecture_graph: ArchitectureGraph
+    sequence_scenarios: list[InteractionScenario]
+    mode: DesignTaskMode
+    previous_payload: str | None = None
+    validation_feedback: list[ValidationErrorFeedback] = Field(default_factory=list)
+    parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
+
+
+class ApiDesignProposal(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    payload: ApiDesign
     raw_content: str
     usage: TokenUsage
     latency_seconds: float = Field(default=0.0, ge=0.0)

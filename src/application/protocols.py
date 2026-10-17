@@ -1,6 +1,8 @@
 from typing import Protocol
 
 from application.tasks import (
+    ApiDesignProposal,
+    ApiDesignTask,
     DesignProposal,
     DesignTask,
     SequenceInteractionProposal,
@@ -19,3 +21,7 @@ class SequenceDesigner(Protocol):
     def propose_interaction(
         self, task: SequenceInteractionTask
     ) -> SequenceInteractionProposal: ...
+
+
+class ApiDesigner(Protocol):
+    def propose(self, task: ApiDesignTask) -> ApiDesignProposal: ...

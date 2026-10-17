@@ -1,4 +1,6 @@
-"""Typed result objects of the design and sequence generation services."""
+"""Typed result objects of the design, sequence, and API generation services."""
+
+from __future__ import annotations
 
 from enum import StrEnum
 
@@ -6,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from application.tasks import ProposalFailureDetail
 from application.usage import TokenUsage
+from domain.models.api import ApiDesign
 from domain.models.roles import ProjectRolesCatalog
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
@@ -19,13 +22,7 @@ class GenerationStatus(StrEnum):
 
 
 class GenerationAttempt[PayloadT](BaseModel):
-    """One propose -> validate cycle for any proposal payload type.
-
-    `payload` carries the typed proposal: an ArchitectureGraph for the
-    design flow, a ProjectRolesCatalog or InteractionScenario for the
-    sequence flow. `usage` is required: every attempt must account for
-    the tokens it spent, even when parsing failed.
-    """
+    """One propose -> validate cycle for any proposal payload type."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -99,3 +96,32 @@ class SequenceGenerationResult(BaseModel):
         for s in self.scenarios_results.values():
             usages.extend(a.usage for a in s.attempts)
         return TokenUsage.aggregate(usages)
+
+
+class ApiGenerationResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    attempts: list[GenerationAttempt[ApiDesign]] = Field(default_factory=list)
+    api_design: ApiDesign | None = None
+
+    @property
+    def is_successful(self) -> bool:
+        return self.api_design is not None and (
+            self.attempts[-1].validation is not None
+            and self.attempts[-1].validation.is_successful
+        )
+
+    @property
+    def status(self) -> GenerationStatus:
+        if not self.attempts:
+            return GenerationStatus.PARSING_FAILED
+        last = self.attempts[-1]
+        if not last.parsed:
+            return GenerationStatus.PARSING_FAILED
+        if last.validation is not None and last.validation.is_successful:
+            return GenerationStatus.SUCCEEDED
+        return GenerationStatus.VALIDATION_FAILED
+
+    @property
+    def total_usage(self) -> TokenUsage:
+        return TokenUsage.aggregate(a.usage for a in self.attempts)
