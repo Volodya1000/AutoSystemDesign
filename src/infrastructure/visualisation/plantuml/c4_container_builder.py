@@ -19,10 +19,14 @@ from domain.models.nodes import (
 from domain.models.protocols import ConnectionProtocol
 from domain.models.topology import AnyNode, ArchitectureGraph
 from infrastructure.visualisation.plantuml.aliases import AliasRegistry
+from infrastructure.visualisation.plantuml.diagram_registry import (
+    register_diagram_builder,
+)
 from infrastructure.visualisation.plantuml.element_specs import (
     DEFAULT_ELEMENT_SPECS,
     C4ElementSpec,
 )
+from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 
 C4_STDLIB_BUNDLED_INCLUDE: Final[str] = "<C4/C4_Container>"
 C4_STDLIB_REMOTE_INCLUDE_URL: Final[str] = (
@@ -31,6 +35,11 @@ C4_STDLIB_REMOTE_INCLUDE_URL: Final[str] = (
 )
 
 _SYSTEM_BOUNDARY_ALIAS: Final[str] = "system_boundary"
+
+
+@register_diagram_builder("c4")
+def _c4_builder_factory() -> DiagramSourceBuilder:
+    return C4ContainerDiagramBuilder()
 
 
 def _quote(text: str) -> str:

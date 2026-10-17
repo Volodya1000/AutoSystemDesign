@@ -1,13 +1,9 @@
-"""PlantUML implementations of application.pipeline.ports.DiagramRenderer.
+"""PlantUML implementation of the DiagramRenderer port.
 
-Contract: expected visualization errors (DiagramRenderingError,
-DiagramSavingError) are converted to warnings. Any other exception is a
+The module is diagram-type agnostic: ``kind`` is resolved through the
+builder registry. Expected visualization errors (DiagramRenderingError,
+DiagramSavingError) are converted to warnings; any other exception is a
 programming error and is propagated.
-
-This module is diagram-type agnostic: the concrete ``DiagramSourceBuilder``
-injected into ``PlantUmlDiagramRenderer`` decides what is rendered. Adding a
-new diagram type means implementing a builder and wiring it once in the
-composition root; this module does not change.
 """
 
 from __future__ import annotations
@@ -23,22 +19,18 @@ from infrastructure.visualisation.plantuml import (
     DiagramRenderingError,
     DiagramSavingError,
     DiagramService,
-    DiagramSourceBuilder,
     resolve_image_renderer,
 )
+from infrastructure.visualisation.plantuml.diagram_registry import (
+    DiagramRendererRegistry,
+    get_default_registry,
+)
+from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 
 _logger = logging.getLogger("pipeline.diagram")
 
 
 class PlantUmlDiagramRenderer[SubjectT]:
-    """Generic PlantUML renderer driven by an injected source builder.
-
-    The renderer is diagram-type agnostic: ``source_builder`` decides what
-    is rendered. Adding a new diagram type only requires a new
-    ``DiagramSourceBuilder`` implementation and one wiring line in
-    ``infrastructure.composition``.
-    """
-
     def __init__(
         self,
         *,
@@ -46,9 +38,9 @@ class PlantUmlDiagramRenderer[SubjectT]:
         server: str,
         image_format: DiagramImageFormat,
     ) -> None:
-        self._source_builder: DiagramSourceBuilder = source_builder
-        self._server: str = server
-        self._image_format: DiagramImageFormat = image_format
+        self._source_builder = source_builder
+        self._server = server
+        self._image_format = image_format
 
     def render(
         self,
@@ -69,6 +61,22 @@ class PlantUmlDiagramRenderer[SubjectT]:
             base_name=base_name,
             out_dir=out_dir,
         )
+
+
+def make_plantuml_renderer(
+    kind: str,
+    *,
+    server: str,
+    image_format: DiagramImageFormat,
+    registry: DiagramRendererRegistry | None = None,
+) -> PlantUmlDiagramRenderer[object]:
+    """Builds a renderer for the given diagram kind via the registry."""
+    reg = registry if registry is not None else get_default_registry()
+    return PlantUmlDiagramRenderer(
+        source_builder=reg.create(kind),
+        server=server,
+        image_format=image_format,
+    )
 
 
 def render_and_write[SubjectT](

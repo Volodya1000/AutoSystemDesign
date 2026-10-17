@@ -1,4 +1,4 @@
-from typing import Any, Protocol
+from typing import Any
 
 from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4ContainerDiagramBuilder,
@@ -7,15 +7,12 @@ from infrastructure.visualisation.plantuml.models import (
     DiagramArtifacts,
     DiagramImageFormat,
 )
+from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 from infrastructure.visualisation.plantuml.renderer import (
     AUTO_SERVER_SELECTION,
     PlantumlImageRenderer,
     resolve_image_renderer,
 )
-
-
-class DiagramSourceBuilder(Protocol):
-    def build(self, graph: Any, title: str | None = None) -> str: ...
 
 
 class DiagramService:

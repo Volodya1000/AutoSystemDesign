@@ -6,6 +6,15 @@ from domain.models.ast_steps import (
     ScenarioStep,
 )
 from domain.models.sequence import InteractionScenario, UserLifeline
+from infrastructure.visualisation.plantuml.diagram_registry import (
+    register_diagram_builder,
+)
+from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
+
+
+@register_diagram_builder("sequence")
+def _sequence_builder_factory() -> DiagramSourceBuilder:
+    return SequenceDiagramBuilder()
 
 
 class SequenceDiagramBuilder:
