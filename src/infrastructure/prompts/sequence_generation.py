@@ -1,14 +1,33 @@
+"""Prompt builders for the sequence-diagram generation stage."""
+
 import json
 
 from application.tasks import SequenceInteractionTask, SequenceRoleTask
+from domain.models.topology import ArchitectureGraph
 from infrastructure.llm.models import Message, MessageRole
+from infrastructure.prompts._c4_context import render_c4_components
+from infrastructure.prompts._feedback import render_feedback
 from infrastructure.prompts.fragments_scenario import render_scenario_summary
 from infrastructure.prompts.sequence_fragments import (
     SEQUENCE_SYSTEM_PROMPT,
-    render_c4_context,
     render_interaction_schema,
     render_roles_schema,
 )
+
+_EMPTY_FEEDBACK_MESSAGE: str = "No problems reported; re-check the schema."
+
+_C4_HEADING: str = (
+    "Available architectural components (nodes) from the generated C4 design:"
+)
+
+_C4_FOOTER: str = (
+    "When creating a ComponentLifeline, you MUST use one of these exact "
+    "identifiers in the 'architecture_node_id' field."
+)
+
+
+def _render_c4_context(graph: ArchitectureGraph) -> str:
+    return render_c4_components(graph, heading=_C4_HEADING, footer=_C4_FOOTER)
 
 
 def build_roles_initial_messages(task: SequenceRoleTask) -> list[Message]:
@@ -38,7 +57,11 @@ def build_roles_repair_messages(task: SequenceRoleTask) -> list[Message]:
                 "corrected JSON object."
             ),
             f"Previous answer:\n{task.previous_payload or ''}",
-            _render_feedback(task.validation_feedback, task.parsing_failures),
+            render_feedback(
+                task.validation_feedback,
+                task.parsing_failures,
+                empty_message=_EMPTY_FEEDBACK_MESSAGE,
+            ),
             render_roles_schema(),
         ]
     )
@@ -61,7 +84,7 @@ def build_interaction_initial_messages(task: SequenceInteractionTask) -> list[Me
             f"- Description: {task.requirement.text}",
             "Global Roles Catalog:",
             json.dumps(task.roles_catalog.model_dump(), indent=2),
-            render_c4_context(task.architecture_graph),
+            _render_c4_context(task.architecture_graph),
             render_interaction_schema(),
             f"Set requirement_identifier to '{task.requirement.identifier}'.",
         ]
@@ -82,8 +105,12 @@ def build_interaction_repair_messages(task: SequenceInteractionTask) -> list[Mes
             ),
             f"Target Requirement ID: {task.requirement.identifier}",
             f"Previous answer:\n{task.previous_payload or ''}",
-            _render_feedback(task.validation_feedback, task.parsing_failures),
-            render_c4_context(task.architecture_graph),
+            render_feedback(
+                task.validation_feedback,
+                task.parsing_failures,
+                empty_message=_EMPTY_FEEDBACK_MESSAGE,
+            ),
+            _render_c4_context(task.architecture_graph),
             render_interaction_schema(),
             f"Set requirement_identifier to '{task.requirement.identifier}'.",
         ]
@@ -92,18 +119,3 @@ def build_interaction_repair_messages(task: SequenceInteractionTask) -> list[Mes
         Message(role=MessageRole.SYSTEM, content=SEQUENCE_SYSTEM_PROMPT),
         Message(role=MessageRole.USER, content=user_content),
     ]
-
-
-def _render_feedback(validation_feedback, parsing_failures) -> str:
-    entries = [f"[{fb.error_code}] {fb.message}" for fb in validation_feedback]
-    entries.extend(
-        f"[{f.error_type}] {f.message} (at {f.location})" for f in parsing_failures
-    )
-    if not entries:
-        return (
-            "No specific problems reported; re-check the schema rules "
-            "and correct the JSON."
-        )
-    lines = ["Detected problems:"]
-    lines.extend(f"{idx}. {entry}" for idx, entry in enumerate(entries, start=1))
-    return "\n".join(lines)

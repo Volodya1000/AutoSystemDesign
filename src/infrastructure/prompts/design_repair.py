@@ -2,12 +2,15 @@
 
 from application.tasks import DesignTask
 from infrastructure.llm.models import Message, MessageRole
+from infrastructure.prompts._feedback import render_feedback
 from infrastructure.prompts.fragments_schema import (
     OUTPUT_HARD_RULES,
     STRUCTURED_OUTPUT_SYSTEM_PROMPT,
     render_allowed_connections,
     render_output_schema,
 )
+
+_EMPTY_FEEDBACK_MESSAGE: str = "No problems reported; re-check the rules."
 
 
 def build_repair_messages(task: DesignTask) -> list[Message]:
@@ -24,7 +27,11 @@ def build_repair_messages(task: DesignTask) -> list[Message]:
                 "corrected JSON object."
             ),
             f"Previous answer:\n{task.previous_graph_payload or ''}",
-            _render_detected_problems(task),
+            render_feedback(
+                task.validation_feedback,
+                task.parsing_failures,
+                empty_message=_EMPTY_FEEDBACK_MESSAGE,
+            ),
             render_output_schema(),
             render_allowed_connections(),
             OUTPUT_HARD_RULES,
@@ -35,19 +42,3 @@ def build_repair_messages(task: DesignTask) -> list[Message]:
         Message(role=MessageRole.USER, content=user_content),
     ]
     return messages
-
-
-def _render_detected_problems(task: DesignTask) -> str:
-    entries: list[str] = [
-        f"[{feedback.error_code}] {feedback.message}"
-        for feedback in task.validation_feedback
-    ]
-    entries.extend(
-        f"[{failure.error_type}] {failure.message} (at {failure.location})"
-        for failure in task.parsing_failures
-    )
-    if not entries:
-        return "No specific problems were reported; re-check the rules and correct the graph."
-    lines: list[str] = ["Detected problems:"]
-    lines.extend(f"{index}. {entry}" for index, entry in enumerate(entries, start=1))
-    return "\n".join(lines)
