@@ -5,10 +5,8 @@ from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4_STDLIB_REMOTE_INCLUDE_URL,
     C4ContainerDiagramBuilder,
 )
-from infrastructure.visualisation.plantuml.diagram_service import (
-    DiagramService,
-    DiagramSourceBuilder,
-)
+from infrastructure.visualisation.plantuml.diagram_service import DiagramService
+from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 from infrastructure.visualisation.plantuml.diagram_writer import (
     DiagramFileWriter,
     DiagramSavingError,
