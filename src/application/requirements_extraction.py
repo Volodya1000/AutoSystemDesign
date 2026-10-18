@@ -53,14 +53,9 @@ class DocumentRequirementsService:
             max_chars=self._max_chars,
             overlap_chars=self._overlap_chars,
         )
-        results = [
-            self._extractor.extract(chunk, path.name)
-            for chunk in chunks
-        ]
+        results = [self._extractor.extract(chunk, path.name) for chunk in chunks]
         requirements = deduplicate_requirements(
-            requirement
-            for result in results
-            for requirement in result.requirements
+            requirement for result in results for requirement in result.requirements
         )
         issues: list[RequirementIssue] = []
         if not any(result.is_relevant for result in results):
