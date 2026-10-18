@@ -13,7 +13,7 @@ from application.pipeline.context import (
     require_payload,
 )
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.ports import ArtifactWriter, PipelineReporter
+from application.pipeline.ports import ArtifactWriter
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stage import PipelineStage
 from domain.models import DesignScenario
