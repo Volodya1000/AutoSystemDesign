@@ -14,10 +14,10 @@ from pathlib import Path
 from typing import Protocol
 
 from application.pipeline.context import StageContext, require_payload
-from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.ports import DiagramRenderer, GenerationReporter
 from application.pipeline.services import SequenceGenerator
+from application.pipeline.services.sequence_artifacts import SequenceArtifactProcessor
 from application.pipeline.stages._naming import (
     functional_requirement_ids,
     plan_base_names,
@@ -53,7 +53,7 @@ class SequenceStage:
         reporter: GenerationReporter,
     ) -> None:
         self._service: SequenceGenerator = service
-        self._renderer: DiagramRenderer[SequenceDiagramSubject] | None = renderer
+        self._artifact_processor = SequenceArtifactProcessor(renderer)
         self._reporter: GenerationReporter = reporter
 
     def run(
@@ -94,7 +94,9 @@ class SequenceStage:
                 str(error),
             )
 
-        artifacts: list[Path] = self._write_roles_catalog(context, result)
+        artifacts: list[Path] = list(
+            self._artifact_processor.persist_roles_catalog(context, result.roles_catalog)
+        )
         # ``graph`` is forwarded so ``_process_requirement`` can build a
         # ``SequenceDiagramSubject`` that carries both the scenario and the
         # C4 topology to the renderer (see ``_process_requirement``).
@@ -150,20 +152,6 @@ class SequenceStage:
             message=message,
         )
 
-    def _write_roles_catalog(
-        self,
-        context: StageContext,
-        result: SequenceGenerationResult,
-    ) -> list[Path]:
-        if result.roles_catalog is None:
-            return []
-        return [
-            context.writer.write_text(
-                context.out_dir / f"{context.scenario.identifier}_roles.json",
-                result.roles_catalog.model_dump_json(indent=2),
-            )
-        ]
-
     def _process_all_requirements(
         self,
         context: StageContext,
@@ -199,30 +187,13 @@ class SequenceStage:
             _logger.warning(warning)
             return [], [warning]
 
-        artifacts: list[Path] = [
-            context.writer.write_text(
-                context.out_dir / f"{base_name}_ast.json",
-                interaction.model_dump_json(indent=2),
-            )
-        ]
-        warnings: list[str] = []
-        if self._renderer is not None:
-            # The subject bundles the scenario with the C4 graph so the
-            # renderer can pick each component's PlantUML participant
-            # keyword from ``ComponentLifeline.architecture_node_id``
-            # without querying the domain layer or the upstream stage.
-            render_result = self._renderer.render(
-                SequenceDiagramSubject(
-                    scenario=interaction,
-                    architecture_graph=graph,
-                ),
-                title=interaction.description,
-                base_name=base_name,
-                out_dir=context.out_dir,
-            )
-            artifacts.extend(render_result.artifacts)
-            warnings.extend(render_result.warnings)
-        return artifacts, warnings
+        artifact_result = self._artifact_processor.persist_interaction(
+            context,
+            base_name=base_name,
+            interaction=interaction,
+            graph=graph,
+        )
+        return list(artifact_result.artifacts), list(artifact_result.warnings)
 
     @staticmethod
     def _compute_status(
