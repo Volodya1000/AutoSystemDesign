@@ -71,8 +71,10 @@ def test_decodes_json_pointer_escaped_slash_and_tilde() -> None:
 
     result = dereference_internal_refs(source)
 
-    assert result["example"] == source["components"]["schemas"]["Thing/One~More"]
-    assert "$ref" not in result["example"]
+    example = result["example"]
+    assert isinstance(example, dict)
+    assert example == source["components"]["schemas"]["Thing/One~More"]
+    assert "$ref" not in example
 
 
 def test_resolves_json_pointer_array_indexes() -> None:
@@ -111,8 +113,10 @@ def test_replaces_dangling_or_malformed_internal_references_with_diagnostic(
 ) -> None:
     result = dereference_internal_refs({"value": {"$ref": reference}})
 
-    assert result["value"]["description"] == f"Unresolved reference: {reference}"
-    assert "$ref" not in result["value"]
+    value = result["value"]
+    assert isinstance(value, dict)
+    assert value["description"] == f"Unresolved reference: {reference}"
+    assert "$ref" not in value
 
 
 def test_collapses_recursive_schema_references_to_finite_stubs() -> None:
