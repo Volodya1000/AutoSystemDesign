@@ -16,7 +16,6 @@ from domain.models.scenarios import DesignScenario
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
-
 from tests.unit.in_memory_writer import InMemoryWriter
 
 pytestmark = pytest.mark.unit
