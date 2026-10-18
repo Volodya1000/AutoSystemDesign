@@ -7,9 +7,9 @@ from pathlib import Path
 from types import MappingProxyType
 
 import pytest
+import yaml
 
 from tests.unit.in_memory_writer import InMemoryWriter
-import yaml
 
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
