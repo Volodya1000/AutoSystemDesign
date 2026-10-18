@@ -27,6 +27,7 @@ from domain.models.functional import FunctionalRequirement
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
+from tests.unit.in_memory_writer import InMemoryWriter
 
 pytestmark = pytest.mark.unit
 
@@ -41,15 +42,6 @@ requirements:
     threshold_value: 300.0
     percentile: 99.0
 """
-
-
-class InMemoryWriter:
-    def __init__(self) -> None:
-        self.writes: list[tuple[Path, str]] = []
-
-    def write_text(self, path: Path, content: str) -> Path:
-        self.writes.append((path, content))
-        return path
 
 
 class NullGenerationReporter:
