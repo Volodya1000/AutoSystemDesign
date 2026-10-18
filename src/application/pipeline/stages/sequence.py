@@ -60,7 +60,7 @@ class SequenceStage:
         self, context: StageContext
     ) -> StageOutcome[dict[str, InteractionScenario]]:
         stage_start: float = time.perf_counter()
-        scenario = context.scenario
+        scenario: DesignScenario = context.scenario
 
         if not scenario.functional_requirements:
             _logger.info(
