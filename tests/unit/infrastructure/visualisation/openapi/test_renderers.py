@@ -14,7 +14,6 @@ from domain.models.api import (
     ApiResponse,
     DataType,
     HttpMethod,
-    ParameterLocation,
 )
 from infrastructure.visualisation.openapi.openapi_renderer import OpenApiRenderer
 from infrastructure.visualisation.openapi.renderers import DefaultApiArtifactRenderer
@@ -54,19 +53,23 @@ def _api_design() -> ApiDesign:
                 requirement_ids=["FR-1"],
                 sequence_ids=["FR-1_happy_path"],
                 parameters=[
-                    ApiParameter(
-                        name="resourceId",
-                        in_location=ParameterLocation.PATH,
-                        required=True,
-                        data_type=DataType.STRING,
-                        format="uuid",
+                    ApiParameter.model_validate(
+                        {
+                            "name": "resourceId",
+                            "in": "path",
+                            "required": True,
+                            "data_type": DataType.STRING,
+                            "format": "uuid",
+                        }
                     ),
-                    ApiParameter(
-                        name="include",
-                        in_location=ParameterLocation.QUERY,
-                        required=False,
-                        data_type=DataType.ARRAY,
-                        item_type=DataType.STRING,
+                    ApiParameter.model_validate(
+                        {
+                            "name": "include",
+                            "in": "query",
+                            "required": False,
+                            "data_type": DataType.ARRAY,
+                            "item_type": DataType.STRING,
+                        }
                     ),
                 ],
                 request_body=ApiRequestBody(
