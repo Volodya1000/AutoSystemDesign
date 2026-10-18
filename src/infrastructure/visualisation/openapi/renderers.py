@@ -7,8 +7,8 @@ from pathlib import Path
 
 from application.pipeline.outcome import DiagramRenderResult
 from domain.models.api import ApiDesign
-from infrastructure.visualisation.openapi.renderer import (
-    OpenApiRenderer,
+from infrastructure.visualisation.openapi.openapi_renderer import OpenApiRenderer
+from infrastructure.visualisation.openapi.swagger_ui_renderer import (
     SwaggerUiRenderer,
 )
 

@@ -14,9 +14,11 @@ import logging
 
 import pytest
 
-from infrastructure.visualisation.openapi.renderer import (
-    SwaggerUiRenderer,
+from infrastructure.visualisation.openapi.dereference import (
     dereference_internal_refs,
+)
+from infrastructure.visualisation.openapi.swagger_ui_renderer import (
+    SwaggerUiRenderer,
 )
 
 
