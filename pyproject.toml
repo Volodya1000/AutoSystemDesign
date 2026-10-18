@@ -1,7 +1,7 @@
 [project]
 name = "autosystemdesign"
 version = "0.1.0"
-description = "Add your description here"
+description = "LLM-assisted generation and validation of software architecture and REST API artifacts from scenario specifications"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

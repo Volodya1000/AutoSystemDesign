@@ -13,6 +13,7 @@ from application.pipeline.ports import ApiArtifactRenderer, GenerationReporter
 from application.pipeline.services import ApiGenerator
 from application.results import ApiGenerationResult, GenerationStatus
 from domain.models.api import ApiDesign
+from domain.models.scenarios import DesignScenario
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 
@@ -35,12 +36,25 @@ class ApiStage:
 
     def run(self, context: StageContext) -> StageOutcome[ApiDesign]:
         stage_start: float = time.perf_counter()
+        scenario: DesignScenario = context.scenario
+
+        if not scenario.functional_requirements:
+            _logger.info(
+                "No functional requirements provided; skipping API generation."
+            )
+            return StageOutcome(
+                name=self.name,
+                status=StageStatus.SUCCEEDED,
+                duration_seconds=time.perf_counter() - stage_start,
+                total_tokens=0,
+                payload=None,
+                message="No functional requirements provided; skipping API generation.",
+            )
 
         graph: ArchitectureGraph = require_payload(context, "c4", ArchitectureGraph)
         sequences: Mapping[str, InteractionScenario] = require_payload(
             context, "sequence", dict
         )
-        scenario = context.scenario
 
         generation_start: float = time.perf_counter()
         result: ApiGenerationResult = self._service.generate(scenario, graph, sequences)

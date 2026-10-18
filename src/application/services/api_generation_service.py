@@ -6,8 +6,7 @@ import logging
 from collections.abc import Mapping
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
-from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
-from application.protocols import ApiDesigner
+from application.protocols import ApiDesigner, ApiDesignValidatorPort
 from application.results import ApiGenerationResult, GenerationAttempt
 from application.tasks import (
     ApiDesignProposal,
@@ -15,11 +14,11 @@ from application.tasks import (
     DesignTaskMode,
     ValidationErrorFeedback,
 )
+from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from domain.models import DesignScenario
 from domain.models.api import ApiDesign
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
-from domain.specifications.api_validator import ApiDesignValidator
 from domain.specifications.interfaces import ValidationResult
 
 
@@ -27,7 +26,7 @@ class ApiGenerationService:
     def __init__(
         self,
         designer: ApiDesigner,
-        validator: ApiDesignValidator,
+        validator: ApiDesignValidatorPort,
         max_attempts: int,
     ) -> None:
         if not MIN_ATTEMPTS <= max_attempts <= MAX_ATTEMPTS:
@@ -36,7 +35,7 @@ class ApiGenerationService:
                 f"{MAX_ATTEMPTS}, got {max_attempts}"
             )
         self._designer: ApiDesigner = designer
-        self._validator: ApiDesignValidator = validator
+        self._validator: ApiDesignValidatorPort = validator
         self._max_attempts: int = max_attempts
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 
