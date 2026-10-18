@@ -188,8 +188,8 @@ def test_generation_skips_when_no_functional_requirements() -> None:
     assert result.roles_catalog is None
     assert result.scenarios_results == {}
     assert result.roles_attempts == []
-    assert designer.role_tasks == []
-    assert designer.interaction_tasks == []
+    assert not designer.role_tasks
+    assert not designer.interaction_tasks
 
 
 def test_generation_returns_catalog_and_scenarios_in_requirement_order() -> None:
