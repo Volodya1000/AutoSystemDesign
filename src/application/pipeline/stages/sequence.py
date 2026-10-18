@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Protocol
 
 from application.pipeline.context import StageContext, require_payload
+from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.ports import DiagramRenderer, GenerationReporter
 from application.pipeline.services import SequenceGenerator
