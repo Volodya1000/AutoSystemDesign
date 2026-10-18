@@ -121,11 +121,13 @@ def test_path_parameter_not_present_in_route_is_rejected() -> None:
         [
             _operation(
                 parameters=[
-                    ApiParameter(
-                        name="resource_id",
-                        in_location=ParameterLocation.PATH,
-                        required=True,
-                        data_type=DataType.STRING,
+                    ApiParameter.model_validate(
+                        {
+                            "name": "resource_id",
+                            "in": ParameterLocation.PATH.value,
+                            "required": True,
+                            "data_type": DataType.STRING.value,
+                        }
                     )
                 ]
             )
