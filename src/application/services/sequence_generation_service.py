@@ -17,7 +17,7 @@ from application.tasks import (
     SequenceRoleTask,
     ValidationErrorFeedback,
 )
-from config.generation import (
+from application.generation_limits import (
     DEFAULT_SEQUENCE_PARALLELISM,
     MAX_ATTEMPTS,
     MIN_ATTEMPTS,
