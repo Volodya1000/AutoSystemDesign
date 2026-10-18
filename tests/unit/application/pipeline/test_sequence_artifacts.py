@@ -7,7 +7,7 @@ import pytest
 
 from application.pipeline.context import StageContext
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
-from application.pipeline.outcome import DiagramRenderResult
+from application.pipeline.outcome import DiagramRenderResult, StageOutcome
 from application.pipeline.services.sequence_artifacts import SequenceArtifactProcessor
 from domain.models.ast_steps import MessageStep
 from domain.models.roles import BusinessRole, ProjectRolesCatalog
@@ -50,7 +50,7 @@ class FakeRenderer:
 
 
 def _context(tmp_path: Path, writer: InMemoryWriter) -> StageContext:
-    upstream: Mapping[str, object] = {}
+    upstream: Mapping[str, StageOutcome[object]] = {}
     return StageContext(
         scenario=DesignScenario(identifier="demo", description="Test scenario"),
         out_dir=tmp_path / "output",
