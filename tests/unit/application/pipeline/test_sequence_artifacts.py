@@ -8,7 +8,7 @@ import pytest
 from application.pipeline.context import StageContext
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome
-from application.pipeline.services.sequence_artifacts import SequenceArtifactProcessor
+from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
 from domain.models.ast_steps import MessageStep
 from domain.models.roles import BusinessRole, ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
