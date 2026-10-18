@@ -199,9 +199,12 @@ def build_pipeline(
     diagram_server: str,
     image_format: DiagramImageFormat,
     render_diagrams: bool,
+    settings: AppSettings | None = None,
 ) -> PipelineWiring:
     """Builds the full C4 + Sequence + REST API design pipeline."""
-    settings: AppSettings = load_app_settings()
+    resolved_settings: AppSettings = (
+        settings if settings is not None else load_app_settings()
+    )
     c4_renderer = _diagram_renderer(
         C4ContainerDiagramBuilder(),
         server=diagram_server,
@@ -217,11 +220,11 @@ def build_pipeline(
     generation_reporter = LoggingGenerationReporter()
 
     stages: list[PipelineStage] = [
-        _build_c4_stage(settings, renderer=c4_renderer, reporter=generation_reporter),
+        _build_c4_stage(resolved_settings, renderer=c4_renderer, reporter=generation_reporter),
         _build_sequence_stage(
-            settings, renderer=sequence_renderer, reporter=generation_reporter
+            resolved_settings, renderer=sequence_renderer, reporter=generation_reporter
         ),
-        _build_api_stage(settings, reporter=generation_reporter),
+        _build_api_stage(resolved_settings, reporter=generation_reporter),
     ]
 
     return PipelineWiring(
