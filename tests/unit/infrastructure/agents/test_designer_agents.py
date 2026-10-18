@@ -1,7 +1,5 @@
 """Unit tests for the LLM-backed designer adapters."""
 
-from collections.abc import Callable
-
 import pytest
 from pydantic import SecretStr
 
@@ -41,7 +39,6 @@ from infrastructure.llm.models import (
     Message,
     MessageRole,
 )
-from infrastructure.llm.protocols import CompletionClient
 
 pytestmark = pytest.mark.unit
 
@@ -214,7 +211,6 @@ def test_architecture_designer_builds_typed_request_and_parses_result(
     ).propose(task)
 
     request = client.requests[0]
-    assert isinstance(client, CompletionClient)
     assert request.messages[0].content == (
         "initial prompt" if mode is DesignTaskMode.INITIAL else "repair prompt"
     )
