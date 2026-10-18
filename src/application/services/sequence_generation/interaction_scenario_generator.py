@@ -37,7 +37,9 @@ class InteractionScenarioGenerator:
         requirement: FunctionalRequirement,
         catalog: ProjectRolesCatalog,
         graph: ArchitectureGraph,
-    ) -> tuple[list[GenerationAttempt[InteractionScenario]], InteractionScenario | None]:
+    ) -> tuple[
+        list[GenerationAttempt[InteractionScenario]], InteractionScenario | None
+    ]:
         task = SequenceInteractionTask(
             requirement=requirement,
             roles_catalog=catalog,
@@ -86,8 +88,7 @@ class InteractionScenarioGenerator:
                 return attempts, proposal.payload
 
             feedback = [
-                ValidationErrorFeedback.from_error(error)
-                for error in validation.errors
+                ValidationErrorFeedback.from_error(error) for error in validation.errors
             ]
             task = SequenceInteractionTask(
                 requirement=requirement,
