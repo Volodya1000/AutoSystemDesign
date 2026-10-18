@@ -181,7 +181,9 @@ def _service(
 
 def test_generation_skips_when_no_functional_requirements() -> None:
     designer = ScriptedSequenceDesigner([], {})
-    result = _service(designer).generate(_scenario([]), ArchitectureGraph(nodes=[], edges=[]))
+    result = _service(designer).generate(
+        _scenario([]), ArchitectureGraph(nodes=[], edges=[])
+    )
 
     assert result.roles_catalog is None
     assert result.scenarios_results == {}
