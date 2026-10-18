@@ -13,8 +13,8 @@ from application.tasks import (
     SequenceInteractionProposal,
     SequenceInteractionTask,
     SequenceRoleProposal,
-    SequenceRoleTask,
     DesignTaskMode,
+    SequenceRoleTask,
 )
 from application.usage import TokenUsage
 from domain.models.ast_steps import MessageStep
