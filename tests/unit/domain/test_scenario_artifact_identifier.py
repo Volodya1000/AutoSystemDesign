@@ -34,6 +34,8 @@ def test_scenario_identifier_rejects_unsafe_artifact_names(identifier: str) -> N
         _scenario(identifier)
 
 
-@pytest.mark.parametrize("identifier", ["project", "social_network_chat", "feature-123"])
+@pytest.mark.parametrize(
+    "identifier", ["project", "social_network_chat", "feature-123"]
+)
 def test_scenario_identifier_accepts_safe_artifact_names(identifier: str) -> None:
     assert _scenario(identifier).identifier == identifier
