@@ -1,6 +1,6 @@
 import pytest
 
-from application.document_requirement_processing import (
+from application.document_processing import (
     deduplicate_requirements,
     split_document_text,
 )
