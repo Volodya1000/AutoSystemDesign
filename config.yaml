@@ -18,7 +18,7 @@ generation:
 #                  gateway as an automatic fallback.
 #   image_format - png | svg
 #   diagram_dir  - where .puml and image files are written.
-# Per-run CLI overrides: --diagram-server / --diagram-format / --diagram-dir.
+# Per-run CLI overrides: --diagram-server / --diagram-format / --out-dir.
 # Environment override example: ASD_VISUALISATION__SERVER=kroki
 visualisation:
   server: auto
