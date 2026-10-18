@@ -152,9 +152,12 @@ def test_unknown_request_and_response_schema_references_are_rejected() -> None:
     )
 
     assert result.has_error(UnresolvedSchemaReferenceError)
-    assert sum(
-        isinstance(error, UnresolvedSchemaReferenceError) for error in result.errors
-    ) == 2
+    assert (
+        sum(
+            isinstance(error, UnresolvedSchemaReferenceError) for error in result.errors
+        )
+        == 2
+    )
 
 
 def test_unknown_components_and_requirement_references_are_rejected() -> None:
