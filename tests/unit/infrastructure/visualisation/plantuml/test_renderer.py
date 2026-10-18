@@ -124,7 +124,9 @@ def test_fallback_renderer_reports_all_server_failures() -> None:
         ]
     )
 
-    with pytest.raises(\n        DiagramRenderingError, match="All diagram servers failed"\n    ) as exc:
+    with pytest.raises(
+        DiagramRenderingError, match="All diagram servers failed"
+    ) as exc:
         renderer.render("source", DiagramImageFormat.SVG)
 
     assert "primary down" in str(exc.value)
@@ -175,9 +177,7 @@ def test_http_renderer_maps_http_errors_to_domain_error(
 def test_http_renderer_maps_connection_errors_to_domain_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def fake_urlopen(
-        request: urllib.request.Request, timeout: float
-    ) -> FakeResponse:
+    def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
         del request, timeout
         raise OSError("network down")
 
