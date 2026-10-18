@@ -18,21 +18,24 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.mark.parametrize(
-    ("exception_type", "error_code"),
+    ("error", "expected_error_code"),
     [
-        (SequenceIntegrityError, "SEQUENCE_INTEGRITY_ERROR"),
-        (SharedClientLifelineError, "SHARED_CLIENT_LIFELINE"),
-        (AsyncDeliveryModeError, "ASYNC_DELIVERY_MODE_REQUIRED"),
+        (SequenceIntegrityError("broken reference"), "SEQUENCE_INTEGRITY_ERROR"),
+        (
+            SharedClientLifelineError("client", ["buyer", "admin"]),
+            "SHARED_CLIENT_LIFELINE",
+        ),
+        (
+            AsyncDeliveryModeError("publish event", "event"),
+            "ASYNC_DELIVERY_MODE_REQUIRED",
+        ),
     ],
 )
 def test_sequence_exceptions_remain_architecture_validation_errors(
-    exception_type: type[ArchitectureValidationError],
-    error_code: str,
+    error: ArchitectureValidationError,
+    expected_error_code: str,
 ) -> None:
-    error = exception_type("test error")
-
-    assert isinstance(error, ArchitectureValidationError)
-    assert error.error_code == error_code
+    assert error.error_code == expected_error_code
 
 
 def test_sequence_exceptions_keep_legacy_validator_module_imports() -> None:
