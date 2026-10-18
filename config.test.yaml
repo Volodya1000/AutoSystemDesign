@@ -9,6 +9,7 @@ llm:
   structured_output_mode: prompt
 generation:
   max_attempts: 3
+  sequence_parallelism: 3
 testing:
   generation_runs: 3
   min_single_shot_success_rate: 1.0

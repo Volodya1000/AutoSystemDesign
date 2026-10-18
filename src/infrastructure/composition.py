@@ -87,6 +87,7 @@ def build_sequence_generation_service(
         designer=designer,
         validator=SequenceValidator(),
         max_attempts=resolved.generation.max_attempts,
+        max_parallel_workers=resolved.generation.sequence_parallelism,
     )
 
 

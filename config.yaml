@@ -11,6 +11,7 @@ llm:
   structured_output_mode: prompt
 generation:
   max_attempts: 3
+  sequence_parallelism: 3
 # Diagram rendering backend:
 #   server       - auto | plantuml | kroki | http(s)://<self-hosted plantuml-server>
 #                  "auto" = public PlantUML server with the public Kroki

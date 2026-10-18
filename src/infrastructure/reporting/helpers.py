@@ -32,6 +32,7 @@ def log_header(settings: AppSettings, scenario: DesignScenario) -> None:
     _logger.info("  timeout      : %s s", settings.llm.timeout_seconds)
     _logger.info("  output mode  : %s", settings.llm.structured_output_mode.value)
     _logger.info("  max_attempts : %s", settings.generation.max_attempts)
+    _logger.info("  seq parallel : %s", settings.generation.sequence_parallelism)
     _logger.info("  diagram srv  : %s", settings.visualisation.server)
     _logger.info("Scenario")
     for line in render_scenario_summary(scenario).splitlines():
