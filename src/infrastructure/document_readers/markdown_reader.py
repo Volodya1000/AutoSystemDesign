@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-from application.document_reader import DocumentReader
 
 
 class MarkdownReader:
