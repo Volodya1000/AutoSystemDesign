@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.ports import (
     ArtifactWriter,
     DiagramRenderer,
@@ -24,7 +25,6 @@ from application.services.api_generation_service import ApiGenerationService
 from application.services.design_generation_service import DesignGenerationService
 from application.services.sequence_generation_service import SequenceGenerationService
 from config.root import AppSettings, load_app_settings
-from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
 from domain.specifications.budget_validator import BudgetRequirementValidator
@@ -137,7 +137,7 @@ def _build_c4_stage(
 def _build_sequence_stage(
     settings: AppSettings,
     *,
-    renderer: DiagramRenderer[InteractionScenario] | None,
+    renderer: DiagramRenderer[SequenceDiagramSubject] | None,
     reporter: GenerationReporter,
 ) -> SequenceStage:
     return SequenceStage(

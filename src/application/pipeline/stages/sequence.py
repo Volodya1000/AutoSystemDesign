@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Protocol
 
 from application.pipeline.context import StageContext, require_payload
+from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.ports import DiagramRenderer, GenerationReporter
 from application.pipeline.services import SequenceGenerator
@@ -48,11 +49,11 @@ class SequenceStage:
     def __init__(
         self,
         service: SequenceGenerator,
-        renderer: DiagramRenderer[InteractionScenario] | None,
+        renderer: DiagramRenderer[SequenceDiagramSubject] | None,
         reporter: GenerationReporter,
     ) -> None:
         self._service: SequenceGenerator = service
-        self._renderer: DiagramRenderer[InteractionScenario] | None = renderer
+        self._renderer: DiagramRenderer[SequenceDiagramSubject] | None = renderer
         self._reporter: GenerationReporter = reporter
 
     def run(
@@ -94,8 +95,11 @@ class SequenceStage:
             )
 
         artifacts: list[Path] = self._write_roles_catalog(context, result)
+        # ``graph`` is forwarded so ``_process_requirement`` can build a
+        # ``SequenceDiagramSubject`` that carries both the scenario and the
+        # C4 topology to the renderer (see ``_process_requirement``).
         req_artifacts, warnings = self._process_all_requirements(
-            context, base_names, result.scenarios_results
+            context, base_names, result.scenarios_results, graph
         )
         artifacts.extend(req_artifacts)
 
@@ -165,12 +169,13 @@ class SequenceStage:
         context: StageContext,
         base_names: Mapping[str, str],
         scenarios_results: Mapping[str, _InteractionResult],
+        graph: ArchitectureGraph,
     ) -> tuple[list[Path], list[str]]:
         artifacts: list[Path] = []
         warnings: list[str] = []
         for req_id, req_result in scenarios_results.items():
             req_artifacts, req_warnings = self._process_requirement(
-                context, base_names[req_id], req_id, req_result
+                context, base_names[req_id], req_id, req_result, graph
             )
             artifacts.extend(req_artifacts)
             warnings.extend(req_warnings)
@@ -182,6 +187,7 @@ class SequenceStage:
         base_name: str,
         req_id: str,
         req_result: _InteractionResult,
+        graph: ArchitectureGraph,
     ) -> tuple[list[Path], list[str]]:
         self._reporter.attempts(
             req_result.attempts, f"Interaction attempts for {req_id}"
@@ -201,8 +207,15 @@ class SequenceStage:
         ]
         warnings: list[str] = []
         if self._renderer is not None:
+            # The subject bundles the scenario with the C4 graph so the
+            # renderer can pick each component's PlantUML participant
+            # keyword from ``ComponentLifeline.architecture_node_id``
+            # without querying the domain layer or the upstream stage.
             render_result = self._renderer.render(
-                interaction,
+                SequenceDiagramSubject(
+                    scenario=interaction,
+                    architecture_graph=graph,
+                ),
                 title=interaction.description,
                 base_name=base_name,
                 out_dir=context.out_dir,
