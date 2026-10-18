@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from application.document_reader import DocumentReader
+
 
 class MarkdownReader(DocumentReader):
     """Read UTF-8 Markdown without modifying its semantic content."""
