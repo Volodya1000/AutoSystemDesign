@@ -64,11 +64,15 @@ def test_build_api_stage_depends_on_c4_and_sequence() -> None:
     assert stage.depends_on == ("c4", "sequence")
 
 
-def test_build_pipeline_reuses_provided_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_build_pipeline_reuses_provided_settings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     def fail_if_reloaded() -> AppSettings:
         pytest.fail("build_pipeline reloaded application settings")
 
-    monkeypatch.setattr("infrastructure.composition.load_app_settings", fail_if_reloaded)
+    monkeypatch.setattr(
+        "infrastructure.composition.load_app_settings", fail_if_reloaded
+    )
 
     wiring = build_pipeline(
         settings=_settings(),
