@@ -13,10 +13,12 @@ from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.sequence import SequenceStage
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
+from infrastructure.visualisation.plantuml import DiagramImageFormat
 from infrastructure.composition import (
     _build_api_stage,
     _build_c4_stage,
     _build_sequence_stage,
+    build_pipeline,
 )
 from infrastructure.reporting import LoggingGenerationReporter
 
@@ -60,3 +62,20 @@ def test_build_api_stage_depends_on_c4_and_sequence() -> None:
     assert isinstance(stage, ApiStage)
     assert stage.name == "api"
     assert stage.depends_on == ("c4", "sequence")
+
+
+def test_build_pipeline_reuses_provided_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_if_reloaded() -> AppSettings:
+        pytest.fail("build_pipeline reloaded application settings")
+
+    monkeypatch.setattr("infrastructure.composition.load_app_settings", fail_if_reloaded)
+
+    wiring = build_pipeline(
+        settings=_settings(),
+        diagram_server="kroki",
+        image_format=DiagramImageFormat.PNG,
+        render_diagrams=False,
+    )
+
+    assert wiring.runner is not None
+    assert wiring.writer is not None
