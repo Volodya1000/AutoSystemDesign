@@ -168,14 +168,17 @@ def _parse_error() -> DesignProposalParsingError:
 
 
 def _service(
-    designer: ScriptedSequenceDesigner, *, max_attempts: int = 2
+    designer: ScriptedSequenceDesigner,
+    *,
+    max_attempts: int = 2,
+    max_parallel_workers: int = 1,
 ) -> SequenceGenerationService:
     return SequenceGenerationService(
         designer=designer,  # type: ignore[arg-type]
         catalog_validators=[ValidCatalogValidator()],
         scenario_validators=[ValidScenarioValidator()],
         max_attempts=max_attempts,
-        max_parallel_workers=1,
+        max_parallel_workers=max_parallel_workers,
     )
 
 
@@ -209,6 +212,26 @@ def test_generation_returns_catalog_and_scenarios_in_requirement_order() -> None
     assert result.roles_catalog == _catalog()
     assert list(result.scenarios_results) == ["FR-1", "FR-2"]
     assert result.total_usage.total_tokens == 45
+
+
+def test_parallel_generation_preserves_requirement_order() -> None:
+    designer = ScriptedSequenceDesigner(
+        [_role_proposal()],
+        {
+            "FR-1": [_interaction_proposal("FR-1")],
+            "FR-2": [_interaction_proposal("FR-2")],
+        },
+    )
+
+    result = _service(designer, max_parallel_workers=2).generate(
+        _scenario(["FR-1", "FR-2"]), ArchitectureGraph(nodes=[], edges=[])
+    )
+
+    assert result.is_successful
+    assert list(result.scenarios_results) == ["FR-1", "FR-2"]
+    assert {
+        task.requirement.identifier for task in designer.interaction_tasks
+    } == {"FR-1", "FR-2"}
 
 
 def test_catalog_parse_failure_is_retried_with_repair_task() -> None:
