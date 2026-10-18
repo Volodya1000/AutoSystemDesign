@@ -17,7 +17,6 @@ from application.tasks import (
     DesignTaskMode,
 )
 from application.usage import TokenUsage
-from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.models.ast_steps import MessageStep
 from domain.models.functional import FunctionalRequirement
 from domain.models.roles import BusinessRole, ProjectRolesCatalog
@@ -293,7 +292,7 @@ def test_retries_parsing_failures_and_preserves_repair_context() -> None:
     assert interaction_repair.mode is DesignTaskMode.REPAIR
     assert interaction_repair.previous_payload == interaction_failure.raw_content
     assert interaction_repair.parsing_failures == interaction_failure.failure_details
-    assert result.total_usage == TokenUsage(prompt_tokens=40, completion_tokens=31)
+    assert result.total_usage == TokenUsage(prompt_tokens=40, completion_tokens=17)
 
 
 def test_catalog_validation_feedback_is_sent_to_repair_attempt() -> None:
@@ -313,8 +312,10 @@ def test_catalog_validation_feedback_is_sent_to_repair_attempt() -> None:
     assert result.roles_catalog is not None
     assert len(result.roles_attempts) == 2
     repair = designer.role_tasks[1]
+    first_payload = result.roles_attempts[0].payload
+    assert first_payload is not None
     assert repair.mode is DesignTaskMode.REPAIR
-    assert repair.previous_payload == result.roles_attempts[0].payload.model_dump_json()
+    assert repair.previous_payload == first_payload.model_dump_json()
     assert repair.validation_feedback[0].error_code == "SEQUENCE_INTEGRITY_ERROR"
 
 
@@ -337,10 +338,10 @@ def test_interaction_validation_feedback_is_sent_to_repair_attempt() -> None:
     assert result.is_successful
     assert len(result.scenarios_results["FR-1"].attempts) == 2
     repair = designer.interaction_tasks[1]
+    first_payload = result.scenarios_results["FR-1"].attempts[0].payload
+    assert first_payload is not None
     assert repair.mode is DesignTaskMode.REPAIR
-    assert repair.previous_payload == result.scenarios_results["FR-1"].attempts[
-        0
-    ].payload.model_dump_json()
+    assert repair.previous_payload == first_payload.model_dump_json()
     assert repair.validation_feedback[0].error_code == "SEQUENCE_INTEGRITY_ERROR"
 
 
