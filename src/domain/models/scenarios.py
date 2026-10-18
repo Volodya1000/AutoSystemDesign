@@ -36,6 +36,8 @@ class DesignScenario(BaseModel):
     identifier: str = Field(
         default="project",
         validation_alias=AliasChoices("identifier", "project_name"),
+        min_length=1,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$",
     )
     description: str
 
