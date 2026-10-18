@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import http.client
 import urllib.error
 import urllib.request
 from types import TracebackType
-from typing import Self
+from typing import Literal, Self
 
 import pytest
 
@@ -63,7 +64,7 @@ class FakeResponse:
         exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
         traceback: TracebackType | None,
-    ) -> bool:
+    ) -> Literal[False]:
         del exc_type, exc_value, traceback
         return False
 
@@ -165,7 +166,7 @@ def test_http_renderer_maps_http_errors_to_domain_error(
 ) -> None:
     def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
         del timeout
-        raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
+        raise urllib.error.HTTPError(\n            request.full_url, 403, "Forbidden", http.client.HTTPMessage(), None\n        )
 
     monkeypatch.setattr(renderer_module.urllib.request, "urlopen", fake_urlopen)
     renderer = PlantumlServerImageRenderer(server_url="https://plantuml.example")
