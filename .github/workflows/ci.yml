@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Code quality and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --locked --all-groups
+
+      - name: Check formatting
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+          git diff --check
+
+      - name: Check lockfile consistency
+        run: uv lock --check
+
+      - name: Run read-only pre-commit checks
+        env:
+          SKIP: trailing-whitespace,end-of-file-fixer,uv-lock,ruff,ruff-format,mypy,pylint,pytest
+        run: uv run pre-commit run --all-files
+
+      - name: Run type checking
+        run: uv run mypy
+
+      - name: Run pylint
+        run: uv run pylint
+
+      - name: Run unit tests
+        run: uv run pytest -m unit
