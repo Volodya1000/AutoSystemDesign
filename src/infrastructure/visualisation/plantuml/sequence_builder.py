@@ -17,7 +17,6 @@ from domain.models.sequence import (
 from infrastructure.visualisation.plantuml.participant_kinds import (
     participant_keyword,
 )
-from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 
 
 class SequenceDiagramBuilder:
