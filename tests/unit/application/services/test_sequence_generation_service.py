@@ -229,9 +229,10 @@ def test_parallel_generation_preserves_requirement_order() -> None:
 
     assert result.is_successful
     assert list(result.scenarios_results) == ["FR-1", "FR-2"]
-    assert {
-        task.requirement.identifier for task in designer.interaction_tasks
-    } == {"FR-1", "FR-2"}
+    assert {task.requirement.identifier for task in designer.interaction_tasks} == {
+        "FR-1",
+        "FR-2",
+    }
 
 
 def test_catalog_parse_failure_is_retried_with_repair_task() -> None:
