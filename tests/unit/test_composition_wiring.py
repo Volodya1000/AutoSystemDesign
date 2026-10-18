@@ -13,7 +13,6 @@ from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.sequence import SequenceStage
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
-from infrastructure.visualisation.plantuml import DiagramImageFormat
 from infrastructure.composition import (
     _build_api_stage,
     _build_c4_stage,
@@ -21,6 +20,7 @@ from infrastructure.composition import (
     build_pipeline,
 )
 from infrastructure.reporting import LoggingGenerationReporter
+from infrastructure.visualisation.plantuml import DiagramImageFormat
 
 pytestmark = pytest.mark.unit
 
