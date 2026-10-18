@@ -3,7 +3,7 @@
 from pathlib import Path
 
 
-class MarkdownReader:
+class MarkdownReader(DocumentReader):
     """Read UTF-8 Markdown without modifying its semantic content."""
 
     def read_text(self, path: Path) -> str:
