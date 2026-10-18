@@ -8,8 +8,8 @@ from application.exceptions.generation_exceptions import DesignProposalParsingEr
 from application.results import SequenceGenerationResult
 from application.services.sequence_generation_service import SequenceGenerationService
 from application.tasks import (
-    DesignTaskMode,
     JSON_DECODE_ERROR_TYPE,
+    DesignTaskMode,
     ProposalFailureDetail,
     SequenceInteractionProposal,
     SequenceInteractionTask,
