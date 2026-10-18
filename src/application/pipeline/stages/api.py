@@ -14,6 +14,7 @@ from application.pipeline.services import ApiGenerator
 from application.results import ApiGenerationResult, GenerationStatus
 from domain.models.api import ApiDesign
 from domain.models.sequence import InteractionScenario
+from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 
 _logger: logging.Logger = logging.getLogger("pipeline.api")
@@ -35,7 +36,7 @@ class ApiStage:
 
     def run(self, context: StageContext) -> StageOutcome[ApiDesign]:
         stage_start: float = time.perf_counter()
-        scenario = context.scenario
+        scenario: DesignScenario = context.scenario
 
         if not scenario.functional_requirements:
             _logger.info(
