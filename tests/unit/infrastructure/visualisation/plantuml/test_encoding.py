@@ -71,21 +71,15 @@ def test_build_plantuml_url_uses_server_format_and_encoded_token() -> None:
         "https://plantuml.example/", source, DiagramImageFormat.SVG
     )
 
-    assert url == (
-        "https://plantuml.example/svg/" + encode_plantuml_text(source)
-    )
+    assert url == ("https://plantuml.example/svg/" + encode_plantuml_text(source))
 
 
 def test_build_kroki_url_includes_diagram_type_and_format() -> None:
     source = "@startuml\nAlice -> Bob\n@enduml"
 
-    url = build_kroki_url(
-        "https://kroki.example/", source, DiagramImageFormat.PNG
-    )
+    url = build_kroki_url("https://kroki.example/", source, DiagramImageFormat.PNG)
 
-    assert url == (
-        "https://kroki.example/plantuml/png/" + encode_kroki_text(source)
-    )
+    assert url == ("https://kroki.example/plantuml/png/" + encode_kroki_text(source))
 
 
 def test_build_kroki_url_supports_an_explicit_diagram_type() -> None:
