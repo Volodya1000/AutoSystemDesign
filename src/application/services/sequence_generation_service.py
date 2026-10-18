@@ -87,7 +87,7 @@ class SequenceGenerationService:
             max_attempts=max_attempts,
         )
         self._max_parallel_workers = max_parallel_workers
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 
     def generate(
         self, scenario: DesignScenario, graph: ArchitectureGraph
