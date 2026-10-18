@@ -203,4 +203,3 @@ class SequenceGenerationService:
             "Generating sequence scenario for requirement: %s", req.identifier
         )
         return self._interaction_generator.generate(req, catalog, graph)
-
