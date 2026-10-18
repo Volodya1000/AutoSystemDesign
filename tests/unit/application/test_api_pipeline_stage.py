@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.unit.in_memory_writer import InMemoryWriter
+
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
 from application.pipeline.stages.api import ApiStage
@@ -18,15 +20,6 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 
 pytestmark = pytest.mark.unit
-
-
-class InMemoryWriter:
-    def __init__(self) -> None:
-        self.writes: list[tuple[Path, str]] = []
-
-    def write_text(self, path: Path, content: str) -> Path:
-        self.writes.append((path, content))
-        return path
 
 
 class NullReporter:
