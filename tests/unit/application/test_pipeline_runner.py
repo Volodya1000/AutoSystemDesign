@@ -1,5 +1,6 @@
 """Contract tests for ordered pipeline execution and typed dependencies."""
 
+from collections.abc import Sequence
 from pathlib import Path
 from types import MappingProxyType
 from typing import cast
@@ -30,8 +31,8 @@ class RecordingReporter:
     def __init__(self) -> None:
         self.reports: list[tuple[StageOutcome[object], ...]] = []
 
-    def report(self, outcomes: object) -> None:
-        self.reports.append(tuple(cast( list[StageOutcome[object]], outcomes)))
+    def report(self, outcomes: Sequence[StageOutcome[object]]) -> None:
+        self.reports.append(tuple(outcomes))
 
 
 class FakeStage:
