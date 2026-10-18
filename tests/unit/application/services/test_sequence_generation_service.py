@@ -10,9 +10,9 @@ from application.tasks import (
     DesignTaskMode,
     ProposalFailureDetail,
     SequenceInteractionProposal,
+    SequenceInteractionTask,
     SequenceRoleProposal,
     SequenceRoleTask,
-    SequenceInteractionTask,
 )
 from application.usage import TokenUsage
 from domain.models.ast_steps import MessageStep
@@ -205,7 +205,6 @@ def test_generation_returns_catalog_and_scenarios_in_requirement_order() -> None
 
     assert result.is_successful
     assert result.roles_catalog == _catalog()
-    assert list(result.scenarios_results) == ["FR-1", "FR-2"]
     assert list(result.scenarios_results) == ["FR-1", "FR-2"]
     assert result.total_usage.total_tokens == 45
 
