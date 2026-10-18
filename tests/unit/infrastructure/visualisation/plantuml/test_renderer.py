@@ -37,9 +37,7 @@ class StubRenderer:
         self.failure = failure
         self.calls: int = 0
 
-    def build_image_url(
-        self, source: str, image_format: DiagramImageFormat
-    ) -> str:
+    def build_image_url(self, source: str, image_format: DiagramImageFormat) -> str:
         del source, image_format
         return self.image_url
 
@@ -126,7 +124,7 @@ def test_fallback_renderer_reports_all_server_failures() -> None:
         ]
     )
 
-    with pytest.raises(DiagramRenderingError, match="All diagram servers failed") as exc:
+    with pytest.raises(\n        DiagramRenderingError, match="All diagram servers failed"\n    ) as exc:
         renderer.render("source", DiagramImageFormat.SVG)
 
     assert "primary down" in str(exc.value)
@@ -143,9 +141,7 @@ def test_http_renderer_sets_user_agent_and_returns_response_bytes(
 ) -> None:
     observed: dict[str, object] = {}
 
-    def fake_urlopen(
-        request: urllib.request.Request, timeout: float
-    ) -> FakeResponse:
+    def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
         observed["request"] = request
         observed["timeout"] = timeout
         return FakeResponse(b"rendered-image")
@@ -165,13 +161,9 @@ def test_http_renderer_sets_user_agent_and_returns_response_bytes(
 def test_http_renderer_maps_http_errors_to_domain_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def fake_urlopen(
-        request: urllib.request.Request, timeout: float
-    ) -> FakeResponse:
+    def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
         del timeout
-        raise urllib.error.HTTPError(
-            request.full_url, 403, "Forbidden", {}, None
-        )
+        raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
 
     monkeypatch.setattr(renderer_module.urllib.request, "urlopen", fake_urlopen)
     renderer = PlantumlServerImageRenderer(server_url="https://plantuml.example")
