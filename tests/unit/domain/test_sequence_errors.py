@@ -2,16 +2,12 @@
 
 import pytest
 
+import domain.specifications.sequence_validator as validator_module
 from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.exceptions.sequence_errors import (
     AsyncDeliveryModeError,
     SequenceIntegrityError,
     SharedClientLifelineError,
-)
-from domain.specifications.sequence_validator import (
-    AsyncDeliveryModeError as ValidatorAsyncDeliveryModeError,
-    SequenceIntegrityError as ValidatorSequenceIntegrityError,
-    SharedClientLifelineError as ValidatorSharedClientLifelineError,
 )
 
 pytestmark = pytest.mark.unit
@@ -39,6 +35,6 @@ def test_sequence_exceptions_remain_architecture_validation_errors(
 
 
 def test_sequence_exceptions_keep_legacy_validator_module_imports() -> None:
-    assert ValidatorSequenceIntegrityError is SequenceIntegrityError
-    assert ValidatorSharedClientLifelineError is SharedClientLifelineError
-    assert ValidatorAsyncDeliveryModeError is AsyncDeliveryModeError
+    assert validator_module.SequenceIntegrityError is SequenceIntegrityError
+    assert validator_module.SharedClientLifelineError is SharedClientLifelineError
+    assert validator_module.AsyncDeliveryModeError is AsyncDeliveryModeError
