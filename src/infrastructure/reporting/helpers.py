@@ -10,11 +10,11 @@ from __future__ import annotations
 import logging
 from collections.abc import Sequence
 
+from application.formatting.scenario_summary import render_scenario_summary
 from application.results import GenerationAttempt
 from application.usage import TokenUsage
 from config.root import AppSettings
 from domain.models import DesignScenario
-from application.formatting.scenario_summary import render_scenario_summary
 
 _logger = logging.getLogger("pipeline.report")
 
