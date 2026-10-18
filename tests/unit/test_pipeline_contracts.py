@@ -9,8 +9,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from tests.unit.in_memory_writer import InMemoryWriter
-
 from application.pipeline.context import (
     PipelineDependencyError,
     StageContext,
@@ -31,6 +29,7 @@ from infrastructure.visualisation.plantuml import (
     DiagramSavingError,
 )
 from infrastructure.visualisation.plantuml import renderers as renderers_mod
+from tests.unit.in_memory_writer import InMemoryWriter
 
 # --- fakes ------------------------------------------------------------------
 
