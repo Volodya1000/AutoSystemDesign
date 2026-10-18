@@ -1,5 +1,8 @@
-from typing import Any
+"""Diagram generation service joining source building and image rendering."""
 
+from typing import cast
+
+from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4ContainerDiagramBuilder,
 )
@@ -15,18 +18,21 @@ from infrastructure.visualisation.plantuml.renderer import (
 )
 
 
-class DiagramService:
+class DiagramService[SubjectT = ArchitectureGraph]:
+    """Turns a typed diagram subject into source and rendered image bytes."""
+
     def __init__(
         self,
-        source_builder: DiagramSourceBuilder | None = None,
+        source_builder: DiagramSourceBuilder[SubjectT] | None = None,
         image_renderer: PlantumlImageRenderer | None = None,
         image_format: DiagramImageFormat = DiagramImageFormat.SVG,
     ) -> None:
-        self._source_builder: DiagramSourceBuilder = (
-            source_builder
-            if source_builder is not None
-            else C4ContainerDiagramBuilder()
-        )
+        if source_builder is None:
+            self._source_builder: DiagramSourceBuilder[SubjectT] = cast(
+                "DiagramSourceBuilder[SubjectT]", C4ContainerDiagramBuilder()
+            )
+        else:
+            self._source_builder = source_builder
         self._image_renderer: PlantumlImageRenderer = (
             image_renderer
             if image_renderer is not None
@@ -34,8 +40,10 @@ class DiagramService:
         )
         self._image_format: DiagramImageFormat = image_format
 
-    def generate(self, graph: Any, title: str | None = None) -> DiagramArtifacts:
-        source: str = self._source_builder.build(graph, title)
+    def generate(
+        self, subject: SubjectT, title: str | None = None
+    ) -> DiagramArtifacts:
+        source: str = self._source_builder.build(subject, title)
         return DiagramArtifacts(
             source=source,
             image_url=self._image_renderer.build_image_url(source, self._image_format),
