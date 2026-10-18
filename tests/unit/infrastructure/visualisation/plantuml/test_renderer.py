@@ -166,7 +166,9 @@ def test_http_renderer_maps_http_errors_to_domain_error(
 ) -> None:
     def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
         del timeout
-        raise urllib.error.HTTPError(\n            request.full_url, 403, "Forbidden", http.client.HTTPMessage(), None\n        )
+        raise urllib.error.HTTPError(
+            request.full_url, 403, "Forbidden", http.client.HTTPMessage(), None
+        )
 
     monkeypatch.setattr(renderer_module.urllib.request, "urlopen", fake_urlopen)
     renderer = PlantumlServerImageRenderer(server_url="https://plantuml.example")
