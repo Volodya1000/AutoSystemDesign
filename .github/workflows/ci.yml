@@ -33,25 +33,63 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-groups
 
-      - name: Check formatting
+      - name: Check whitespace and end-of-file newlines
         run: |
-          uv run ruff check .
-          uv run ruff format --check .
-          git diff --check
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
 
-      - name: Check lockfile consistency
-        run: uv lock --check
+          paths = subprocess.run(
+              ["git", "ls-files", "-z"],
+              check=True,
+              capture_output=True,
+          ).stdout.split(b"\\0")
+          failures = []
+
+          for raw_path in paths:
+              if not raw_path:
+                  continue
+              path = Path(raw_path.decode())
+              try:
+                  content = path.read_bytes()
+                  text = content.decode("utf-8")
+              except (OSError, UnicodeDecodeError):
+                  continue
+
+              if content and not content.endswith(b"\\n"):
+                  failures.append(f"{path}: missing newline at end of file")
+              for line_number, line in enumerate(text.splitlines(), start=1):
+                  if line.endswith((" ", "\\t")):
+                      failures.append(f"{path}:{line_number}: trailing whitespace")
+
+          if failures:
+              print("\\n".join(failures))
+              raise SystemExit(1)
+          print("Whitespace and EOF checks passed.")
+          PY
 
       - name: Run read-only pre-commit checks
         env:
           SKIP: trailing-whitespace,end-of-file-fixer,uv-lock,ruff,ruff-format,mypy,pylint,pytest
         run: uv run pre-commit run --all-files
 
+      - name: Check lockfile consistency
+        run: uv lock --check
+
+      - name: Check Ruff linting
+        run: uv run ruff check .
+
+      - name: Check Ruff formatting
+        run: uv run ruff format --check .
+
+      - name: Check changed-line whitespace
+        run: git diff --check
+
       - name: Run type checking
-        run: uv run mypy
+        run: uv run mypy src tests
 
       - name: Run pylint
-        run: uv run pylint
+        run: uv run pylint src tests
 
       - name: Run unit tests
         run: uv run pytest -m unit
