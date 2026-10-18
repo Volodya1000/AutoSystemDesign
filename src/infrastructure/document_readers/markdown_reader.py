@@ -1,14 +1,8 @@
-"""Markdown document reader. Other formats can implement the same protocol."""
+"""Markdown document reader."""
+
 from pathlib import Path
-from typing import Protocol, runtime_checkable
 
-
-@runtime_checkable
-class DocumentReader(Protocol):
-    """Strategy contract for extracting readable text from a document."""
-
-    def read_text(self, path: Path) -> str:
-        """Return the document's textual content."""
+from application.document_reader import DocumentReader
 
 
 class MarkdownReader:
