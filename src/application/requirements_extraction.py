@@ -1,5 +1,4 @@
 """Application service for extracting requirements from long documents."""
-from collections.abc import Callable
 from pathlib import Path
 from typing import Protocol
 
