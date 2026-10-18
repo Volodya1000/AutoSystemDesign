@@ -20,7 +20,9 @@ def test_dereferences_nested_schemas_without_mutating_source() -> None:
                 },
                 "Envelope": {
                     "type": "object",
-                    "properties": {"resource": {"$ref": "#/components/schemas/Resource"}},
+                    "properties": {
+                        "resource": {"$ref": "#/components/schemas/Resource"}
+                    },
                 },
             }
         },
@@ -87,9 +89,7 @@ def test_resolves_json_pointer_array_indexes() -> None:
 def test_preserves_external_references() -> None:
     source = {
         "components": {
-            "schemas": {
-                "External": {"$ref": "https://schemas.example/resource.json"}
-            }
+            "schemas": {"External": {"$ref": "https://schemas.example/resource.json"}}
         }
     }
 
@@ -136,7 +136,8 @@ def test_collapses_recursive_schema_references_to_finite_stubs() -> None:
     root = result["root"]
     assert root["type"] == "object"
     assert root["properties"]["next"]["type"] == "object"
-    assert "Recursive reference" in root["properties"]["next"]["properties"]["next"][
-        "description"
-    ]
+    assert (
+        "Recursive reference"
+        in root["properties"]["next"]["properties"]["next"]["description"]
+    )
     assert "$ref" not in root
