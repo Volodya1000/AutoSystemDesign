@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Code quality and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --locked --all-groups
+
+      - name: Check whitespace and end-of-file newlines
+        run: |
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
+
+          paths = subprocess.run(
+              ["git", "ls-files", "-z"],
+              check=True,
+              capture_output=True,
+          ).stdout.split(bytes([0]))
+          failures = []
+
+          for raw_path in paths:
+              if not raw_path:
+                  continue
+              path = Path(raw_path.decode())
+              try:
+                  content = path.read_bytes()
+                  text = content.decode("utf-8")
+              except (OSError, UnicodeDecodeError):
+                  continue
+
+              if content and not content.endswith(bytes([10])):
+                  failures.append(f"{path}: missing newline at end of file")
+              elif content.endswith(bytes([10, 10])):
+                  failures.append(f"{path}: extra blank lines at end of file")
+
+              for line_number, line in enumerate(text.splitlines(), start=1):
+                  if line.endswith((" ", chr(9))):
+                      failures.append(f"{path}:{line_number}: trailing whitespace")
+
+          if failures:
+              print(chr(10).join(failures))
+              raise SystemExit(1)
+          print("Whitespace and EOF checks passed.")
+          PY
+
+      - name: Run read-only pre-commit checks
+        env:
+          SKIP: trailing-whitespace,end-of-file-fixer,uv-lock,ruff,ruff-format,mypy,pylint,pytest
+        run: uv run pre-commit run --all-files
+
+      - name: Check lockfile consistency
+        run: uv lock --check
+
+      - name: Check Ruff linting
+        run: uv run ruff check .
+
+      - name: Check Ruff formatting
+        run: uv run ruff format --check .
+
+      - name: Check changed-line whitespace
+        run: git diff --check
+
+      - name: Run type checking
+        run: uv run mypy src tests
+
+      - name: Run pylint
+        run: uv run pylint src tests
+
+      - name: Run unit tests
+        run: uv run pytest -m unit
