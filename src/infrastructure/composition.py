@@ -220,7 +220,9 @@ def build_pipeline(
     generation_reporter = LoggingGenerationReporter()
 
     stages: list[PipelineStage] = [
-        _build_c4_stage(resolved_settings, renderer=c4_renderer, reporter=generation_reporter),
+        _build_c4_stage(
+            resolved_settings, renderer=c4_renderer, reporter=generation_reporter
+        ),
         _build_sequence_stage(
             resolved_settings, renderer=sequence_renderer, reporter=generation_reporter
         ),
