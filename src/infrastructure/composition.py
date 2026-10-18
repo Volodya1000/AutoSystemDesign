@@ -31,6 +31,7 @@ from domain.specifications.broker_consumer_validator import (
     MessageBrokerConsumerValidator,
 )
 from domain.specifications.budget_validator import BudgetRequirementValidator
+from domain.specifications.cache_usage_validator import CacheUsageValidator
 from domain.specifications.capacity_validator import CapacitySaturationValidator
 from domain.specifications.interfaces import BaseValidator, ScenarioValidator
 from domain.specifications.latency_validator import LatencySloValidator
@@ -74,6 +75,7 @@ def build_design_generation_service(
     validators: list[BaseValidator] = [
         StructuralTopologyValidator(),
         MessageBrokerConsumerValidator(),
+        CacheUsageValidator(),
     ]
     scenario_validators: list[ScenarioValidator] = [
         RequirementValidationDispatcher([BudgetRequirementValidator()]),

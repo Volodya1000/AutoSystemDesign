@@ -285,3 +285,48 @@ class MessageBrokerSelfLoopError(ArchitectureValidationError):
             message=message,
             affected_node_identifiers=[broker_identifier, *compute_identifiers],
         )
+
+
+class CacheWriteOnlySinkError(ArchitectureValidationError):
+    error_code: str = "CACHE_WRITE_ONLY_SINK"
+
+    def __init__(
+        self,
+        cache_identifier: str,
+        incoming_source_identifiers: list[str],
+    ) -> None:
+        sources: str = ", ".join(
+            f"'{identifier}'" for identifier in incoming_source_identifiers
+        )
+        message: str = (
+            f"Cache '{cache_identifier}' is a write-only sink: all incoming "
+            f"edges (from {sources}) are asynchronous writes, so no client "
+            f"ever reads from the cache and its cache_hit_rate is never "
+            f"realized. Add at least one synchronous read edge "
+            f"(compute -> cache), or remove the cache."
+        )
+        super().__init__(
+            message=message,
+            affected_node_identifiers=[cache_identifier],
+        )
+
+
+class CacheMissPathMissingError(ArchitectureValidationError):
+    error_code: str = "CACHE_MISS_PATH_MISSING"
+
+    def __init__(
+        self,
+        cache_identifier: str,
+        compute_identifier: str,
+    ) -> None:
+        message: str = (
+            f"Cache '{cache_identifier}' has a synchronous read from compute "
+            f"node '{compute_identifier}', but that compute node has no "
+            f"other outgoing edge, so a cache miss has nowhere to fall back "
+            f"to. Add a synchronous miss path (e.g., "
+            f"'{compute_identifier}' -> database), or remove the cache."
+        )
+        super().__init__(
+            message=message,
+            affected_node_identifiers=[cache_identifier, compute_identifier],
+        )

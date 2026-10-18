@@ -39,12 +39,16 @@ OUTPUT_HARD_RULES: Final[str] = (
     "cycle, which is forbidden by rule 3. To add asynchronous decoupling, "
     "introduce a dedicated worker compute node behind the broker "
     "(producer -> broker -> worker), not a loop back to the producer. If "
-    "you do not need async decoupling, do not add a broker at all."
-    "9. A cache node MUST have at least one outgoing edge on a cache miss "
-    "path, and at least one incoming edge that reads from it. An async "
-    "message_queue edge to a cache without a downstream read path is a "
-    "write-only sink: either remove the cache or wire the miss path back to "
-    "the caller. Do not add a cache that is never read from."
+    "you do not need async decoupling, do not add a broker at all.\n"
+    "9. Every cache node MUST be on a real read path:\n"
+    "   - at least one SYNCHRONOUS incoming edge from a compute node "
+    "(the read attempt);\n"
+    "   - that compute node MUST also have at least one other outgoing "
+    "edge (the miss fallback, e.g. to a database), so cache misses can "
+    "be resolved.\n"
+    "   An async-only edge into a cache is a write-only sink: the cache "
+    "receives data but nobody reads it, and cache_hit_rate is dead. "
+    "Either wire a synchronous read + miss fallback, or remove the cache."
 )
 
 FEW_SHOT_GRAPH_JSON: Final[str] = """{

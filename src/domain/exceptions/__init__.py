@@ -1,6 +1,8 @@
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
     BudgetExceededError,
+    CacheMissPathMissingError,
+    CacheWriteOnlySinkError,
     CapacitySaturationError,
     CyclicDependencyError,
     DisallowedConnectionTypeError,
@@ -16,6 +18,8 @@ from domain.exceptions.architecture_errors import (
 __all__ = [
     "ArchitectureValidationError",
     "BudgetExceededError",
+    "CacheMissPathMissingError",
+    "CacheWriteOnlySinkError",
     "CapacitySaturationError",
     "CyclicDependencyError",
     "DisallowedConnectionTypeError",

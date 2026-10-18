@@ -3,6 +3,10 @@ from domain.specifications.broker_consumer_validator import (
     check_message_broker_linkage,
 )
 from domain.specifications.budget_validator import BudgetRequirementValidator
+from domain.specifications.cache_usage_validator import (
+    CacheUsageValidator,
+    check_cache_usage,
+)
 from domain.specifications.capacity_validator import (
     SATURATION_THRESHOLD,
     CapacitySaturationValidator,
@@ -39,6 +43,7 @@ __all__ = [
     "SATURATION_THRESHOLD",
     "BaseValidator",
     "BudgetRequirementValidator",
+    "CacheUsageValidator",
     "CapacitySaturationValidator",
     "ConnectionType",
     "LatencySloValidator",
@@ -49,6 +54,7 @@ __all__ = [
     "StructuralTopologyValidator",
     "ValidationResult",
     "check_acyclicity",
+    "check_cache_usage",
     "check_connection_rules",
     "check_edge_referential_integrity",
     "check_isolated_nodes",
