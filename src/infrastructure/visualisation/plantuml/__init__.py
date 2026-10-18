@@ -38,7 +38,9 @@ from infrastructure.visualisation.plantuml.renderer import (
     PlantumlServerImageRenderer,
     resolve_image_renderer,
 )
-from infrastructure.visualisation.plantuml.sequence_builder import SequenceDiagramBuilder
+from infrastructure.visualisation.plantuml.sequence_builder import (
+    SequenceDiagramBuilder,
+)
 
 __all__ = [
     "AUTO_SERVER_SELECTION",
