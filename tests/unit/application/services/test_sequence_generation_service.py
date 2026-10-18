@@ -162,9 +162,9 @@ class FakeSequenceDesigner:
         ]
         | None = None,
     ) -> None:
-        self._role_script: list[
-            SequenceRoleProposal | DesignProposalParsingError
-        ] = list(role_script)
+        self._role_script: list[SequenceRoleProposal | DesignProposalParsingError] = (
+            list(role_script)
+        )
         self._interaction_scripts: dict[
             str, list[SequenceInteractionProposal | DesignProposalParsingError]
         ] = {
@@ -238,7 +238,9 @@ def _service(
     return SequenceGenerationService(
         designer=designer,
         catalog_validators=[
-            ScriptedCatalogValidator() if catalog_validator is None else catalog_validator
+            ScriptedCatalogValidator()
+            if catalog_validator is None
+            else catalog_validator
         ],
         scenario_validators=[
             ScriptedScenarioValidator()
@@ -253,7 +255,9 @@ def _service(
 def test_skips_generation_when_scenario_has_no_functional_requirements() -> None:
     designer = FakeSequenceDesigner([_role_proposal()])
 
-    result = _service(designer).generate(_scenario([]), ArchitectureGraph(nodes=[], edges=[]))
+    result = _service(designer).generate(
+        _scenario([]), ArchitectureGraph(nodes=[], edges=[])
+    )
 
     assert result.roles_catalog is None
     assert result.roles_attempts == []
