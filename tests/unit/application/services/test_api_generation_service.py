@@ -111,9 +111,7 @@ def _service(
 def test_api_generation_succeeds_on_first_valid_proposal() -> None:
     designer = ScriptedApiDesigner([_proposal(_api_design())])
 
-    result: ApiGenerationResult = _service(designer).generate(
-        _scenario(), _graph(), {}
-    )
+    result: ApiGenerationResult = _service(designer).generate(_scenario(), _graph(), {})
 
     assert result.status is GenerationStatus.SUCCEEDED
     assert result.api_design is not None
@@ -129,9 +127,7 @@ def test_api_validation_failure_builds_repair_task() -> None:
         ]
     )
 
-    result: ApiGenerationResult = _service(designer).generate(
-        _scenario(), _graph(), {}
-    )
+    result: ApiGenerationResult = _service(designer).generate(_scenario(), _graph(), {})
 
     assert result.status is GenerationStatus.SUCCEEDED
     assert len(result.attempts) == 2
@@ -159,9 +155,7 @@ def test_api_parsing_failure_builds_repair_task() -> None:
     )
     designer = ScriptedApiDesigner([parsing_error, _proposal(_api_design())])
 
-    result: ApiGenerationResult = _service(designer).generate(
-        _scenario(), _graph(), {}
-    )
+    result: ApiGenerationResult = _service(designer).generate(_scenario(), _graph(), {})
 
     assert result.status is GenerationStatus.SUCCEEDED
     assert len(result.attempts) == 2
