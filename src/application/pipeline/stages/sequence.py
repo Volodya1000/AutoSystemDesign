@@ -63,17 +63,16 @@ class SequenceStage:
         scenario = context.scenario
 
         if not scenario.functional_requirements:
-            message = (
+            _logger.info(
                 "No functional requirements provided; skipping sequence generation."
             )
-            _logger.info(message)
             return StageOutcome(
                 name=self.name,
                 status=StageStatus.SUCCEEDED,
                 duration_seconds=time.perf_counter() - stage_start,
                 total_tokens=0,
                 payload={},
-                message=message,
+                message="No functional requirements provided; skipping sequence generation.",
             )
 
         upstream_name: str = self.depends_on[0]

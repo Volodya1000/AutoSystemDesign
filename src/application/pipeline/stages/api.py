@@ -38,15 +38,16 @@ class ApiStage:
         scenario = context.scenario
 
         if not scenario.functional_requirements:
-            message = "No functional requirements provided; skipping API generation."
-            _logger.info(message)
+            _logger.info(
+                "No functional requirements provided; skipping API generation."
+            )
             return StageOutcome(
                 name=self.name,
                 status=StageStatus.SUCCEEDED,
                 duration_seconds=time.perf_counter() - stage_start,
                 total_tokens=0,
                 payload=None,
-                message=message,
+                message="No functional requirements provided; skipping API generation.",
             )
 
         graph: ArchitectureGraph = require_payload(context, "c4", ArchitectureGraph)
