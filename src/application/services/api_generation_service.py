@@ -6,6 +6,7 @@ import logging
 from collections.abc import Mapping
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
+from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from application.protocols import ApiDesigner
 from application.results import ApiGenerationResult, GenerationAttempt
 from application.tasks import (
@@ -14,7 +15,6 @@ from application.tasks import (
     DesignTaskMode,
     ValidationErrorFeedback,
 )
-from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from domain.models import DesignScenario
 from domain.models.api import ApiDesign
 from domain.models.sequence import InteractionScenario
