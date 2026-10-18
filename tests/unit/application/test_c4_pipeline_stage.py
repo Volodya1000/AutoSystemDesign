@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from application.pipeline.context import StageContext
-from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
+from application.pipeline.outcome import DiagramRenderResult, StageStatus
 from application.pipeline.stages.c4 import C4Stage
 from application.results import DesignGenerationResult, GenerationAttempt
 from application.usage import TokenUsage
