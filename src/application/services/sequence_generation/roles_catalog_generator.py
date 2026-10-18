@@ -28,7 +28,9 @@ class RolesCatalogGenerator:
 
     def generate(
         self, scenario: DesignScenario
-    ) -> tuple[list[GenerationAttempt[ProjectRolesCatalog]], ProjectRolesCatalog | None]:
+    ) -> tuple[
+        list[GenerationAttempt[ProjectRolesCatalog]], ProjectRolesCatalog | None
+    ]:
         task = SequenceRoleTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
         attempts: list[GenerationAttempt[ProjectRolesCatalog]] = []
 
@@ -68,8 +70,7 @@ class RolesCatalogGenerator:
                 return attempts, proposal.payload
 
             feedback = [
-                ValidationErrorFeedback.from_error(error)
-                for error in validation.errors
+                ValidationErrorFeedback.from_error(error) for error in validation.errors
             ]
             task = SequenceRoleTask(
                 scenario=scenario,
