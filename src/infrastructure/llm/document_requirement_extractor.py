@@ -1,6 +1,5 @@
 """LLM adapter for document requirement extraction."""
 
-from application.usage import TokenUsage
 from config.root import AppSettings
 from domain.extraction_chunk import ExtractionChunk
 from infrastructure.llm.client import LiteLlmClient
