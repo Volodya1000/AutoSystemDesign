@@ -10,6 +10,7 @@ from application.pipeline.outcome import DiagramRenderResult, StageOutcome, Stag
 from application.pipeline.stages.c4 import C4Stage
 from application.results import DesignGenerationResult, GenerationAttempt
 from application.usage import TokenUsage
+from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
@@ -108,10 +109,7 @@ def _failed_result() -> DesignGenerationResult:
                         # A generic domain error is enough to characterize the
                         # stage's failure behavior; detailed validator contracts
                         # are covered by validator unit tests.
-                        __import__(
-                            "domain.exceptions.architecture_errors",
-                            fromlist=["ArchitectureValidationError"],
-                        ).ArchitectureValidationError("invalid topology")
+                        ArchitectureValidationError("invalid topology")
                     ]
                 ),
                 usage=TokenUsage(prompt_tokens=10, completion_tokens=20),
