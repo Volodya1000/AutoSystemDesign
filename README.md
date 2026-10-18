@@ -1,38 +1,38 @@
 # AutoSystemDesign
 
-AutoSystemDesign generates and validates software architecture artifacts from YAML system scenarios using an LLM. The current pipeline produces a C4 architecture, sequence diagrams for functional requirements, and a REST API design with OpenAPI and Swagger UI artifacts.
+AutoSystemDesign генерирует и проверяет артефакты архитектуры программных систем на основе YAML-сценария и LLM. Текущий конвейер создаёт архитектурную диаграмму C4, диаграммы последовательностей для функциональных требований и описание REST API с артефактами OpenAPI и Swagger UI.
 
-## Requirements
+## Требования
 
 - Python 3.13
 - [uv](https://docs.astral.sh/uv/)
-- An OpenAI-compatible LLM endpoint. The default configuration is intended for LM Studio.
+- LLM endpoint, совместимый с OpenAI API. Конфигурация по умолчанию рассчитана на LM Studio.
 
-## Setup
+## Установка и настройка
 
-Install the locked development dependencies:
+Установите зафиксированные зависимости разработки:
 
 ```bash
 uv sync --locked --all-groups
 ```
 
-Create a local environment file from the example and adjust it for your LLM endpoint:
+Создайте локальный файл переменных окружения:
 
 ```bash
 cp .env.example .env
 ```
 
-For LM Studio, start the local server and set `ASD_BASE_URL` and `ASD_API_KEY` in `.env`. Model and generation options are configured in `config.yaml`. Secrets must come from environment variables or `.env`, not from the YAML configuration.
+Для LM Studio запустите локальный сервер и укажите в `.env` значения `ASD_BASE_URL` и `ASD_API_KEY`. Параметры модели и генерации задаются в `config.yaml`. Секреты следует хранить в переменных окружения или `.env`, а не в YAML-конфигурации.
 
-## Run the pipeline
+## Быстрый запуск
 
-From the repository root:
+Из корня репозитория:
 
 ```bash
 uv run python scripts/generate_pipeline.py --scenario scenarios/social_network_chat.yaml
 ```
 
-Choose an output directory or rendering backend with command-line overrides:
+Примеры переопределения параметров:
 
 ```bash
 uv run python scripts/generate_pipeline.py --scenario scenarios/social_network_chat.yaml --out-dir output
@@ -40,33 +40,35 @@ uv run python scripts/generate_pipeline.py --scenario scenarios/social_network_c
 uv run python scripts/generate_pipeline.py --scenario scenarios/social_network_chat.yaml --no-diagram
 ```
 
-The pipeline has three ordered stages:
+Полное руководство по аргументам запуска, настройке визуализации, результатам и кодам завершения находится в [`docs/usage.md`](docs/usage.md).
 
-1. **C4** generates and validates the architecture graph.
-2. **Sequence** generates a roles catalog and one interaction scenario per functional requirement.
-3. **API** generates a REST API design and its OpenAPI/Swagger artifacts.
+## Этапы конвейера
 
-Generated artifacts are written to the configured output directory. They include JSON models and, when enabled, PlantUML source and rendered diagrams, an OpenAPI JSON document, and a Swagger UI HTML page.
+1. **C4**: генерация и проверка графа архитектуры.
+2. **Sequence**: формирование каталога ролей и сценария взаимодействия для каждого функционального требования.
+3. **API**: проектирование REST API и генерация артефактов OpenAPI/Swagger.
 
-Scenarios without functional requirements can be used for C4-only output; sequence and API generation are skipped.
+Артефакты сохраняются в настроенный выходной каталог. В зависимости от параметров это JSON-модели, исходники PlantUML, отрендеренные диаграммы, документ OpenAPI в формате JSON и HTML-страница Swagger UI.
 
-## Configuration
+Если функциональные требования отсутствуют, конвейер может сформировать только C4: генерация Sequence и API пропускается.
 
-- `config.yaml`: LLM model, generation limits, sequence parallelism, and visualization settings.
-- `.env`: local secrets and endpoint settings. Do not commit this file.
-- `config.test.yaml`: test configuration. Integration tests may use `APP_CONFIG_FILE=config.test.yaml`.
+## Конфигурация
 
-The visualisation settings support `auto`, `plantuml`, `kroki`, or a self-hosted PlantUML server URL. The local PlantUML server setup is documented in [deploy/plantuml/README.md](deploy/plantuml/README.md).
+- `config.yaml`: модель LLM, лимиты генерации, параллелизм Sequence и параметры визуализации.
+- `.env`: локальные секреты и адрес endpoint. Не добавляйте файл в Git.
+- `config.test.yaml`: тестовая конфигурация. Для интеграционных тестов можно использовать `APP_CONFIG_FILE=config.test.yaml`.
 
-## Tests and code quality
+Визуализация поддерживает режимы `auto`, `plantuml`, `kroki` или URL собственного сервера PlantUML. Настройка локального сервера описана в [`deploy/plantuml/README.md`](deploy/plantuml/README.md).
 
-Run unit tests:
+## Тесты и качество кода
+
+Запуск модульных тестов:
 
 ```bash
 uv run pytest -m unit
 ```
 
-Run the main static checks:
+Основные статические проверки:
 
 ```bash
 uv run ruff check .
@@ -75,13 +77,13 @@ uv run mypy src tests
 uv run pylint src tests
 ```
 
-Integration tests in `tests/integration` require a reachable LLM endpoint and can incur local model inference time. The GitHub Actions CI runs locked dependency installation, static checks, and unit tests for pull requests targeting `master`.
+Интеграционные тесты в `tests/integration` требуют доступного LLM endpoint и могут выполняться долго. GitHub Actions запускает установку зафиксированных зависимостей, статические проверки и модульные тесты для pull request в `master`.
 
-## Project layout
+## Структура проекта
 
-- `src/domain`: domain models, invariants, and validators.
-- `src/application`: generation services, pipeline stages, result contracts, and ports.
-- `src/infrastructure`: LLM adapters, parsing, persistence, reporting, and renderers.
-- `src/config`: application and integration-test settings.
-- `scenarios`: sample input YAML files.
-- `tests/unit` and `tests/integration`: automated tests.
+- `src/domain`: доменные модели, инварианты и валидаторы.
+- `src/application`: сервисы генерации, этапы конвейера, контракты результатов и порты.
+- `src/infrastructure`: адаптеры LLM, парсинг, сохранение результатов, отчёты и рендереры.
+- `src/config`: настройки приложения и интеграционных тестов.
+- `scenarios`: примеры YAML-сценариев.
+- `tests/unit` и `tests/integration`: автоматические тесты.
