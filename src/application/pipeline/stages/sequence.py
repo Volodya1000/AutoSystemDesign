@@ -96,7 +96,7 @@ class SequenceStage:
             )
 
         artifacts: list[Path] = list(
-            self._artifact_processor.persist_roles_catalog(context, result.roles_catalog)
+            self._artifact_processor.persist_roles_catalog(\n                context, result.roles_catalog\n            )
         )
         # ``graph`` is forwarded so ``_process_requirement`` can build a
         # ``SequenceDiagramSubject`` that carries both the scenario and the
