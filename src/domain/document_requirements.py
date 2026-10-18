@@ -3,6 +3,7 @@
 These models deliberately distinguish evidence from missing information: an
 extractor must not silently turn absent requirements into invented defaults.
 """
+
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
