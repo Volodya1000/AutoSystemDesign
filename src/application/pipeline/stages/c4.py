@@ -11,6 +11,7 @@ from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.ports import DiagramRenderer, GenerationReporter
 from application.pipeline.services import DesignGenerator
 from application.results import GenerationStatus
+from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.metrics import (
     compute_project_metrics,
@@ -36,7 +37,7 @@ class C4Stage:
 
     def run(self, context: StageContext) -> StageOutcome[ArchitectureGraph]:
         stage_start: float = time.perf_counter()
-        scenario = context.scenario
+        scenario: DesignScenario = context.scenario
 
         generation_start: float = time.perf_counter()
         result = self._service.generate(scenario)
