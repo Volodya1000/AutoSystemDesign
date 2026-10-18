@@ -27,8 +27,13 @@ from application.services.sequence_generation_service import SequenceGenerationS
 from config.root import AppSettings, load_app_settings
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
+from domain.specifications.broker_consumer_validator import (
+    MessageBrokerConsumerValidator,
+)
 from domain.specifications.budget_validator import BudgetRequirementValidator
+from domain.specifications.capacity_validator import CapacitySaturationValidator
 from domain.specifications.interfaces import BaseValidator, ScenarioValidator
+from domain.specifications.latency_validator import LatencySloValidator
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
 from domain.specifications.sequence_validator import (
     ClientOwnershipValidator,
@@ -66,9 +71,14 @@ def build_design_generation_service(
     designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(
         client=client, settings=resolved
     )
-    validators: list[BaseValidator] = [StructuralTopologyValidator()]
+    validators: list[BaseValidator] = [
+        StructuralTopologyValidator(),
+        MessageBrokerConsumerValidator(),
+    ]
     scenario_validators: list[ScenarioValidator] = [
-        RequirementValidationDispatcher([BudgetRequirementValidator()])
+        RequirementValidationDispatcher([BudgetRequirementValidator()]),
+        CapacitySaturationValidator(),
+        LatencySloValidator(),
     ]
     return DesignGenerationService(
         designer=designer,

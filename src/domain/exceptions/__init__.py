@@ -6,6 +6,9 @@ from domain.exceptions.architecture_errors import (
     DisallowedConnectionTypeError,
     DuplicateNodeIdentifierError,
     IsolatedNodeError,
+    MessageBrokerSelfLoopError,
+    MessageBrokerWithoutConsumerError,
+    MessageBrokerWithoutProducerError,
     NonExistentEdgeEndpointError,
     TheoreticalLatencyViolationError,
 )
@@ -18,6 +21,9 @@ __all__ = [
     "DisallowedConnectionTypeError",
     "DuplicateNodeIdentifierError",
     "IsolatedNodeError",
+    "MessageBrokerSelfLoopError",
+    "MessageBrokerWithoutConsumerError",
+    "MessageBrokerWithoutProducerError",
     "NonExistentEdgeEndpointError",
     "TheoreticalLatencyViolationError",
 ]

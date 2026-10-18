@@ -30,7 +30,21 @@ OUTPUT_HARD_RULES: Final[str] = (
     "4. Every edge matches one of the allowed source -> target transitions.\n"
     '5. Every node except "client" must provide all capacity fields with valid values.\n'
     '6. Include a "client" node as the entry point of user traffic.\n'
-    "7. Do not add fields that are not defined in the output format above."
+    "7. Do not add fields that are not defined in the output format above.\n"
+    "8. Every message_broker node is a routing bridge with DISTINCT ends:\n"
+    "   - at least one incoming edge from a compute node (the producer);\n"
+    "   - at least one outgoing edge to a DIFFERENT compute node (the consumer).\n"
+    "   The producer and the consumer MUST be different compute nodes. A "
+    "broker cannot route a message back to its own producer: that forms a "
+    "cycle, which is forbidden by rule 3. To add asynchronous decoupling, "
+    "introduce a dedicated worker compute node behind the broker "
+    "(producer -> broker -> worker), not a loop back to the producer. If "
+    "you do not need async decoupling, do not add a broker at all."
+    "9. A cache node MUST have at least one outgoing edge on a cache miss "
+    "path, and at least one incoming edge that reads from it. An async "
+    "message_queue edge to a cache without a downstream read path is a "
+    "write-only sink: either remove the cache or wire the miss path back to "
+    "the caller. Do not add a cache that is never read from."
 )
 
 FEW_SHOT_GRAPH_JSON: Final[str] = """{

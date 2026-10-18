@@ -203,7 +203,10 @@ class C4ContainerDiagramBuilder:
             "",
         ]
         if title:
-            lines.extend([f"title {title}", ""])
+            lines.append("title")
+            lines.extend(title.split("\n"))
+            lines.append("end title")
+            lines.append("")
         if external_elements:
             lines.extend([*external_elements, ""])
         if internal_elements:

@@ -12,6 +12,10 @@ from application.pipeline.ports import DiagramRenderer, GenerationReporter
 from application.pipeline.services import DesignGenerator
 from application.results import GenerationStatus
 from domain.models.topology import ArchitectureGraph
+from domain.specifications.metrics import (
+    compute_project_metrics,
+    format_metrics_title,
+)
 
 _logger = logging.getLogger("pipeline.c4")
 
@@ -71,9 +75,15 @@ class C4Stage:
             )
 
         if self._renderer is not None:
+            title = f"C4 Container: {scenario.identifier}"
+            metrics = compute_project_metrics(graph, scenario)
+            summary = format_metrics_title(metrics)
+            if summary:
+                title = f"{title}\n{summary}"
+
             render_result = self._renderer.render(
                 graph,
-                title=f"C4 Container: {scenario.identifier}",
+                title=title,
                 base_name=f"{scenario.identifier}_c4",
                 out_dir=context.out_dir,
             )

@@ -232,3 +232,56 @@ class NonExistentRequirementReferenceError(ArchitectureValidationError):
         super().__init__(message=message)
         self.operation_id: str = operation_id
         self.requirement_id: str = requirement_id
+
+
+class MessageBrokerWithoutConsumerError(ArchitectureValidationError):
+    error_code: str = "MESSAGE_BROKER_WITHOUT_CONSUMER"
+
+    def __init__(self, broker_identifier: str) -> None:
+        message: str = (
+            f"Message broker '{broker_identifier}' has no consumer: add an "
+            f"outgoing edge to a compute node (async consumer), or remove "
+            f"the broker."
+        )
+        super().__init__(
+            message=message,
+            affected_node_identifiers=[broker_identifier],
+        )
+
+
+class MessageBrokerWithoutProducerError(ArchitectureValidationError):
+    error_code: str = "MESSAGE_BROKER_WITHOUT_PRODUCER"
+
+    def __init__(self, broker_identifier: str) -> None:
+        message: str = (
+            f"Message broker '{broker_identifier}' has no producer: add an "
+            f"incoming edge from a compute node (async producer), or remove "
+            f"the broker."
+        )
+        super().__init__(
+            message=message,
+            affected_node_identifiers=[broker_identifier],
+        )
+
+
+class MessageBrokerSelfLoopError(ArchitectureValidationError):
+    error_code: str = "MESSAGE_BROKER_SELF_LOOP"
+
+    def __init__(
+        self,
+        broker_identifier: str,
+        compute_identifiers: list[str],
+    ) -> None:
+        nodes: str = ", ".join(f"'{identifier}'" for identifier in compute_identifiers)
+        message: str = (
+            f"Message broker '{broker_identifier}' routes messages from "
+            f"compute node(s) {nodes} back to the same node(s). A broker "
+            f"must bridge two DIFFERENT compute nodes: the producer "
+            f"publishes to the broker, and a separate worker consumes from "
+            f"it. Add a dedicated worker compute node behind the broker, "
+            f"or remove the broker entirely."
+        )
+        super().__init__(
+            message=message,
+            affected_node_identifiers=[broker_identifier, *compute_identifiers],
+        )
