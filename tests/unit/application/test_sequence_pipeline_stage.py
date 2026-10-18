@@ -5,8 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from tests.unit.in_memory_writer import InMemoryWriter
-
 from application.pipeline.context import StageContext
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
@@ -28,6 +26,8 @@ from domain.models.sequence import (
 )
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
+
+from tests.unit.in_memory_writer import InMemoryWriter
 
 pytestmark = pytest.mark.unit
 
