@@ -10,11 +10,11 @@ from domain.exceptions.architecture_errors import (
 from domain.models.edges import Edge
 from domain.models.enums import NodeType
 from domain.models.topology import AnyNode, ArchitectureGraph
-from tests.factories import create_test_edge, create_test_node
 from domain.specifications.interfaces import ValidationResult
 from domain.specifications.structural_validator import (
     StructuralTopologyValidator,
 )
+from tests.factories import create_test_edge, create_test_node
 
 pytestmark = pytest.mark.unit
 
