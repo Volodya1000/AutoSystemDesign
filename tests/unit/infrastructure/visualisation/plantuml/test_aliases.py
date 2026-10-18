@@ -31,7 +31,9 @@ def test_register_is_idempotent_for_the_same_identifier() -> None:
     assert registry.find("orders-api") == first
 
 
-def test_register_disambiguates_distinct_identifiers_with_same_sanitized_alias() -> (\n    None\n):
+def test_register_disambiguates_distinct_identifiers_with_same_sanitized_alias() -> (
+    None
+):
     registry = AliasRegistry()
 
     assert registry.register("orders-api") == "orders_api"
