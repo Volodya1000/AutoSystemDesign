@@ -20,7 +20,13 @@ class MessageStep(BaseModel):
         "request", "response", "event", "notification", "user_action"
     ] = Field(description="Semantic category of the message")
     delivery_mode: Literal["sync", "async"] | None = Field(
-        default=None, description="Delivery mode (sync/async) if applicable"
+        default=None,
+        description=(
+            "REQUIRED. Delivery mode: 'sync' for request-response calls "
+            "(sender waits for a reply), 'async' for fire-and-forget "
+            "messages (events, notifications). Set explicitly on every "
+            "message."
+        ),
     )
     description: str | None = Field(default=None, description="Additional details")
 

@@ -14,7 +14,7 @@ from __future__ import annotations
 import pytest
 
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
-from domain.models.ast_steps import MessageStep
+from domain.models.ast_steps import MessageStep, ScenarioStep
 from domain.models.enums import NodeType
 from domain.models.sequence import (
     ComponentLifeline,
@@ -51,20 +51,41 @@ def _component(lifeline_id: str, node_id: str, display: str) -> ComponentLifelin
 
 
 def _scenario(lifelines: list) -> InteractionScenario:
+    """Builds a scenario in which every lifeline participates in a message.
+
+    Chained messages ensure no lifeline is left unused, satisfying the
+    model-level invariant in ``InteractionScenario.validate_scenario_integrity``.
+    """
+    steps: list[ScenarioStep] = []
+    if len(lifelines) == 1:
+        steps.append(
+            MessageStep(
+                kind="message",
+                from_lifeline=lifelines[0].lifeline_id,
+                to_lifeline=lifelines[0].lifeline_id,
+                action_name="POST /orders",
+                message_kind="request",
+                delivery_mode="sync",
+            )
+        )
+    else:
+        for index in range(len(lifelines) - 1):
+            steps.append(
+                MessageStep(
+                    kind="message",
+                    from_lifeline=lifelines[index].lifeline_id,
+                    to_lifeline=lifelines[index + 1].lifeline_id,
+                    action_name="POST /orders",
+                    message_kind="request",
+                    delivery_mode="sync",
+                )
+            )
     return InteractionScenario(
         scenario_id="s1",
         requirement_identifier="REQ-1",
         description="Checkout",
         lifelines=list(lifelines),
-        steps=[
-            MessageStep(
-                kind="message",
-                from_lifeline=lifelines[0].lifeline_id,
-                to_lifeline=lifelines[-1].lifeline_id,
-                action_name="POST /orders",
-                message_kind="request",
-            )
-        ],
+        steps=steps,
     )
 
 
@@ -147,9 +168,6 @@ def test_user_lifeline_ignores_graph_mapping() -> None:
         )
     )
 
-    # No MessageStep is generated here — _scenario() relies on the last
-    # lifeline as the message recipient; with a single lifeline the message
-    # is a self-call, which is fine for this assertion-only check.
     assert 'actor "initiator' in source
     assert "as buyer_1" in source
 
@@ -169,21 +187,7 @@ def test_all_node_types_map_to_expected_keywords() -> None:
             nodes=[create_test_node(f"node{index}", node_type)],
             edges=[],
         )
-        scenario = InteractionScenario(
-            scenario_id=f"s{index}",
-            requirement_identifier="REQ-1",
-            description="probe",
-            lifelines=[lifeline],
-            steps=[
-                MessageStep(
-                    kind="message",
-                    from_lifeline=lifeline.lifeline_id,
-                    to_lifeline=lifeline.lifeline_id,
-                    action_name="ping",
-                    message_kind="request",
-                )
-            ],
-        )
+        scenario = _scenario([lifeline])
         source = SequenceDiagramBuilder().build(
             SequenceDiagramSubject(
                 scenario=scenario,

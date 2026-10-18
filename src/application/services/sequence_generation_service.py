@@ -1,6 +1,7 @@
 """Orchestration of the sequence-diagram generation stage."""
 
 import logging
+from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
@@ -21,27 +22,31 @@ from config.generation import (
     MAX_ATTEMPTS,
     MIN_ATTEMPTS,
 )
+from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.models.functional import FunctionalRequirement
 from domain.models.roles import ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
-from domain.specifications.sequence_validator import SequenceValidator
+from domain.specifications.sequence_validator import (
+    SequenceCatalogValidator,
+    SequenceScenarioValidator,
+)
 
 
 class SequenceGenerationService:
     """Generates the roles catalog and one interaction scenario per requirement.
 
     The service is deliberately small: it drives two repair loops (roles,
-    then per-requirement interaction), delegating validation to a
-    SequenceValidator and LLM transport to a SequenceDesigner. Partial
-    results are preserved: a failing requirement does not discard the
-    interactions that already succeeded.
+    then per-requirement interaction), delegating validation to injected
+    catalog and scenario validators and LLM transport to a
+    SequenceDesigner. Partial results are preserved: a failing requirement
+    does not discard the interactions that already succeeded.
 
     Interaction scenarios (per functional requirement) are generated in
     parallel via a thread pool when ``max_parallel_workers > 1``. Threads
-    are safe here because the LLM client, the designer and the validator
+    are safe here because the LLM client, the designer and the validators
     are all stateless after construction and the transport is I/O-bound.
     Set ``max_parallel_workers=1`` to get the legacy sequential behavior.
     """
@@ -49,7 +54,8 @@ class SequenceGenerationService:
     def __init__(
         self,
         designer: SequenceDesigner,
-        validator: SequenceValidator,
+        catalog_validators: Sequence[SequenceCatalogValidator],
+        scenario_validators: Sequence[SequenceScenarioValidator],
         max_attempts: int,
         *,
         max_parallel_workers: int = DEFAULT_SEQUENCE_PARALLELISM,
@@ -63,8 +69,17 @@ class SequenceGenerationService:
             raise ValueError(
                 f"max_parallel_workers must be at least 1, got {max_parallel_workers}"
             )
+        self._catalog_validators: tuple[SequenceCatalogValidator, ...] = tuple(
+            catalog_validators
+        )
+        if not self._catalog_validators:
+            raise ValueError("At least one catalog validator is required")
+        self._scenario_validators: tuple[SequenceScenarioValidator, ...] = tuple(
+            scenario_validators
+        )
+        if not self._scenario_validators:
+            raise ValueError("At least one scenario validator is required")
         self._designer = designer
-        self._validator = validator
         self._max_attempts = max_attempts
         self._max_parallel_workers = max_parallel_workers
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -100,6 +115,30 @@ class SequenceGenerationService:
             roles_catalog=catalog,
             scenarios_results=scenarios_results,
         )
+
+    def _validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult:
+        errors: list[ArchitectureValidationError] = [
+            error
+            for validator in self._catalog_validators
+            for error in validator.validate_catalog(catalog).errors
+        ]
+        return ValidationResult(errors=errors)
+
+    def _validate_scenario(
+        self,
+        scenario: InteractionScenario,
+        catalog: ProjectRolesCatalog,
+        graph: ArchitectureGraph,
+        requirement_id: str,
+    ) -> ValidationResult:
+        errors: list[ArchitectureValidationError] = [
+            error
+            for validator in self._scenario_validators
+            for error in validator.validate_scenario(
+                scenario, catalog, graph, requirement_id
+            ).errors
+        ]
+        return ValidationResult(errors=errors)
 
     # ------------------------------------------------------------------ helpers
 
@@ -215,9 +254,7 @@ class SequenceGenerationService:
                 )
                 continue
 
-            validation: ValidationResult = self._validator.validate_catalog(
-                proposal.payload
-            )
+            validation: ValidationResult = self._validate_catalog(proposal.payload)
             attempts.append(
                 GenerationAttempt[ProjectRolesCatalog](
                     attempt_number=attempt_num,
@@ -285,7 +322,7 @@ class SequenceGenerationService:
                 )
                 continue
 
-            validation: ValidationResult = self._validator.validate_scenario(
+            validation: ValidationResult = self._validate_scenario(
                 proposal.payload, catalog, graph, req.identifier
             )
             attempts.append(

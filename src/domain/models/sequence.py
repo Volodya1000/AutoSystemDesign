@@ -83,6 +83,8 @@ class InteractionScenario(BaseModel):
                 )
             lifeline_ids.add(lifeline.lifeline_id)
 
+        used_lifeline_ids: set[str] = set()
+
         def check_steps(steps_list: list[ScenarioStep]) -> None:
             for step in steps_list:
                 if isinstance(step, MessageStep):
@@ -94,6 +96,8 @@ class InteractionScenario(BaseModel):
                         raise ValueError(
                             f"Unknown message recipient: '{step.to_lifeline}'"
                         )
+                    used_lifeline_ids.add(step.from_lifeline)
+                    used_lifeline_ids.add(step.to_lifeline)
                 elif isinstance(step, AltStep):
                     for branch in step.branches:
                         check_steps(branch.steps)
@@ -101,4 +105,12 @@ class InteractionScenario(BaseModel):
                     check_steps(step.steps)
 
         check_steps(self.steps)
+
+        unused = sorted(lifeline_ids - used_lifeline_ids)
+        if unused:
+            raise ValueError(
+                f"Declared lifelines never participate in any message: {unused}. "
+                "Every lifeline must appear in at least one message step; "
+                "remove unused lifelines from the 'lifelines' array."
+            )
         return self

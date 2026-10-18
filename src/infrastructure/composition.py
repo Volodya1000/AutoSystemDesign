@@ -30,7 +30,11 @@ from domain.specifications.api_validator import ApiDesignValidator
 from domain.specifications.budget_validator import BudgetRequirementValidator
 from domain.specifications.interfaces import BaseValidator, ScenarioValidator
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
-from domain.specifications.sequence_validator import SequenceValidator
+from domain.specifications.sequence_validator import (
+    ClientOwnershipValidator,
+    DeliveryModeValidator,
+    SequenceIntegrityValidator,
+)
 from domain.specifications.structural_validator import StructuralTopologyValidator
 from infrastructure.agents.api_designer import ApiDesignerAgent
 from infrastructure.agents.designer import ArchitectureDesignerAgent
@@ -77,15 +81,27 @@ def build_design_generation_service(
 def build_sequence_generation_service(
     settings: AppSettings | None = None,
 ) -> SequenceGenerationService:
-    """Wires config -> LiteLlmClient -> SequenceDesignerAgent -> service."""
+    """Wires config -> LiteLlmClient -> SequenceDesignerAgent -> service.
+
+    One ``SequenceIntegrityValidator`` instance serves both as a catalog
+    validator and as a scenario validator: it is stateless, so sharing it
+    keeps the wiring compact. The other two validators implement only
+    the scenario rule.
+    """
     resolved: AppSettings = settings or load_app_settings()
     client: LiteLlmClient = LiteLlmClient(settings=resolved)
     designer: SequenceDesignerAgent = SequenceDesignerAgent(
         client=client, settings=resolved
     )
+    integrity = SequenceIntegrityValidator()
     return SequenceGenerationService(
         designer=designer,
-        validator=SequenceValidator(),
+        catalog_validators=[integrity],
+        scenario_validators=[
+            integrity,
+            ClientOwnershipValidator(),
+            DeliveryModeValidator(),
+        ],
         max_attempts=resolved.generation.max_attempts,
         max_parallel_workers=resolved.generation.sequence_parallelism,
     )

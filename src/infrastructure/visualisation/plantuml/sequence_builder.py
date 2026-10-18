@@ -81,7 +81,7 @@ class SequenceDiagramBuilder:
         indent = "  " * indent_level
         for step in steps:
             if isinstance(step, MessageStep):
-                arrow = "->>" if step.delivery_mode == "async" else "->"
+                arrow = "-->>" if step.delivery_mode == "async" else "->"
                 desc = f" [{step.description}]" if step.description else ""
                 lines.append(
                     f"{indent}{step.from_lifeline} {arrow} {step.to_lifeline} "
