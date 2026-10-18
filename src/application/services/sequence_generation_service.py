@@ -5,6 +5,11 @@ from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
+from application.generation_limits import (
+    DEFAULT_SEQUENCE_PARALLELISM,
+    MAX_ATTEMPTS,
+    MIN_ATTEMPTS,
+)
 from application.protocols import SequenceDesigner
 from application.results import (
     GenerationAttempt,
@@ -16,11 +21,6 @@ from application.tasks import (
     SequenceInteractionTask,
     SequenceRoleTask,
     ValidationErrorFeedback,
-)
-from application.generation_limits import (
-    DEFAULT_SEQUENCE_PARALLELISM,
-    MAX_ATTEMPTS,
-    MIN_ATTEMPTS,
 )
 from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.models.functional import FunctionalRequirement
