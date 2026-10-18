@@ -6,7 +6,6 @@ from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4ContainerDiagramBuilder,
 )
 from infrastructure.visualisation.plantuml.diagram_service import DiagramService
-from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 from infrastructure.visualisation.plantuml.diagram_writer import (
     DiagramFileWriter,
     DiagramSavingError,
@@ -25,6 +24,7 @@ from infrastructure.visualisation.plantuml.models import (
     DiagramArtifacts,
     DiagramImageFormat,
 )
+from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 from infrastructure.visualisation.plantuml.renderer import (
     AUTO_SERVER_SELECTION,
     KROKI_PUBLIC_SERVER_URL,
