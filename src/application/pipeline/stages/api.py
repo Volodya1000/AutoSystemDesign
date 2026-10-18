@@ -13,8 +13,8 @@ from application.pipeline.ports import ApiArtifactRenderer, GenerationReporter
 from application.pipeline.services import ApiGenerator
 from application.results import ApiGenerationResult, GenerationStatus
 from domain.models.api import ApiDesign
-from domain.models.sequence import InteractionScenario
 from domain.models.scenarios import DesignScenario
+from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 
 _logger: logging.Logger = logging.getLogger("pipeline.api")
