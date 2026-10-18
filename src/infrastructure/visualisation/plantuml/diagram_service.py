@@ -40,9 +40,7 @@ class DiagramService[SubjectT = ArchitectureGraph]:
         )
         self._image_format: DiagramImageFormat = image_format
 
-    def generate(
-        self, subject: SubjectT, title: str | None = None
-    ) -> DiagramArtifacts:
+    def generate(self, subject: SubjectT, title: str | None = None) -> DiagramArtifacts:
         source: str = self._source_builder.build(subject, title)
         return DiagramArtifacts(
             source=source,
