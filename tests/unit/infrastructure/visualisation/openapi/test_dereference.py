@@ -73,7 +73,10 @@ def test_decodes_json_pointer_escaped_slash_and_tilde() -> None:
 
     example = result["example"]
     assert isinstance(example, dict)
-    assert example == source["components"]["schemas"]["Thing/One~More"]
+    assert example == {
+        "type": "object",
+        "properties": {"name": {"type": "string"}},
+    }
     assert "$ref" not in example
 
 
