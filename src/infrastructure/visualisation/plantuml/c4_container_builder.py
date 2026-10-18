@@ -23,7 +23,6 @@ from infrastructure.visualisation.plantuml.element_specs import (
     DEFAULT_ELEMENT_SPECS,
     C4ElementSpec,
 )
-from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 
 C4_STDLIB_BUNDLED_INCLUDE: Final[str] = "<C4/C4_Container>"
 C4_STDLIB_REMOTE_INCLUDE_URL: Final[str] = (
