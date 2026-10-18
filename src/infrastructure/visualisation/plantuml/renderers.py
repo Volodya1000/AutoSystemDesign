@@ -22,12 +22,10 @@ from infrastructure.visualisation.plantuml import (
     DiagramImageFormat,
     DiagramRenderingError,
     DiagramSavingError,
-    DiagramService,
     resolve_image_renderer,
 )
-from infrastructure.visualisation.plantuml.diagram_service import (
-    DiagramSourceBuilder,
-)
+from infrastructure.visualisation.plantuml.diagram_service import DiagramService
+from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 
 _logger = logging.getLogger("pipeline.diagram")
 
@@ -38,11 +36,11 @@ class PlantUmlDiagramRenderer[SubjectT]:
     def __init__(
         self,
         *,
-        source_builder: DiagramSourceBuilder,
+        source_builder: DiagramSourceBuilder[SubjectT],
         server: str,
         image_format: DiagramImageFormat,
     ) -> None:
-        self._source_builder: DiagramSourceBuilder = source_builder
+        self._source_builder: DiagramSourceBuilder[SubjectT] = source_builder
         self._server: str = server
         self._image_format: DiagramImageFormat = image_format
 
@@ -69,7 +67,7 @@ class PlantUmlDiagramRenderer[SubjectT]:
 
 def render_and_write[SubjectT](
     *,
-    service_factory: Callable[[], DiagramService],
+    service_factory: Callable[[], DiagramService[SubjectT]],
     subject: SubjectT,
     title: str,
     base_name: str,
