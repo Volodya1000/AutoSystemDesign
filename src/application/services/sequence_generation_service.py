@@ -4,19 +4,11 @@ import logging
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from application.results import SequenceGenerationResult, SequenceScenarioResult
-from config.generation import (
-    DEFAULT_SEQUENCE_PARALLELISM,
-    MAX_ATTEMPTS,
-    MIN_ATTEMPTS,
-)
-from domain.models.functional import FunctionalRequirement
-from domain.models.scenarios import DesignScenario
-from domain.models.sequence import InteractionScenario
-from domain.models.topology import ArchitectureGraph
-from domain.specifications.sequence_validator import (
-    SequenceCatalogValidator,
-    SequenceScenarioValidator,
+from application.protocols import SequenceDesigner
+from application.results import (
+    GenerationAttempt,
+    SequenceGenerationResult,
+    SequenceScenarioResult,
 )
 from application.services.sequence_generation.interaction_scenario_generator import (
     InteractionScenarioGenerator,
@@ -24,16 +16,30 @@ from application.services.sequence_generation.interaction_scenario_generator imp
 from application.services.sequence_generation.roles_catalog_generator import (
     RolesCatalogGenerator,
 )
+from config.generation import (
+    DEFAULT_SEQUENCE_PARALLELISM,
+    MAX_ATTEMPTS,
+    MIN_ATTEMPTS,
+)
+from domain.models.functional import FunctionalRequirement
+from domain.models.roles import ProjectRolesCatalog
+from domain.models.scenarios import DesignScenario
+from domain.models.sequence import InteractionScenario
+from domain.models.topology import ArchitectureGraph
+from domain.specifications.sequence_validator import (
+    SequenceCatalogValidator,
+    SequenceScenarioValidator,
+)
 
 
 class SequenceGenerationService:
     """Generates the roles catalog and one interaction scenario per requirement.
 
-    The service is deliberately small: it drives two repair loops (roles,
-    then per-requirement interaction), delegating validation to injected
-    catalog and scenario validators and LLM transport to a
-    SequenceDesigner. Partial results are preserved: a failing requirement
-    does not discard the interactions that already succeeded.
+    The service coordinates focused generators for the roles catalog and
+    per-requirement interactions. It owns dispatch and result aggregation;
+    the focused generators own their respective propose -> validate -> repair
+    loops. Partial results are preserved: a failing requirement does not
+    discard the interactions that already succeeded.
 
     Interaction scenarios (per functional requirement) are generated in
     parallel via a thread pool when ``max_parallel_workers > 1``. Threads
