@@ -1,5 +1,7 @@
 """Generation loop limits."""
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from application.generation_limits import (
     DEFAULT_SEQUENCE_PARALLELISM,
     MAX_ATTEMPTS,
@@ -7,7 +9,6 @@ from application.generation_limits import (
     MIN_ATTEMPTS,
     MIN_SEQUENCE_PARALLELISM,
 )
-from pydantic import BaseModel, ConfigDict, Field
 
 
 class GenerationSettings(BaseModel):
