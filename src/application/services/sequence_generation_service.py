@@ -145,7 +145,9 @@ class SequenceGenerationService:
             self.logger.info(
                 "Generating sequence scenario for requirement: %s", req.identifier
             )
-            attempts, interaction = self._interaction_generator.generate(req, catalog, graph)
+            attempts, interaction = self._interaction_generator.generate(
+                req, catalog, graph
+            )
             scenarios_results[req.identifier] = SequenceScenarioResult(
                 attempts=attempts,
                 interaction_scenario=interaction,
