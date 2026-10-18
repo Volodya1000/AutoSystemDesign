@@ -141,10 +141,10 @@ def test_collapses_recursive_schema_references_to_finite_stubs() -> None:
     result = dereference_internal_refs(source)
 
     root = result["root"]
+    assert isinstance(root, dict)
     assert root["type"] == "object"
-    assert root["properties"]["next"]["type"] == "object"
-    assert (
-        "Recursive reference"
-        in root["properties"]["next"]["properties"]["next"]["description"]
-    )
+    next_node = root["properties"]["next"]
+    assert isinstance(next_node, dict)
+    assert next_node["type"] == "object"
+    assert "Recursive reference" in next_node["description"]
     assert "$ref" not in root
