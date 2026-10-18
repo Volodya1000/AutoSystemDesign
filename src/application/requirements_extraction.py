@@ -10,7 +10,7 @@ from domain.document_requirements import (
 )
 from domain.extraction_chunk import ExtractionChunk
 from application.document_reader import DocumentReader
-from application.document_requirement_processing import (
+from application.document_processing import (
     deduplicate_issues,
     deduplicate_requirements,
     split_document_text,
