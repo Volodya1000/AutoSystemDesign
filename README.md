@@ -42,6 +42,27 @@ uv run python scripts/generate_pipeline.py --scenario scenarios/social_network_c
 
 Полное руководство по аргументам запуска, настройке визуализации, результатам и кодам завершения находится в [`docs/usage.md`](docs/usage.md).
 
+## Извлечение требований из Markdown
+
+Для ручной проверки извлечения функциональных и нефункциональных требований есть пример
+`examples/requirements/online_store.md`. Запустите LM Studio или другой OpenAI-compatible
+endpoint и настройте `ASD_BASE_URL`, `ASD_API_KEY` и модель в обычной конфигурации проекта.
+
+```bash
+uv run python scripts/extract_document_requirements.py
+```
+
+По умолчанию результат сохраняется в `output/document_requirements.json`. Можно указать
+другой документ и путь результата:
+
+```bash
+uv run python scripts/extract_document_requirements.py --document examples/requirements/online_store.md --output output/requirements.json
+```
+
+JSON содержит извлечённые требования с цитатами из исходного текста и диагностические
+замечания. Этот запуск предназначен для ручной проверки реальным LLM; модульные тесты
+не требуют работающего endpoint.
+
 ## Этапы конвейера
 
 1. **C4**: генерация и проверка графа архитектуры.
