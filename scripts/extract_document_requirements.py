@@ -42,8 +42,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     result = service.extract_file(args.document)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
-        json.dumps(result.model_dump(mode="json"), ensure_ascii=False, indent=2)
-        + "\n",
+        json.dumps(result.model_dump(mode="json"), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(f"Extracted {len(result.requirements)} requirements.")
