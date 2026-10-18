@@ -14,18 +14,9 @@ from domain.models.sequence import (
     ScenarioLifeline,
     UserLifeline,
 )
-from infrastructure.visualisation.plantuml.diagram_registry import (
-    register_diagram_builder,
-)
 from infrastructure.visualisation.plantuml.participant_kinds import (
     participant_keyword,
 )
-from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
-
-
-@register_diagram_builder("sequence")
-def _sequence_builder_factory() -> DiagramSourceBuilder:
-    return SequenceDiagramBuilder()
 
 
 class SequenceDiagramBuilder:
