@@ -5,11 +5,6 @@ from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4_STDLIB_REMOTE_INCLUDE_URL,
     C4ContainerDiagramBuilder,
 )
-from infrastructure.visualisation.plantuml.diagram_registry import (
-    DiagramRendererRegistry,
-    get_default_registry,
-    register_diagram_builder,
-)
 from infrastructure.visualisation.plantuml.diagram_service import (
     DiagramService,
     DiagramSourceBuilder,
@@ -43,9 +38,7 @@ from infrastructure.visualisation.plantuml.renderer import (
     PlantumlServerImageRenderer,
     resolve_image_renderer,
 )
-from infrastructure.visualisation.plantuml.sequence_builder import (  # noqa: F401  (registration side effect)
-    SequenceDiagramBuilder,
-)
+from infrastructure.visualisation.plantuml.sequence_builder import SequenceDiagramBuilder
 
 __all__ = [
     "AUTO_SERVER_SELECTION",
@@ -59,7 +52,6 @@ __all__ = [
     "DiagramArtifacts",
     "DiagramFileWriter",
     "DiagramImageFormat",
-    "DiagramRendererRegistry",
     "DiagramRenderingError",
     "DiagramSavingError",
     "DiagramService",
@@ -68,11 +60,10 @@ __all__ = [
     "KrokiImageRenderer",
     "PlantumlImageRenderer",
     "PlantumlServerImageRenderer",
+    "SequenceDiagramBuilder",
     "build_kroki_url",
     "build_plantuml_url",
     "encode_kroki_text",
     "encode_plantuml_text",
-    "get_default_registry",
-    "register_diagram_builder",
     "resolve_image_renderer",
 ]
