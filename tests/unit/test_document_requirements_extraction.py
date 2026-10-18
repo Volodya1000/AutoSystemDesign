@@ -2,11 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from application.requirements_extraction import (
-    DocumentRequirementsService,
-    ExtractionChunk,
-)
+from application.requirements_extraction import DocumentRequirementsService
 from domain.document_requirements import Requirement, RequirementKind
+from domain.extraction_chunk import ExtractionChunk
 from infrastructure.document_readers.markdown_reader import MarkdownReader
 
 
