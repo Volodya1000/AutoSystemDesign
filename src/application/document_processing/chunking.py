@@ -1,4 +1,7 @@
-"""Pure text chunking functions."""\ndef split_document_text(
+"""Pure text chunking functions."""
+
+
+def split_document_text(
     text: str,
     *,
     max_chars: int,
