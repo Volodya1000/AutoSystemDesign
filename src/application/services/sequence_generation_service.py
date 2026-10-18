@@ -4,34 +4,25 @@ import logging
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from application.exceptions.generation_exceptions import DesignProposalParsingError
-from application.protocols import SequenceDesigner
-from application.results import (
-    GenerationAttempt,
-    SequenceGenerationResult,
-    SequenceScenarioResult,
-)
-from application.tasks import (
-    DesignTaskMode,
-    SequenceInteractionTask,
-    SequenceRoleTask,
-    ValidationErrorFeedback,
-)
+from application.results import SequenceGenerationResult, SequenceScenarioResult
 from config.generation import (
     DEFAULT_SEQUENCE_PARALLELISM,
     MAX_ATTEMPTS,
     MIN_ATTEMPTS,
 )
-from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.models.functional import FunctionalRequirement
-from domain.models.roles import ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
-from domain.specifications.interfaces import ValidationResult
 from domain.specifications.sequence_validator import (
     SequenceCatalogValidator,
     SequenceScenarioValidator,
+)
+from application.services.sequence_generation.interaction_scenario_generator import (
+    InteractionScenarioGenerator,
+)
+from application.services.sequence_generation.roles_catalog_generator import (
+    RolesCatalogGenerator,
 )
 
 
@@ -69,18 +60,26 @@ class SequenceGenerationService:
             raise ValueError(
                 f"max_parallel_workers must be at least 1, got {max_parallel_workers}"
             )
-        self._catalog_validators: tuple[SequenceCatalogValidator, ...] = tuple(
+        catalog_validator_tuple: tuple[SequenceCatalogValidator, ...] = tuple(
             catalog_validators
         )
-        if not self._catalog_validators:
+        if not catalog_validator_tuple:
             raise ValueError("At least one catalog validator is required")
-        self._scenario_validators: tuple[SequenceScenarioValidator, ...] = tuple(
+        scenario_validator_tuple: tuple[SequenceScenarioValidator, ...] = tuple(
             scenario_validators
         )
-        if not self._scenario_validators:
+        if not scenario_validator_tuple:
             raise ValueError("At least one scenario validator is required")
-        self._designer = designer
-        self._max_attempts = max_attempts
+        self._roles_catalog_generator = RolesCatalogGenerator(
+            designer=designer,
+            validators=catalog_validator_tuple,
+            max_attempts=max_attempts,
+        )
+        self._interaction_generator = InteractionScenarioGenerator(
+            designer=designer,
+            validators=scenario_validator_tuple,
+            max_attempts=max_attempts,
+        )
         self._max_parallel_workers = max_parallel_workers
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -95,7 +94,7 @@ class SequenceGenerationService:
                 roles_attempts=[], roles_catalog=None, scenarios_results={}
             )
 
-        roles_attempts, catalog = self._generate_roles(scenario)
+        roles_attempts, catalog = self._roles_catalog_generator.generate(scenario)
         if catalog is None:
             self.logger.error(
                 "Failed to generate Roles Catalog. Aborting sequence generation."
@@ -115,30 +114,6 @@ class SequenceGenerationService:
             roles_catalog=catalog,
             scenarios_results=scenarios_results,
         )
-
-    def _validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult:
-        errors: list[ArchitectureValidationError] = [
-            error
-            for validator in self._catalog_validators
-            for error in validator.validate_catalog(catalog).errors
-        ]
-        return ValidationResult(errors=errors)
-
-    def _validate_scenario(
-        self,
-        scenario: InteractionScenario,
-        catalog: ProjectRolesCatalog,
-        graph: ArchitectureGraph,
-        requirement_id: str,
-    ) -> ValidationResult:
-        errors: list[ArchitectureValidationError] = [
-            error
-            for validator in self._scenario_validators
-            for error in validator.validate_scenario(
-                scenario, catalog, graph, requirement_id
-            ).errors
-        ]
-        return ValidationResult(errors=errors)
 
     # ------------------------------------------------------------------ helpers
 
@@ -164,7 +139,7 @@ class SequenceGenerationService:
             self.logger.info(
                 "Generating sequence scenario for requirement: %s", req.identifier
             )
-            attempts, interaction = self._generate_interaction(req, catalog, graph)
+            attempts, interaction = self._interaction_generator.generate(req, catalog, graph)
             scenarios_results[req.identifier] = SequenceScenarioResult(
                 attempts=attempts,
                 interaction_scenario=interaction,
@@ -221,134 +196,5 @@ class SequenceGenerationService:
         self.logger.info(
             "Generating sequence scenario for requirement: %s", req.identifier
         )
-        return self._generate_interaction(req, catalog, graph)
+        return self._interaction_generator.generate(req, catalog, graph)
 
-    # ------------------------------------------------------------------- roles
-
-    def _generate_roles(
-        self, scenario: DesignScenario
-    ) -> tuple[
-        list[GenerationAttempt[ProjectRolesCatalog]],
-        ProjectRolesCatalog | None,
-    ]:
-        task = SequenceRoleTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
-        attempts: list[GenerationAttempt[ProjectRolesCatalog]] = []
-
-        for attempt_num in range(1, self._max_attempts + 1):
-            try:
-                proposal = self._designer.propose_roles(task)
-            except DesignProposalParsingError as pe:
-                attempts.append(
-                    GenerationAttempt[ProjectRolesCatalog](
-                        attempt_number=attempt_num,
-                        parsed=False,
-                        usage=pe.usage,
-                        parsing_failures=pe.failure_details,
-                    )
-                )
-                task = SequenceRoleTask(
-                    scenario=scenario,
-                    mode=DesignTaskMode.REPAIR,
-                    previous_payload=pe.raw_content,
-                    parsing_failures=pe.failure_details,
-                )
-                continue
-
-            validation: ValidationResult = self._validate_catalog(proposal.payload)
-            attempts.append(
-                GenerationAttempt[ProjectRolesCatalog](
-                    attempt_number=attempt_num,
-                    parsed=True,
-                    payload=proposal.payload,
-                    validation=validation,
-                    usage=proposal.usage,
-                    latency_seconds=proposal.latency_seconds,
-                )
-            )
-
-            if validation.is_successful:
-                return attempts, proposal.payload
-
-            feedback = [
-                ValidationErrorFeedback.from_error(e) for e in validation.errors
-            ]
-            task = SequenceRoleTask(
-                scenario=scenario,
-                mode=DesignTaskMode.REPAIR,
-                previous_payload=proposal.payload.model_dump_json(),
-                validation_feedback=feedback,
-            )
-
-        return attempts, None
-
-    # -------------------------------------------------------------- interaction
-
-    def _generate_interaction(
-        self,
-        req: FunctionalRequirement,
-        catalog: ProjectRolesCatalog,
-        graph: ArchitectureGraph,
-    ) -> tuple[
-        list[GenerationAttempt[InteractionScenario]],
-        InteractionScenario | None,
-    ]:
-        task = SequenceInteractionTask(
-            requirement=req,
-            roles_catalog=catalog,
-            architecture_graph=graph,
-            mode=DesignTaskMode.INITIAL,
-        )
-        attempts: list[GenerationAttempt[InteractionScenario]] = []
-
-        for attempt_num in range(1, self._max_attempts + 1):
-            try:
-                proposal = self._designer.propose_interaction(task)
-            except DesignProposalParsingError as pe:
-                attempts.append(
-                    GenerationAttempt[InteractionScenario](
-                        attempt_number=attempt_num,
-                        parsed=False,
-                        usage=pe.usage,
-                        parsing_failures=pe.failure_details,
-                    )
-                )
-                task = SequenceInteractionTask(
-                    requirement=req,
-                    roles_catalog=catalog,
-                    architecture_graph=graph,
-                    mode=DesignTaskMode.REPAIR,
-                    previous_payload=pe.raw_content,
-                    parsing_failures=pe.failure_details,
-                )
-                continue
-
-            validation: ValidationResult = self._validate_scenario(
-                proposal.payload, catalog, graph, req.identifier
-            )
-            attempts.append(
-                GenerationAttempt[InteractionScenario](
-                    attempt_number=attempt_num,
-                    parsed=True,
-                    payload=proposal.payload,
-                    validation=validation,
-                    usage=proposal.usage,
-                    latency_seconds=proposal.latency_seconds,
-                )
-            )
-
-            if validation.is_successful:
-                return attempts, proposal.payload
-
-            feedback = [
-                ValidationErrorFeedback.from_error(e) for e in validation.errors
-            ]
-            task = SequenceInteractionTask(
-                requirement=req,
-                roles_catalog=catalog,
-                architecture_graph=graph,
-                mode=DesignTaskMode.REPAIR,
-                previous_payload=proposal.payload.model_dump_json(),
-                validation_feedback=feedback,
-            )
-
-        return attempts, None
