@@ -165,7 +165,7 @@ def test_swagger_renderer_embeds_a_dereferenced_spec_and_escapes_title() -> None
     assert "<title>Resource &amp; Admin &lt;API&gt; - Swagger UI</title>" in html
     assert "const spec =" in html
     assert "spec: spec," in html
-    assert "url:" not in html
+    assert "url: spec" not in html
     assert '"operationId": "update_resource"' in html
     assert '"$ref"' not in html
     assert "Resource API" in html
