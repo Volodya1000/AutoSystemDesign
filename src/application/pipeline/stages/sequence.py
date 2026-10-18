@@ -18,7 +18,7 @@ from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.ports import DiagramRenderer, GenerationReporter
 from application.pipeline.services import SequenceGenerator
-from application.pipeline.services.sequence_artifacts import SequenceArtifactProcessor
+from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
 from application.pipeline.stages._naming import (
     functional_requirement_ids,
     plan_base_names,
