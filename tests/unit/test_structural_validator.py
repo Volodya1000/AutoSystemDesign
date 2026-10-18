@@ -19,7 +19,6 @@ from tests.factories import create_test_edge, create_test_node
 pytestmark = pytest.mark.unit
 
 
-
 class TestStructuralTopologyValidator:
     """Tests the observable behavior and business rules of the StructuralTopologyValidator."""
 
