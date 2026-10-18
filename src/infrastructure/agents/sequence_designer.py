@@ -48,7 +48,9 @@ class SequenceDesignerAgent:
         completion: CompletionResult = self._client.complete(request)
         self.logger.debug("Raw Roles LLM output:\n%s", completion.content)
 
-        catalog: ProjectRolesCatalog = parse_roles_catalog(\n            completion.content, usage=completion.usage\n        )
+        catalog: ProjectRolesCatalog = parse_roles_catalog(
+            completion.content, usage=completion.usage
+        )
         return SequenceRoleProposal(
             payload=catalog,
             raw_content=completion.content,
