@@ -153,9 +153,7 @@ def test_c4_stage_persists_graph_and_renders_diagram(tmp_path: Path) -> None:
 def test_c4_stage_marks_renderer_warnings_as_partial(tmp_path: Path) -> None:
     writer = InMemoryWriter()
     generator = FakeDesignGenerator(_success_result())
-    renderer = FakeC4Renderer(
-        DiagramRenderResult(warnings=("renderer unavailable",))
-    )
+    renderer = FakeC4Renderer(DiagramRenderResult(warnings=("renderer unavailable",)))
     stage = C4Stage(generator, renderer, NullReporter())
 
     outcome = stage.run(_context(tmp_path, writer))
