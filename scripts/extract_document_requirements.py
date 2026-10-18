@@ -2,8 +2,8 @@
 
 import argparse
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from application.requirements_extraction import DocumentRequirementsService
 from config.root import load_app_settings
