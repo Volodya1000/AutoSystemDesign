@@ -9,6 +9,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from tests.unit.in_memory_writer import InMemoryWriter
+
 from application.pipeline.context import (
     PipelineDependencyError,
     StageContext,
@@ -31,15 +33,6 @@ from infrastructure.visualisation.plantuml import (
 from infrastructure.visualisation.plantuml import renderers as renderers_mod
 
 # --- fakes ------------------------------------------------------------------
-
-
-class InMemoryWriter:
-    def __init__(self) -> None:
-        self.writes: list[tuple[Path, str]] = []
-
-    def write_text(self, path: Path, content: str) -> Path:
-        self.writes.append((path, content))
-        return path
 
 
 class NullGenerationReporter:
