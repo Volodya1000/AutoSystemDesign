@@ -22,7 +22,7 @@ def test_resolve_candidate_returns_evidence_without_mutating_inputs() -> None:
 
     assert result.value == excerpt
     assert result.field_evidence == (("description", excerpt),)
-    assert result.issues == ()
+    assert not result.issues
     assert verified_excerpts == [excerpt]
 
 

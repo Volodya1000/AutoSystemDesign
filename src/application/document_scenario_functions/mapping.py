@@ -121,6 +121,37 @@ def build_workload(
     )
 
 
+def _invalid_unused_metric_fields(
+    candidate: ExtractedMetricRequirement,
+    base_path: str,
+    required_fields: frozenset[str],
+) -> list[RequirementIssue]:
+    """Reject populated metric fields that do not apply to the selected type."""
+    issues: list[RequirementIssue] = []
+    for field_name in _ALL_METRIC_FIELDS:
+        if field_name in required_fields:
+            continue
+        field_candidate: EvidenceValue[float] = getattr(candidate, field_name)
+        if field_candidate.value is None:
+            continue
+        issues.append(
+            RequirementIssue(
+                kind=RequirementIssueKind.INVALID_VALUE,
+                field=f"{base_path}.{field_name}",
+                description=(
+                    f"Field '{base_path}.{field_name}' is not applicable "
+                    "to this metric type."
+                ),
+                evidence=(
+                    [field_candidate.source_excerpt]
+                    if field_candidate.source_excerpt
+                    else []
+                ),
+            )
+        )
+    return issues
+
+
 def build_metric_requirements(
     candidates: list[ExtractedMetricRequirement],
     verified_excerpts: list[str],
@@ -181,31 +212,14 @@ def _build_metric_requirement(
         values[field_name] = field_result.value
         local_evidence.update(dict(field_result.field_evidence))
 
-    invalid_unused = False
-    for field_name in _ALL_METRIC_FIELDS:
-        if field_name in required_fields:
-            continue
-        field_candidate: EvidenceValue[float] = getattr(candidate, field_name)
-        if field_candidate.value is None:
-            continue
-        issues.append(
-            RequirementIssue(
-                kind=RequirementIssueKind.INVALID_VALUE,
-                field=f"{base_path}.{field_name}",
-                description=(
-                    f"Field '{base_path}.{field_name}' is not applicable "
-                    "to this metric type."
-                ),
-                evidence=(
-                    [field_candidate.source_excerpt]
-                    if field_candidate.source_excerpt
-                    else []
-                ),
-            )
-        )
-        invalid_unused = True
+    unused_field_issues = _invalid_unused_metric_fields(
+        candidate,
+        base_path,
+        required_fields,
+    )
+    issues.extend(unused_field_issues)
 
-    if invalid_unused or any(values[name] is None for name in required_fields):
+    if unused_field_issues or any(values[name] is None for name in required_fields):
         return MappingOutcome(value=None, issues=tuple(issues))
 
     try:
