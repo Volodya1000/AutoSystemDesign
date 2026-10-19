@@ -23,32 +23,37 @@ STRUCTURED_OUTPUT_SYSTEM_PROMPT: Final[str] = (
 )
 
 OUTPUT_HARD_RULES: Final[str] = (
-    "Hard rules:\n"
-    "1. Every identifier is unique across the graph and written in snake_case.\n"
-    "2. Every node participates in at least one edge: isolated nodes are forbidden.\n"
-    "3. The topology is a strict DAG: cycles are forbidden.\n"
-    "4. Every edge matches one of the allowed source -> target transitions.\n"
-    '5. Every node except "client" must provide all capacity fields with valid values.\n'
-    '6. Include a "client" node as the entry point of user traffic.\n'
-    "7. Do not add fields that are not defined in the output format above.\n"
-    "8. Every message_broker node is a routing bridge with DISTINCT ends:\n"
-    "   - at least one incoming edge from a compute node (the producer);\n"
-    "   - at least one outgoing edge to a DIFFERENT compute node (the consumer).\n"
+    "Hard rules:\\n"
+    "1. Every identifier is unique across the graph and written in snake_case.\\n"
+    "2. Every node participates in at least one edge: isolated nodes are forbidden.\\n"
+    "3. The topology is a strict DAG: cycles are forbidden.\\n"
+    "4. Every edge matches one of the allowed source -> target transitions.\\n"
+    '5. Every node except "client" must provide all capacity fields with valid values.\\n'
+    '6. Include a "client" node as the entry point of user traffic.\\n'
+    "7. Do not add fields that are not defined in the output format above.\\n"
+    "8. Every message_broker node is a routing bridge with DISTINCT ends:\\n"
+    "   - at least one incoming edge from a compute node (the producer);\\n"
+    "   - at least one outgoing edge to a DIFFERENT compute node (the consumer).\\n"
     "   The producer and the consumer MUST be different compute nodes. A "
     "broker cannot route a message back to its own producer: that forms a "
     "cycle, which is forbidden by rule 3. To add asynchronous decoupling, "
     "introduce a dedicated worker compute node behind the broker "
     "(producer -> broker -> worker), not a loop back to the producer. If "
-    "you do not need async decoupling, do not add a broker at all.\n"
-    "9. Every cache node MUST be on a real read path:\n"
+    "you do not need async decoupling, do not add a broker at all.\\n"
+    "9. Every cache node MUST be on a real read path:\\n"
     "   - at least one SYNCHRONOUS incoming edge from a compute node "
-    "(the read attempt);\n"
-    "   - that compute node MUST also have at least one other outgoing "
-    "edge (the miss fallback, e.g. to a database), so cache misses can "
-    "be resolved.\n"
+    "(the read attempt);\\n"
+    "   - that SAME compute node MUST also have another outgoing edge "
+    "to the database (the cache-miss fallback).\\n"
+    "   Canonical pattern: compute -> cache (synchronous read) AND "
+    "compute -> database (synchronous fallback). Both edges originate "
+    "from the compute node. NEVER connect cache -> database: cache is "
+    "not a caller and must not own the fallback path.\\n"
     "   An async-only edge into a cache is a write-only sink: the cache "
     "receives data but nobody reads it, and cache_hit_rate is dead. "
-    "Either wire a synchronous read + miss fallback, or remove the cache."
+    "Either use the canonical read + fallback pattern, or remove the cache.\\n"
+    "10. Before returning JSON, check every edge against the whitelist and "
+    "re-check cache directionality: cache -> database is forbidden."
 )
 
 FEW_SHOT_GRAPH_JSON: Final[str] = """{
@@ -81,9 +86,9 @@ def render_output_schema() -> str:
     schema_text: str = json.dumps(ArchitectureGraph.model_json_schema(), indent=2)
     return (
         "Output format: a single JSON object matching the following JSON Schema "
-        "(generated from the domain models).\n"
-        f"{schema_text}\n\n"
-        f"{render_known_protocols()}\n\n"
+        "(generated from the domain models).\\n"
+        f"{schema_text}\\n\\n"
+        f"{render_known_protocols()}\\n\\n"
         "Do not add any other fields: unknown fields are rejected."
     )
 
@@ -100,4 +105,4 @@ def render_allowed_connections() -> str:
         for connection in DEFAULT_ALLOWED_CONNECTION_TYPES
     )
     lines.extend(f"- {source} -> {target}" for source, target in allowed_pairs)
-    return "\n".join(lines)
+    return "\\n".join(lines)
