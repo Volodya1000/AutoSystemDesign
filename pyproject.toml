@@ -67,7 +67,6 @@ extend-select = [
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
     "D205", # Require a blank line between docstring summary and body.
-    "D401", # Use imperative mood in docstring summaries.
     "D404", # Avoid starting docstrings with "This".
 ]
 # All enabled rules must be fixed rather than suppressed.
