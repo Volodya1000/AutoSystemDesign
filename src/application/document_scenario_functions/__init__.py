@@ -9,7 +9,10 @@ from application.document_scenario_functions.mapping import (
     build_metric_requirements,
     build_workload,
 )
-from application.document_scenario_functions.naming import functional_name, slug_identifier
+from application.document_scenario_functions.naming import (
+    functional_name,
+    slug_identifier,
+)
 
 __all__ = [
     "build_functional_requirements",

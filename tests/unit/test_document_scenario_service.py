@@ -3,14 +3,8 @@ from pathlib import Path
 import pytest
 
 from application.document_scenario_service import DocumentScenarioService
-from domain.document_requirements import (
-    DocumentRequirements,
-    Requirement,
-    RequirementEvidence,
-    RequirementIssueKind,
-    RequirementKind,
-    SourceBackedNote,
-)
+from domain import document_requirements as req_doc
+from tests.test_support import has_issue
 from domain.scenario_extraction import (
     DocumentScenarioExtraction,
     EvidenceValue,
@@ -27,18 +21,18 @@ FUNCTIONAL = "A customer can add one or more products to a shopping cart."
 READ_RATIO = "Read requests account for 0.7 of total traffic."
 
 
-def make_source_requirements() -> DocumentRequirements:
+def make_source_requirements() -> req_doc.DocumentRequirements:
     excerpts = [BASELINE, PEAK, READ_RATIO, LATENCY, AVAILABILITY, FUNCTIONAL]
-    return DocumentRequirements(
+    return req_doc.DocumentRequirements(
         requirements=[
-            Requirement(
+            req_doc.Requirement(
                 statement=excerpt,
                 kind=(
-                    RequirementKind.NON_FUNCTIONAL
+                    req_doc.RequirementKind.NON_FUNCTIONAL
                     if excerpt in {BASELINE, PEAK, READ_RATIO, LATENCY, AVAILABILITY}
-                    else RequirementKind.FUNCTIONAL
+                    else req_doc.RequirementKind.FUNCTIONAL
                 ),
-                source_evidence=[RequirementEvidence(source_excerpt=excerpt)],
+                source_evidence=[req_doc.RequirementEvidence(source_excerpt=excerpt)],
             )
             for excerpt in excerpts
         ],
@@ -87,10 +81,10 @@ def make_mapping() -> DocumentScenarioExtraction:
 
 
 class FakeRequirementsService:
-    def __init__(self, result: DocumentRequirements) -> None:
+    def __init__(self, result: req_doc.DocumentRequirements) -> None:
         self.result = result
 
-    def extract_file(self, path: Path) -> DocumentRequirements:
+    def extract_file(self, path: Path) -> req_doc.DocumentRequirements:
         return self.result
 
 
@@ -99,7 +93,7 @@ class FakeMapper:
         self.result = result
         self.calls = 0
 
-    def map(self, requirements: DocumentRequirements) -> DocumentScenarioExtraction:
+    def map(self, requirements: req_doc.DocumentRequirements) -> DocumentScenarioExtraction:
         self.calls += 1
         return self.result
 
@@ -140,7 +134,7 @@ def test_does_not_accept_numeric_value_not_present_in_verified_evidence() -> Non
     assert result.scenario is not None
     assert result.scenario.workload is None
     assert any(
-        issue.kind is RequirementIssueKind.UNSUPPORTED_EVIDENCE
+        issue.kind is req_doc.RequirementIssueKind.UNSUPPORTED_EVIDENCE
         and issue.field == "workload.baseline_requests_per_second"
         for issue in result.issues
     )
@@ -151,9 +145,9 @@ def test_discards_scenario_diagnostics_with_unverified_citations() -> None:
     source = make_source_requirements()
     mapping = make_mapping()
     mapping.ambiguity_notes = [
-        SourceBackedNote(
+        req_doc.SourceBackedNote(
             description="The source requires biometric login.",
-            source_evidence=[RequirementEvidence(source_excerpt=FUNCTIONAL)],
+            source_evidence=[req_doc.RequirementEvidence(source_excerpt=FUNCTIONAL)],
         )
     ]
 
@@ -161,21 +155,21 @@ def test_discards_scenario_diagnostics_with_unverified_citations() -> None:
         FakeRequirementsService(source), FakeMapper(mapping)
     ).map_requirements(source)
 
-    assert any(
-        issue.kind is RequirementIssueKind.UNSUPPORTED_EVIDENCE
-        and "biometric login" in issue.description
-        for issue in result.issues
+    assert has_issue(
+        result.issues,
+        req_doc.RequirementIssueKind.UNSUPPORTED_EVIDENCE,
+        description_contains="biometric login",
     )
-    assert not any(
-        issue.kind is RequirementIssueKind.AMBIGUOUS
-        and "biometric login" in issue.description
-        for issue in result.issues
+    assert not has_issue(
+        result.issues,
+        req_doc.RequirementIssueKind.AMBIGUOUS,
+        description_contains="biometric login",
     )
 
 
 @pytest.mark.unit
 def test_does_not_call_mapper_for_irrelevant_or_ungrounded_document() -> None:
-    source = DocumentRequirements(
+    source = req_doc.DocumentRequirements(
         requirements=[], is_relevant=False, source_name="notes.md"
     )
     mapper = FakeMapper(make_mapping())
@@ -208,7 +202,7 @@ def test_rejects_functional_text_not_present_in_its_citation() -> None:
     assert result.scenario is not None
     assert result.scenario.functional_requirements == []
     assert any(
-        issue.kind is RequirementIssueKind.UNSUPPORTED_EVIDENCE
+        issue.kind is req_doc.RequirementIssueKind.UNSUPPORTED_EVIDENCE
         and issue.field == "functional_requirements[0].text"
         for issue in result.issues
     )
@@ -233,7 +227,7 @@ def test_omits_incomplete_workload_instead_of_using_default_ratio() -> None:
     assert result.scenario.workload is None
     assert "workload.read_ratio" not in result.field_evidence
     assert any(
-        issue.kind is RequirementIssueKind.MISSING
+        issue.kind is req_doc.RequirementIssueKind.MISSING
         and issue.field == "workload.read_ratio"
         for issue in result.issues
     )
@@ -254,7 +248,7 @@ def test_rejects_partial_citation_even_when_numeric_value_is_present() -> None:
     assert result.scenario is not None
     assert result.scenario.workload is None
     assert any(
-        issue.kind is RequirementIssueKind.UNSUPPORTED_EVIDENCE
+        issue.kind is req_doc.RequirementIssueKind.UNSUPPORTED_EVIDENCE
         and issue.field == "workload.baseline_requests_per_second"
         for issue in result.issues
     )

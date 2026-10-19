@@ -1,11 +1,6 @@
 import json
 
 import pytest
-from pydantic import SecretStr
-
-from application.usage import TokenUsage
-from config.llm import LlmSettings, StructuredOutputMode
-from config.root import AppSettings
 from domain.document_requirements import (
     DocumentRequirements,
     Requirement,
@@ -14,44 +9,8 @@ from domain.document_requirements import (
 )
 from domain.scenario_extraction import DocumentScenarioExtraction
 from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMapper
-from infrastructure.llm.models import (
-    CompletionRequest,
-    CompletionResult,
-    FinishReason,
-)
-
-
-class FakeCompletionClient:
-    def __init__(self, response: CompletionResult) -> None:
-        self.response = response
-        self.requests: list[CompletionRequest] = []
-
-    def complete(self, request: CompletionRequest) -> CompletionResult:
-        self.requests.append(request)
-        return self.response
-
-
-def make_settings() -> AppSettings:
-    return AppSettings(
-        base_url="http://localhost:1234/v1",
-        api_key=SecretStr("unit-test-key"),
-        llm=LlmSettings(
-            model="openai/test-model",
-            temperature=0.0,
-            max_tokens=1_000,
-            timeout_seconds=10.0,
-            structured_output_mode=StructuredOutputMode.JSON_SCHEMA,
-        ),
-    )
-
-
-def make_response(content: str, finish_reason: FinishReason) -> CompletionResult:
-    return CompletionResult(
-        model="test-model",
-        content=content,
-        finish_reason=finish_reason,
-        usage=TokenUsage(),
-    )
+from infrastructure.llm.models import FinishReason
+from tests.llm_support import FakeCompletionClient, make_response, make_settings
 
 
 def valid_mapping_payload() -> dict[str, object]:

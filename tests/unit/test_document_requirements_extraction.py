@@ -10,6 +10,7 @@ from domain.document_requirements import (
     RequirementKind,
     SourceBackedNote,
 )
+from tests.test_support import has_issue
 from domain.extraction_chunk import ExtractionChunk
 from infrastructure.document_readers.markdown_reader import MarkdownReader
 
@@ -83,10 +84,7 @@ def test_discards_requirement_without_source_grounded_evidence(tmp_path: Path) -
     ).extract_file(path)
 
     assert not result.requirements
-    assert any(
-        issue.kind is RequirementIssueKind.UNSUPPORTED_EVIDENCE
-        for issue in result.issues
-    )
+    assert has_issue(result.issues, RequirementIssueKind.UNSUPPORTED_EVIDENCE)
     assert result.is_relevant
 
 
@@ -166,8 +164,8 @@ def test_rejects_ambiguity_note_with_fabricated_evidence(tmp_path: Path) -> None
         and "Discarded ambiguity note" in issue.description
         for issue in result.issues
     )
-    assert not any(
-        issue.kind is RequirementIssueKind.AMBIGUOUS
-        and "biometric login" in issue.description
-        for issue in result.issues
+    assert not has_issue(
+        result.issues,
+        RequirementIssueKind.AMBIGUOUS,
+        description_contains="biometric login",
     )
