@@ -14,8 +14,8 @@ def render_scenario_summary(scenario: DesignScenario) -> str:
             [
                 "Workload:",
                 (
-                    f"- Baseline load: {scenario.workload.baseline_requests_per_second} "
-                    "RPS"
+                    "- Baseline load: "
+                    f"{scenario.workload.baseline_requests_per_second} RPS"
                 ),
                 f"- Peak load: {scenario.workload.peak_requests_per_second} RPS",
                 (
