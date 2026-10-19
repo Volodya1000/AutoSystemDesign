@@ -24,7 +24,7 @@ def git_executable() -> str:
     """Return the absolute path to Git or fail with an actionable error."""
     executable = shutil.which("git")
     if executable is None:
-        raise RuntimeError("Git executable is required for duplicate-code checks")
+        raise RuntimeError("Git is required")
     return executable
 
 
