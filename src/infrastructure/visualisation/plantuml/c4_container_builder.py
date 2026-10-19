@@ -188,7 +188,7 @@ class C4ContainerDiagramBuilder:
         internal_elements: list[str],
         relations: list[str],
     ) -> str:
-        """Joins diagram parts into the final PlantUML document text."""
+        """Join diagram parts into the final PlantUML document text."""
         lines: list[str] = [
             "@startuml",
             f"!include {self._c4_include}",
