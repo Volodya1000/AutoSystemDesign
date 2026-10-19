@@ -75,6 +75,7 @@ def _resolve_candidate(
     *,
     required: bool,
     numeric: bool = False,
+    verbatim_text: bool = False,
 ) -> ValueT | None:
     """Validate candidate provenance and, for numbers, its literal value."""
     value = candidate.value
@@ -110,6 +111,22 @@ def _resolve_candidate(
                 kind=RequirementIssueKind.INVALID_VALUE,
                 field=field_path,
                 description=f"Scenario field '{field_path}' must not be blank.",
+                evidence=[excerpt],
+            )
+        )
+        return None
+
+    if verbatim_text and isinstance(value, str) and not is_evidence_supported(
+        RequirementEvidence(source_excerpt=value), excerpt
+    ):
+        issues.append(
+            RequirementIssue(
+                kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
+                field=field_path,
+                description=(
+                    f"The text for '{field_path}' is not a verbatim substring "
+                    "of its cited source excerpt."
+                ),
                 evidence=[excerpt],
             )
         )
@@ -252,6 +269,7 @@ class DocumentScenarioService:
             issues,
             field_evidence,
             required=True,
+            verbatim_text=True,
         )
 
         workload = self._build_workload(
@@ -426,20 +444,32 @@ class DocumentScenarioService:
         for candidate in candidates:
             base_path = f"requirements[{len(output)}]"
             local_evidence: dict[str, str] = {}
-            if candidate.type_identifier in {"latency", "queue_size_percentile"}:
+            metric_type = _resolve_candidate(
+                candidate.type_identifier,
+                f"{base_path}.type_identifier",
+                verified_excerpts,
+                issues,
+                local_evidence,
+                required=True,
+            )
+            if metric_type is None:
+                continue
+
+            if metric_type in {"latency", "queue_size_percentile"}:
                 required_fields = {"threshold_value", "percentile"}
-            elif candidate.type_identifier in {"budget", "availability"}:
+            elif metric_type in {"budget", "availability"}:
                 required_fields = {"threshold_value"}
             else:
                 required_fields = {"minimum_value", "maximum_value"}
 
             values: dict[str, float | None] = {}
-            for field_name in (
+            all_fields = (
                 "threshold_value",
                 "percentile",
                 "minimum_value",
                 "maximum_value",
-            ):
+            )
+            for field_name in all_fields:
                 values[field_name] = _resolve_candidate(
                     getattr(candidate, field_name),
                     f"{base_path}.{field_name}",
@@ -450,12 +480,6 @@ class DocumentScenarioService:
                     numeric=True,
                 )
 
-            all_fields = (
-                "threshold_value",
-                "percentile",
-                "minimum_value",
-                "maximum_value",
-            )
             invalid_unused = False
             for field_name in all_fields:
                 if field_name not in required_fields:
@@ -469,7 +493,7 @@ class DocumentScenarioService:
                 continue
 
             try:
-                match candidate.type_identifier:
+                match metric_type:
                     case "latency":
                         threshold = values["threshold_value"]
                         percentile = values["percentile"]
@@ -507,6 +531,8 @@ class DocumentScenarioService:
                             minimum_value=minimum,
                             maximum_value=maximum,
                         )
+                    case _:
+                        continue
                 output.append(metric)
                 field_evidence.update(local_evidence)
             except ValidationError as error:
@@ -538,6 +564,7 @@ class DocumentScenarioService:
                 issues,
                 field_evidence,
                 required=True,
+                verbatim_text=True,
             )
             if text is None:
                 continue
