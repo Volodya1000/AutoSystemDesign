@@ -24,7 +24,10 @@ class LlmDocumentScenarioMapper(StructuredOutputAdapter):
             ]
         }
         user_prompt = USER_PROMPT_TEMPLATE.format(
-            requirements_json=encode_prompt_data(verified_claims)
+            requirements_json=encode_prompt_data(verified_claims),
+            response_schema_json=encode_prompt_data(
+                DocumentScenarioExtraction.model_json_schema()
+            ),
         )
         return self._complete_response(
             system_prompt=SYSTEM_PROMPT,

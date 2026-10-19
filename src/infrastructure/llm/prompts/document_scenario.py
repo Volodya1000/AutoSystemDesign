@@ -9,8 +9,16 @@ SYSTEM_PROMPT: str = (
 USER_PROMPT_TEMPLATE: str = """Map the source-grounded requirements below into an
 AutoSystemDesign scenario.
 
-The response schema provided separately is the single source of truth for the
-output structure, field names, types, enum values, and required fields.
+The JSON Schema below is the authoritative output contract. Return one JSON object
+that conforms to it exactly. Use only the listed property names and required nesting.
+Do not use alternative names such as scenario_description, non_functional_requirements,
+or notes. Each functional_requirements item must be an object whose text is an
+EvidenceValue object, not a plain string. Each EvidenceValue has exactly value and
+source_excerpt properties.
+
+<response_schema>
+{response_schema_json}
+</response_schema>
 
 Rules:
 - Use only values supported by the provided verified requirements and citations.
