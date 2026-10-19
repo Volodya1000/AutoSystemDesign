@@ -56,7 +56,9 @@ extend-select = [
     "PLR0911", # Keep functions from accumulating too many return paths.
     "PLR0912", # Keep branching logic manageable.
     "PLR0913", # Keep function interfaces small.
+    "PLR0914", # Keep functions from accumulating too many local variables.
     "PLR0915", # Keep functions focused on one responsibility.
+    "PLR1702", # Keep control flow from becoming deeply nested.
     "PLR0917", # Avoid APIs that require many positional arguments.
     "PLR1714", # Replace repeated equality checks with membership tests.
     "SLF",    # Enforce encapsulation by preventing private-member access.
