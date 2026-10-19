@@ -25,6 +25,7 @@ from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMappe
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line interface for document-to-scenario generation."""
     parser = argparse.ArgumentParser(
