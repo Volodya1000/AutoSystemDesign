@@ -2,7 +2,10 @@
 
 from collections.abc import Sequence
 
-from application.exceptions.configuration_errors import GenerationConfigurationError
+from application.exceptions.configuration_errors import (
+    DESIGN_VALIDATOR_KIND,
+    GenerationConfigurationError,
+)
 from application.exceptions.generation_exceptions import DesignProposalParsingError
 from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from application.protocols import ArchitectureDesigner
@@ -75,7 +78,9 @@ class DesignGenerationService:
             )
         self._validators: tuple[BaseValidator, ...] = tuple(validators)
         if not self._validators:
-            raise GenerationConfigurationError.required_validators_missing("design")
+            raise GenerationConfigurationError.required_validators_missing(
+                DESIGN_VALIDATOR_KIND
+            )
         self._scenario_validators: tuple[ScenarioValidator, ...] = tuple(
             scenario_validators
         )
