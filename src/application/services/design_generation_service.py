@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
+from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from application.protocols import ArchitectureDesigner
 from application.results import DesignGenerationResult, GenerationAttempt
 from application.tasks import (
@@ -11,7 +12,6 @@ from application.tasks import (
     DesignTaskMode,
     ValidationErrorFeedback,
 )
-from config.generation import MAX_ATTEMPTS, MIN_ATTEMPTS
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import (

@@ -1,15 +1,14 @@
 """Generation loop limits."""
 
-from typing import Final
-
 from pydantic import BaseModel, ConfigDict, Field
 
-MIN_ATTEMPTS: Final[int] = 1
-MAX_ATTEMPTS: Final[int] = 10
-
-MIN_SEQUENCE_PARALLELISM: Final[int] = 1
-MAX_SEQUENCE_PARALLELISM: Final[int] = 16
-DEFAULT_SEQUENCE_PARALLELISM: Final[int] = 4
+from application.generation_limits import (
+    DEFAULT_SEQUENCE_PARALLELISM,
+    MAX_ATTEMPTS,
+    MAX_SEQUENCE_PARALLELISM,
+    MIN_ATTEMPTS,
+    MIN_SEQUENCE_PARALLELISM,
+)
 
 
 class GenerationSettings(BaseModel):
