@@ -66,6 +66,7 @@ class TestSaturationThresholdConstant:
 class TestBelowThreshold:
     def test_low_utilization_yields_no_errors(self) -> None:
         """Manual: max_rps = 1 x 100 x 1000 / 10 = 10_000.
+
         peak = 1_000 → util = 0.10 = 10%. Well under 98% → no error.
         """
         graph = _chain_graph(
@@ -133,6 +134,7 @@ class TestBoundaryAt98Percent:
 class TestAboveThreshold:
     def test_overload_reports_arrival_and_maximum(self) -> None:
         """Manual: max_rps = 10_000. peak = 10_500 → util = 1.05 = 105%.
+
         arrival_rate_rps ≈ 10_500, maximum_capacity_rps ≈ 10_000.
         """
         graph = _chain_graph(
@@ -159,6 +161,7 @@ class TestAboveThreshold:
 class TestReplicasMultiplyCapacity:
     def test_two_replicas_double_max_rps(self) -> None:
         """Manual: replicas = 2 → max_rps = 2 x 100 x 1000 / 10 = 20_000.
+
         peak = 15_000 → util = 0.75 → no error.
 
         A single replica would have produced util = 1.5 (an error). This
@@ -251,8 +254,10 @@ class TestMissingWorkload:
 
 class TestClientNodeExclusion:
     def test_client_not_present_in_utilization_dict(self) -> None:
-        """ClientNode has no capacity fields: it must never contribute
-        to utilization (and never be the target of a saturation error)."""
+        """Exclude client nodes from capacity utilization.
+
+        ClientNode has no capacity fields and must never be the target of a saturation error.
+        """
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
             create_test_compute_node("compute_1"),
@@ -262,8 +267,10 @@ class TestClientNodeExclusion:
         assert set(utilization) == {"compute_1"}
 
     def test_client_does_not_trigger_saturation(self) -> None:
-        """Even at a huge flow a ClientNode is never flagged: no capacity,
-        no queue, no error."""
+        """Never flag a client node, even at a huge flow.
+
+        ClientNode has no capacity or queue and must not produce an error.
+        """
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
             create_test_compute_node("compute_1", concurrency=10_000, mean_ms=1.0),
