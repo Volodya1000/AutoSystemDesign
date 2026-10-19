@@ -135,8 +135,9 @@ def check_acyclicity(
         for neighbor_identifier in adjacency_list[current_identifier]:
             if visit_state[neighbor_identifier] == 1:
                 cycle_start_index: int = current_path.index(neighbor_identifier)
-                cycle_sequence: list[str] = current_path[cycle_start_index:] + [
-                    neighbor_identifier
+                cycle_sequence: list[str] = [
+                    *current_path[cycle_start_index:],
+                    neighbor_identifier,
                 ]
                 cycle_errors.append(
                     CyclicDependencyError(cycle_sequence=cycle_sequence)
