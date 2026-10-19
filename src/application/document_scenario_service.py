@@ -4,7 +4,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from application.document_processing import deduplicate_issues
+from application.document_processing import deduplicate_issues, is_evidence_supported
 from application.document_scenario_functions import (
     build_functional_requirements,
     build_metric_requirements,
@@ -21,9 +21,11 @@ from domain.document_requirements import (
     DocumentRequirements,
     RequirementIssue,
     RequirementIssueKind,
+    RequirementEvidence,
+    RequirementKind,
 )
 from domain.models.scenarios import DesignScenario
-from domain.scenario_extraction import DocumentScenarioResult
+from domain.scenario_extraction import DocumentScenarioResult, EvidenceValue
 
 
 class DocumentScenarioService:
@@ -101,8 +103,27 @@ class DocumentScenarioService:
                 source_name=requirements.source_name,
             )
 
+        description_candidate = extraction.description
+        if description_candidate.value is None:
+            description_candidate = next(
+                (
+                    EvidenceValue[str](
+                        value=requirement.statement,
+                        source_excerpt=evidence.source_excerpt,
+                    )
+                    for requirement in requirements.requirements
+                    if requirement.kind is RequirementKind.FUNCTIONAL
+                    for evidence in requirement.source_evidence
+                    if is_evidence_supported(
+                        RequirementEvidence(source_excerpt=requirement.statement),
+                        evidence.source_excerpt,
+                    )
+                ),
+                description_candidate,
+            )
+
         description_result = resolve_candidate(
-            extraction.description,
+            description_candidate,
             "description",
             verified_excerpts,
             required=True,
