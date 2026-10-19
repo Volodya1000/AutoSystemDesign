@@ -57,6 +57,8 @@ extend-select = [
     "PLR0912", # Keep branching logic manageable.
     "PLR0913", # Keep function interfaces small.
     "PLR0915", # Keep functions focused on one responsibility.
+    "PLR0917", # Avoid APIs that require many positional arguments.
+    "PLR1714", # Replace repeated equality checks with membership tests.
     "SLF",    # Enforce encapsulation by preventing private-member access.
 ]
 # All enabled rules must be fixed rather than suppressed.
