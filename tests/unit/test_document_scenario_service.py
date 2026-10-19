@@ -112,7 +112,7 @@ def test_maps_verified_fields_into_pipeline_compatible_scenario() -> None:
 
     assert result.scenario is not None
     assert result.scenario.identifier == "spec"
-    assert result.scenario.description == "Online store checkout requirements."
+    assert result.scenario.description == FUNCTIONAL
     assert result.scenario.workload is not None
     assert result.scenario.workload.baseline_requests_per_second == 120.0
     assert result.scenario.workload.peak_requests_per_second == 400.0
