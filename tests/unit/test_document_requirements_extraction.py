@@ -19,7 +19,7 @@ class FakeExtractor:
     def __init__(self) -> None:
         self.inputs: list[str] = []
 
-    def extract(self, _text: str, _source_name: str) -> ExtractionChunk:
+    def extract(self, text: str, _source_name: str) -> ExtractionChunk:
         self.inputs.append(text)
         requirement = Requirement(
             statement="A requirement paragraph.",
@@ -62,7 +62,7 @@ def test_discards_requirement_without_source_grounded_evidence(tmp_path: Path) -
     path.write_text("The system can process orders.", encoding="utf-8")
 
     class HallucinatingExtractor:
-        def extract(self, text: str, source_name: str) -> ExtractionChunk:
+        def extract(self, _text: str, _source_name: str) -> ExtractionChunk:
             requirement = Requirement(
                 statement="The system supports biometric login.",
                 kind=RequirementKind.FUNCTIONAL,
@@ -97,7 +97,7 @@ def test_rejects_paraphrased_claim_even_when_its_citation_exists(
     path.write_text(source_excerpt, encoding="utf-8")
 
     class ParaphrasingExtractor:
-        def extract(self, text: str, source_name: str) -> ExtractionChunk:
+        def extract(self, _text: str, _source_name: str) -> ExtractionChunk:
             return ExtractionChunk(
                 requirements=[
                     Requirement(
@@ -132,7 +132,7 @@ def test_rejects_ambiguity_note_with_fabricated_evidence(tmp_path: Path) -> None
     path.write_text(source_excerpt, encoding="utf-8")
 
     class HallucinatingNoteExtractor:
-        def extract(self, text: str, source_name: str) -> ExtractionChunk:
+        def extract(self, _text: str, _source_name: str) -> ExtractionChunk:
             return ExtractionChunk(
                 requirements=[
                     Requirement(

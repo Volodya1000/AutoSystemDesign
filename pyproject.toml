@@ -40,7 +40,6 @@ markers = [
 ]
 
 [tool.ruff.lint]
-ignore = ["TRY003", "EM101"]  # Avoid forcing one-off exception classes for every validation message.
 # Add design-oriented checks while keeping Ruff's existing default rules.
 extend-select = [
     "A",     # Prevent shadowing Python builtins.
@@ -54,7 +53,8 @@ extend-select = [
     "SIM",   # Simplify unnecessarily complicated control flow.
     "TC",    # Type-checking import and annotation rules.
     "TID",   # Keep imports explicit and maintainable.
-    "TRY",   # Exception handling and error-design rules.
+    "TRY400", # Prefer logging.exception when reporting an active exception.
+    "TRY401", # Avoid redundant exception objects in logging.exception calls.
     "PLR0911", # Keep functions from accumulating too many return paths.
     "PLR0912", # Keep branching logic manageable.
     "PLR0913", # Keep function interfaces small.
@@ -68,7 +68,6 @@ extend-select = [
     "S607",   # Review subprocess calls using partial executable paths.
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
-    "EM101", # Avoid raising exceptions directly from string literals.
     "PT018", # Keep each pytest assertion focused.
     "PT006", # Use explicit parameterization argument names.
     "ANN001", # Require parameter type annotations.
