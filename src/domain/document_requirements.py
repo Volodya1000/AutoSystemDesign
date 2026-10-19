@@ -1,8 +1,4 @@
-"""Domain models for requirements extracted from source documents.
-
-These models deliberately distinguish evidence from missing information: an
-extractor must not silently turn absent requirements into invented defaults.
-"""
+"""Domain models for source-grounded requirement extraction."""
 
 from enum import StrEnum
 
@@ -14,13 +10,23 @@ class RequirementKind(StrEnum):
     NON_FUNCTIONAL = "non_functional"
 
 
+class RequirementEvidence(BaseModel):
+    """Verbatim source evidence supporting an extracted requirement."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    source_excerpt: str = Field(min_length=1)
+    source_location: str | None = None
+
+
 class Requirement(BaseModel):
+    """An atomic requirement claim with one or more source citations."""
+
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     statement: str = Field(min_length=1)
     kind: RequirementKind
-    source_excerpt: str = Field(min_length=1)
-    source_location: str | None = None
+    source_evidence: list[RequirementEvidence] = Field(min_length=1)
 
 
 class RequirementIssueKind(StrEnum):
@@ -28,6 +34,7 @@ class RequirementIssueKind(StrEnum):
     AMBIGUOUS = "ambiguous"
     CONFLICTING = "conflicting"
     IRRELEVANT_DOCUMENT = "irrelevant_document"
+    UNSUPPORTED_EVIDENCE = "unsupported_evidence"
 
 
 class RequirementIssue(BaseModel):
