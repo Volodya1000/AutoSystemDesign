@@ -34,10 +34,19 @@ class TestFragments:
         assert "Both edges originate from the compute node" in OUTPUT_HARD_RULES
 
     def test_broker_rules_explain_distinct_producer_and_consumer(self) -> None:
-        assert "message_processor -> message_broker -> notification_worker" in OUTPUT_HARD_RULES
-        assert "message_processor -> message_broker -> message_processor" in OUTPUT_HARD_RULES
+        assert (
+            "message_processor -> message_broker -> notification_worker"
+            in OUTPUT_HARD_RULES
+        )
+        assert (
+            "message_processor -> message_broker -> message_processor"
+            in OUTPUT_HARD_RULES
+        )
         assert "message_broker -> message_broker are invalid" in OUTPUT_HARD_RULES
-        assert "Confirm that its producer and consumer are different compute nodes" in OUTPUT_HARD_RULES
+        assert (
+            "Confirm that its producer and consumer are different compute nodes"
+            in OUTPUT_HARD_RULES
+        )
 
     def test_schema_lists_all_domain_protocol_singletons(self) -> None:
         schema_text: str = render_output_schema()
