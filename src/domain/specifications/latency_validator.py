@@ -88,7 +88,7 @@ def _reconstruct_path(
     predecessor: dict[str, str | None],
     pred_edge_latency: dict[str, float],
 ) -> tuple[list[str], list[float]]:
-    """Walks predecessor links back to the source and reverses the result.
+    """Walk predecessor links back to the source and reverses the result.
 
     ``edge_latencies[i]`` is the latency of the edge connecting
     ``path[i]`` to ``path[i + 1]``; the list is one shorter than ``path``.
@@ -185,7 +185,7 @@ def compute_critical_path(
     graph: ArchitectureGraph,
     scenario: DesignScenario,
 ) -> CriticalPathResult | None:
-    """Returns the worst synchronous path, or None when workload is absent.
+    """Return the worst synchronous path, or None when workload is absent.
 
     Only synchronous edges are traversed: async fire-and-forget calls do not
     block the caller and therefore do not contribute to user-visible latency.
