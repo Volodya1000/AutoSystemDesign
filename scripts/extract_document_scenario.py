@@ -14,6 +14,7 @@ from application.document_scenario_service import DocumentScenarioService
 from application.requirements_extraction import DocumentRequirementsService
 from config.logging import configure_logging
 from config.root import load_app_settings
+from domain.models.scenarios import DesignScenario
 from domain.scenario_extraction import DocumentScenarioResult
 from infrastructure.document_readers.markdown_reader import MarkdownReader
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
@@ -97,18 +98,15 @@ def _run_pipeline(args: argparse.Namespace) -> int:
         return 2
 
 
-def _scenario_payload(result: DocumentScenarioResult) -> dict[str, object]:
+def _scenario_payload(scenario: DesignScenario) -> dict[str, object]:
     """Serialize a scenario while preserving required union discriminators."""
-    if result.scenario is None:
-        raise ValueError("Cannot serialize a result without a scenario.")
-
-    payload = result.scenario.model_dump(
+    payload = scenario.model_dump(
         mode="json", exclude_unset=True, exclude_none=True
     )
     payload["requirements"] = [
         requirement.model_dump(mode="json", exclude_unset=True, exclude_none=True)
         | {"type_identifier": requirement.type_identifier}
-        for requirement in result.scenario.requirements
+        for requirement in scenario.requirements
     ]
     return payload
 
@@ -147,7 +145,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 1
 
-    output_payload = _scenario_payload(result)
+    output_payload = _scenario_payload(result.scenario)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         yaml.safe_dump(output_payload, allow_unicode=True, sort_keys=False),
