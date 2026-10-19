@@ -45,7 +45,6 @@ mypy_path = "src"
 
 [tool.pylint."messages control"]
 disable = [
-    "duplicate-code",
     "import-outside-toplevel",
     "inconsistent-return-statements",
     "missing-docstring",

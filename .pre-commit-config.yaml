@@ -22,24 +22,66 @@ repos:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
+
   - repo: local
     hooks:
+      - id: file-hygiene
+        name: Check whitespace and end-of-file newlines
+        entry: uv run python scripts/check_file_hygiene.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: uv-lock-check
+        name: Check uv lockfile consistency
+        entry: uv lock --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ruff-check
+        name: Ruff lint
+        entry: uv run ruff check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ruff-format-check
+        name: Ruff format
+        entry: uv run ruff format --check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: mypy
         name: mypy
-        entry: uv run mypy
+        entry: uv run mypy src tests scripts
         language: system
-        types: [ python ]
-        require_serial: true
+        pass_filenames: false
+        always_run: true
 
       - id: pylint
         name: pylint
-        entry: uv run pylint
+        entry: uv run pylint --disable=duplicate-code src tests scripts
         language: system
-        types: [ python ]
-        require_serial: true
+        pass_filenames: false
+        always_run: true
+
+      - id: duplicate-code
+        name: Detect duplicate code in changed Python files
+        entry: uv run python scripts/check_duplicate_code.py
+        language: system
+        types: [python]
+
+      - id: import-linter
+        name: Check architecture import rules
+        entry: uv run python scripts/check_architecture_imports.py
+        language: system
+        pass_filenames: false
+        always_run: true
 
       - id: pytest
-        name: pytest
+        name: Unit tests
         entry: uv run pytest -m unit
         language: system
         pass_filenames: false
