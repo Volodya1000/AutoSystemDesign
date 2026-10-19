@@ -1,4 +1,6 @@
-"""LLM adapter for document requirement extraction."""
+"""LLM adapter for source-grounded document requirement extraction."""
+
+import json
 
 from config.root import AppSettings
 from domain.extraction_chunk import ExtractionChunk
@@ -14,16 +16,24 @@ from infrastructure.llm.prompts.document_requirements import (
     SYSTEM_PROMPT,
     USER_PROMPT_TEMPLATE,
 )
+from infrastructure.llm.protocols import CompletionClient
 
 
 class LlmDocumentRequirementExtractor:
     """Extract one document fragment through the shared typed LLM client."""
 
-    def __init__(self, settings: AppSettings) -> None:
+    def __init__(
+        self,
+        settings: AppSettings,
+        client: CompletionClient | None = None,
+    ) -> None:
         self._settings = settings
-        self._client = LiteLlmClient(settings)
+        self._client: CompletionClient = client or LiteLlmClient(settings)
 
     def extract(self, text: str, source_name: str) -> ExtractionChunk:
+        encoded_text = json.dumps(text, ensure_ascii=False)
+        # Prevent document content from breaking the prompt's data boundary.
+        encoded_text = encoded_text.replace("<", "\\u003c").replace(">", "\\u003e")
         request = CompletionRequest(
             messages=[
                 Message(role=MessageRole.SYSTEM, content=SYSTEM_PROMPT),
@@ -31,7 +41,7 @@ class LlmDocumentRequirementExtractor:
                     role=MessageRole.USER,
                     content=USER_PROMPT_TEMPLATE.format(
                         source_name=source_name,
-                        text=text,
+                        text_json=encoded_text,
                     ),
                 ),
             ],
@@ -47,6 +57,8 @@ class LlmDocumentRequirementExtractor:
                 "LLM response was truncated; reduce document fragment size "
                 "or increase the configured token limit."
             )
+        if response.finish_reason is FinishReason.CONTENT_FILTER:
+            raise ValueError("LLM response was blocked by the provider's content filter")
         if not response.content.strip():
             raise ValueError("LLM returned an empty extraction response")
         return ExtractionChunk.model_validate_json(response.content)
