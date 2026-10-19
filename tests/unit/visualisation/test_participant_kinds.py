@@ -26,7 +26,7 @@ def _component(node_id: str) -> ComponentLifeline:
 
 
 @pytest.mark.parametrize(
-    "node_type,expected",
+    ("node_type", "expected"),
     [
         (NodeType.CLIENT, "boundary"),
         (NodeType.LOAD_BALANCER, "boundary"),
