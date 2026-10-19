@@ -38,10 +38,21 @@ def deduplicate_requirements(
 
 
 def deduplicate_issues(issues: Iterable[RequirementIssue]) -> list[RequirementIssue]:
-    """Keep the first issue for each kind, field and normalized description."""
+    """Merge duplicate diagnostics while preserving every distinct evidence item."""
     unique: dict[tuple[str, str | None, str], RequirementIssue] = {}
     for issue in issues:
         normalized_description = " ".join(issue.description.casefold().split())
         key = (issue.kind.value, issue.field, normalized_description)
-        unique.setdefault(key, issue)
+        existing = unique.get(key)
+        if existing is None:
+            unique[key] = issue
+            continue
+        existing_evidence = dict.fromkeys(existing.evidence)
+        existing_evidence.update(dict.fromkeys(issue.evidence))
+        unique[key] = RequirementIssue(
+            kind=existing.kind,
+            field=existing.field,
+            description=existing.description,
+            evidence=list(existing_evidence),
+        )
     return list(unique.values())
