@@ -92,14 +92,14 @@
 {\color{Bad}\small\bfseries Сейчас: YAML-сценарий}
 \vspace{3pt}
 {\scriptsize\color{Muted}Загрузка произвольных документов и извлечение требований ещё предстоят.}
+\diagramimage{requirements_document.png}{Пример документа требований}{1.35cm}
 \column{.53\textwidth}
 \sectionlabel{Результаты}
-\diagramimage{requirements_document.png}{Пример входного документа требований}{2.8cm}
-\begin{tikzpicture}[node distance=4pt]
-\node[draw=Line,fill=AccentLight,rounded corners=5pt,inner sep=5pt] (c4) {\scriptsize C4: компоненты и связи};
-\node[draw=Line,fill=AccentLight,rounded corners=5pt,inner sep=5pt,right=4pt of c4] (seq) {\scriptsize Sequence};
-\node[draw=Line,fill=AccentLight,rounded corners=5pt,inner sep=5pt,right=4pt of seq] (api) {\scriptsize OpenAPI + Swagger};
-\end{tikzpicture}
+\begin{itemize}
+\item Диаграмма компонентов C4.
+\item Диаграммы Sequence для функциональных требований.
+\item Спецификация OpenAPI 3.1 и Swagger UI.
+\end{itemize}
 \end{columns}
 \end{frame}
 
@@ -142,7 +142,7 @@
 \sectionlabel{Связи и параметры}
 \begin{itemize}
 \item Связи разрешены не для любых пар типов: используется заданная онтология допустимых соединений.
-\item У связи задаётся протокол взаимодействия.
+\item Протоколы связи: синхронные REST/HTTP, gRPC и TCP к БД; асинхронная очередь сообщений.
 \item У узлов задаются параметры мощности и стоимости: реплики, параллелизм, время обработки, очередь и другие характеристики.
 \item Профиль нагрузки задаёт RPS.
 \end{itemize}
