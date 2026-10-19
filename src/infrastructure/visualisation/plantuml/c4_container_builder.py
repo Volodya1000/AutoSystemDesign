@@ -45,7 +45,7 @@ def _quote(text: str) -> str:
 
 
 def _node_type_facts(node: CapacityNode) -> list[str]:
-    """Collects node-type-specific facts for an element description."""
+    """Collect node-type-specific facts for an element description."""
     match node:
         case DatabaseNode():
             facts: list[str] = [
@@ -68,7 +68,7 @@ def _node_type_facts(node: CapacityNode) -> list[str]:
 
 
 def _describe_node(node: AnyNode) -> str:
-    """Builds a compact description shown under the element label."""
+    """Build a compact description shown under the element label."""
     if not isinstance(node, CapacityNode):
         return "external traffic source"
     facts: list[str] = [
@@ -98,7 +98,7 @@ def _edge_technology(edge: Edge) -> str:
 
 
 def _format_element(spec: C4ElementSpec, alias: str, node: AnyNode) -> str:
-    """Formats a single C4 element call."""
+    """Format a single C4 element call."""
     arguments: list[str] = [alias, _quote(node.identifier)]
     if spec.technology:
         arguments.append(_quote(spec.technology))
@@ -107,7 +107,7 @@ def _format_element(spec: C4ElementSpec, alias: str, node: AnyNode) -> str:
 
 
 def _format_relation(edge: Edge, aliases: AliasRegistry) -> str | None:
-    """Formats a single Rel call; returns None for a dangling endpoint.
+    """Format a single Rel call; returns None for a dangling endpoint.
 
     Graphs that failed structural validation can reference unknown node
     identifiers; such edges are skipped so the diagram still renders.
@@ -126,7 +126,7 @@ def _format_relation(edge: Edge, aliases: AliasRegistry) -> str | None:
 
 
 class C4ContainerDiagramBuilder:
-    """Builds the .puml source of a C4 Container (Level 2) diagram.
+    """Build the .puml source of a C4 Container (Level 2) diagram.
 
     The default include uses the C4 standard library bundled into every
     PlantUML distribution, so the document renders on the public
@@ -152,7 +152,7 @@ class C4ContainerDiagramBuilder:
         self._show_legend: bool = show_legend
 
     def build(self, graph: ArchitectureGraph, title: str | None = None) -> str:
-        """Returns the complete PlantUML document for the graph."""
+        """Return the complete PlantUML document for the graph."""
         aliases: AliasRegistry = AliasRegistry(reserved={_SYSTEM_BOUNDARY_ALIAS})
         external_elements: list[str] = []
         internal_elements: list[str] = []
