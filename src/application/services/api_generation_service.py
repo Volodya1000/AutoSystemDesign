@@ -14,7 +14,6 @@ from application.tasks import (
     DesignTaskMode,
     ValidationErrorFeedback,
 )
-from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from domain.models import DesignScenario
 from domain.models.api import ApiDesign
 from domain.models.sequence import InteractionScenario
