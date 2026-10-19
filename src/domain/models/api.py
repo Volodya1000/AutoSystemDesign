@@ -109,8 +109,7 @@ class ApiResponse(ApiModel):
     schema_ref: str | None = Field(
         default=None,
         description=(
-            "Name of the schema in the central registry "
-            + "(e.g., 'OrderResponse')"
+            "Name of the schema in the central registry " + "(e.g., 'OrderResponse')"
         ),
     )
 
