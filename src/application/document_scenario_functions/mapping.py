@@ -9,6 +9,7 @@ from application.document_scenario_functions.naming import functional_name
 from application.document_scenario_functions.results import MappingOutcome
 from domain.document_requirements import RequirementIssue, RequirementIssueKind
 from domain.models.functional import FunctionalRequirement
+from domain.models.requirements import Requirement as ScenarioRequirement
 from domain.models.requirements import (
     AvailabilityRequirement,
     BudgetRequirement,
@@ -16,7 +17,6 @@ from domain.models.requirements import (
     QueueSizePercentileRequirement,
     ResourceUtilizationRequirement,
 )
-from domain.models.requirements import Requirement as ScenarioRequirement
 from domain.models.scenarios import WorkloadProfile
 from domain.scenario_extraction import (
     EvidenceValue,
