@@ -3,7 +3,12 @@ from pathlib import Path
 import pytest
 
 from application.requirements_extraction import DocumentRequirementsService
-from domain.document_requirements import Requirement, RequirementKind
+from domain.document_requirements import (
+    Requirement,
+    RequirementEvidence,
+    RequirementIssueKind,
+    RequirementKind,
+)
 from domain.extraction_chunk import ExtractionChunk
 from infrastructure.document_readers.markdown_reader import MarkdownReader
 
@@ -17,7 +22,9 @@ class FakeExtractor:
         requirement = Requirement(
             statement="The service must support login.",
             kind=RequirementKind.FUNCTIONAL,
-            source_excerpt="The service must support login.",
+            source_evidence=[
+                RequirementEvidence(source_excerpt="A requirement paragraph.")
+            ],
         )
         return ExtractionChunk(requirements=[requirement], is_relevant=True)
 
@@ -37,20 +44,40 @@ def test_splits_large_documents_and_deduplicates_results(tmp_path: Path) -> None
     assert all(len(chunk) <= 40 for chunk in extractor.inputs)
     assert len(result.requirements) == 1
     assert result.is_relevant
+    assert result.requirements[0].source_evidence == [
+        RequirementEvidence(source_excerpt="A requirement paragraph.")
+    ]
 
 
 @pytest.mark.unit
-def test_reports_missing_required_fields(tmp_path: Path) -> None:
+def test_discards_requirement_without_source_grounded_evidence(tmp_path: Path) -> None:
     path = tmp_path / "spec.md"
-    path.write_text("The service must support login.", encoding="utf-8")
+    path.write_text("The system can process orders.", encoding="utf-8")
 
-    class EmptyExtractor:
+    class HallucinatingExtractor:
         def extract(self, text: str, source_name: str) -> ExtractionChunk:
-            return ExtractionChunk(is_relevant=False)
+            return ExtractionChunk(
+                requirements=[
+                    Requirement(
+                        statement="The system supports biometric login.",
+                        kind=RequirementKind.FUNCTIONAL,
+                        source_evidence=[
+                            RequirementEvidence(
+                                source_excerpt="The system supports biometric login."
+                            )
+                        ],
+                    )
+                ],
+                is_relevant=True,
+            )
 
     result = DocumentRequirementsService(
-        MarkdownReader(), EmptyExtractor(), required_fields=("load_profile",)
+        MarkdownReader(), HallucinatingExtractor()
     ).extract_file(path)
 
-    assert any(issue.field == "load_profile" for issue in result.issues)
-    assert not result.is_relevant
+    assert not result.requirements
+    assert any(
+        issue.kind is RequirementIssueKind.UNSUPPORTED_EVIDENCE
+        for issue in result.issues
+    )
+    assert result.is_relevant
