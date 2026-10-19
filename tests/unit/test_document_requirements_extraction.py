@@ -20,7 +20,7 @@ class FakeExtractor:
     def extract(self, text: str, source_name: str) -> ExtractionChunk:
         self.inputs.append(text)
         requirement = Requirement(
-            statement="The service must support login.",
+            statement="A requirement paragraph.",
             kind=RequirementKind.FUNCTIONAL,
             source_evidence=[
                 RequirementEvidence(source_excerpt="A requirement paragraph.")
