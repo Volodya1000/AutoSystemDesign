@@ -140,7 +140,6 @@ def main() -> int:
             "--disable=all",
             "--enable=duplicate-code",
             "--output-format=text",
-            "--color=never",
             "src",
             "tests",
             "scripts",
