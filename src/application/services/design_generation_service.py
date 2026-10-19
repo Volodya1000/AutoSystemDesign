@@ -56,7 +56,7 @@ def _build_validation_repair_task(
 
 
 class DesignGenerationService:
-    """Runs the design loop: propose, validate, feed errors back for repair.
+    """Run the design loop: propose, validate, feed errors back for repair.
 
     Parsing failures are caught (tokens were spent and must be accounted
     for); infrastructure errors propagate to the caller. Topology
@@ -128,7 +128,7 @@ class DesignGenerationService:
     def _validate(
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> ValidationResult:
-        """Runs every topology and scenario validator, aggregating errors."""
+        """Run every topology and scenario validator, aggregating errors."""
         errors = [
             error
             for validator in self._validators
