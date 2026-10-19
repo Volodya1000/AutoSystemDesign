@@ -18,7 +18,6 @@ from infrastructure.llm.document_requirement_extractor import (
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
-
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line interface for raw requirement extraction."""
     parser = argparse.ArgumentParser(

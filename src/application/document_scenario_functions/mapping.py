@@ -14,7 +14,7 @@ from domain.models.requirements import (
     BudgetRequirement,
     LatencyRequirement,
     QueueSizePercentileRequirement,
-    Requirement as ScenarioRequirement,
+    Requirement,
     ResourceUtilizationRequirement,
 )
 from domain.models.scenarios import WorkloadProfile
@@ -25,7 +25,6 @@ from domain.scenario_extraction import (
     ExtractedWorkload,
     MetricType,
 )
-
 
 _ALL_METRIC_FIELDS: tuple[str, ...] = (
     "threshold_value",
@@ -125,7 +124,7 @@ def build_workload(
 def build_metric_requirements(
     candidates: list[ExtractedMetricRequirement],
     verified_excerpts: list[str],
-) -> MappingOutcome[list[ScenarioRequirement]]:
+) -> MappingOutcome[list[Requirement]]:
     """Build all valid metrics while preserving diagnostics for rejected candidates."""
     output: list[ScenarioRequirement] = []
     issues: list[RequirementIssue] = []
