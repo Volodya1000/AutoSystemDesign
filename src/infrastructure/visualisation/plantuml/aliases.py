@@ -7,7 +7,7 @@ _INVALID_ALIAS_CHARACTERS: Final[re.Pattern[str]] = re.compile(r"[^A-Za-z0-9_]")
 
 
 def _sanitize_alias(identifier: str) -> str:
-    """Turns a node identifier into a PlantUML-safe alias."""
+    """Turn a node identifier into a PlantUML-safe alias."""
     cleaned: str = _INVALID_ALIAS_CHARACTERS.sub("_", identifier)
     if not cleaned or not cleaned[0].isalpha():
         cleaned = f"n{cleaned}"
@@ -26,7 +26,7 @@ class AliasRegistry:
         self._used_aliases: set[str] = set() if reserved is None else set(reserved)
 
     def register(self, identifier: str) -> str:
-        """Returns the alias of an identifier, registering it once."""
+        """Return the alias of an identifier, registering it once."""
         existing: str | None = self._by_identifier.get(identifier)
         if existing is not None:
             return existing
@@ -41,5 +41,5 @@ class AliasRegistry:
         return alias
 
     def find(self, identifier: str) -> str | None:
-        """Returns the alias of a registered identifier, or None."""
+        """Return the alias of a registered identifier, or None."""
         return self._by_identifier.get(identifier)
