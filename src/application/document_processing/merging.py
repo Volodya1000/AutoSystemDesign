@@ -22,18 +22,12 @@ def deduplicate_requirements(
             unique[key] = requirement
             continue
 
-        evidence_by_key: dict[tuple[str, str | None], RequirementEvidence] = {
-            (
-                " ".join(evidence.source_excerpt.split()),
-                evidence.source_location,
-            ): evidence
+        evidence_by_key: dict[str, RequirementEvidence] = {
+            " ".join(evidence.source_excerpt.split()): evidence
             for evidence in existing.source_evidence
         }
         for evidence in requirement.source_evidence:
-            evidence_key = (
-                " ".join(evidence.source_excerpt.split()),
-                evidence.source_location,
-            )
+            evidence_key = " ".join(evidence.source_excerpt.split())
             evidence_by_key.setdefault(evidence_key, evidence)
         unique[key] = Requirement(
             statement=existing.statement,
