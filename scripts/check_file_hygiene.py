@@ -11,7 +11,7 @@ def tracked_files() -> list[Path]:
     """Return paths tracked by Git, including staged additions."""
     git_executable = shutil.which("git")
     if git_executable is None:
-        raise RuntimeError("Git executable is required for repository hygiene checks")
+        raise RuntimeError("Git is required")
 
     result = subprocess.run(
         [git_executable, "ls-files", "-z"],
