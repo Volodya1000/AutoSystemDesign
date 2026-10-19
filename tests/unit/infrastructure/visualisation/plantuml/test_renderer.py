@@ -148,6 +148,22 @@ def test_fallback_renderer_requires_at_least_one_renderer() -> None:
         FallbackImageRenderer([])
 
 
+def test_http_renderer_rejects_non_http_url_before_opening(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unexpected_urlopen(
+        request: urllib.request.Request, timeout: float
+    ) -> FakeResponse:
+        del request, timeout
+        raise AssertionError("urlopen must not be called for an unsafe URL")
+
+    monkeypatch.setattr(renderer_module.urllib.request, "urlopen", unexpected_urlopen)
+    renderer = PlantumlServerImageRenderer(server_url="file://localhost/tmp")
+
+    with pytest.raises(ValueError, match="Invalid diagram URL"):
+        renderer.render("source", DiagramImageFormat.PNG)
+
+
 def test_http_renderer_sets_user_agent_and_returns_response_bytes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
