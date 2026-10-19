@@ -15,17 +15,17 @@ Rules:
   attributes, constraints, capacity, latency, availability, security, or similar
   properties.
 - Every requirement must include a non-empty source_evidence list.
-- Every source_evidence item must contain a short verbatim source_excerpt copied
-  exactly from the supplied document fragment, except whitespace may be normalized.
+- Each source_evidence item contains source_excerpt copied verbatim from the
+  supplied document fragment, except whitespace may be normalized.
 - Do not return a requirement if you cannot cite supporting source text.
-- Use source_location only when a heading or location is explicitly identifiable.
 - Report unclear statements in ambiguity_notes and incompatible statements in
   conflict_notes. Include the conflicting facts; do not resolve them by guessing.
 - If the fragment is unrelated to software requirements, set is_relevant to false
   and return an empty requirements list.
 - Return exactly these top-level keys: requirements, is_relevant, ambiguity_notes,
-  conflict_notes. Each requirement has statement, kind, source_evidence.
-- Each source_evidence item has source_excerpt and optional source_location.
+  conflict_notes. Each requirement has statement, kind, source_evidence. Each source
+  evidence item has exactly one key, source_excerpt.
+- Return all four top-level keys even when their values are empty lists.
 
 Source name: {source_name}
 
