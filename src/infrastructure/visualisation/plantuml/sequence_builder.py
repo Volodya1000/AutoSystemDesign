@@ -33,8 +33,10 @@ class SequenceDiagramBuilder:
     ) -> str:
         scenario, node_type_by_id = self._unpack(subject)
         lines = ["@startuml", f"title {title or scenario.description}"]
-        for lifeline in scenario.lifelines:
-            lines.append(self._format_participant(lifeline, node_type_by_id))
+        lines.extend(
+            self._format_participant(lifeline, node_type_by_id)
+            for lifeline in scenario.lifelines
+        )
         lines.append("")
         lines.extend(self._build_steps(scenario.steps, 0))
         lines.append("@enduml")
