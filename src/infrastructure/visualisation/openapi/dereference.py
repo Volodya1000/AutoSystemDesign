@@ -107,7 +107,7 @@ def _dereference(node: Any, active: tuple[str, ...], root: Any) -> Any:
                 stub = _unresolved_stub(ref)
                 stub.update(siblings)
                 return stub
-            expanded: Any = _dereference(target, active + (pointer,), root)
+            expanded: Any = _dereference(target, (*active, pointer), root)
             if isinstance(expanded, dict):
                 # OpenAPI 3.1 allows $ref siblings; siblings win.
                 expanded.update(siblings)

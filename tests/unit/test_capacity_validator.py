@@ -2,7 +2,7 @@
 
 Numeric cases are computed by hand and documented in each test so the
 saturation threshold (98%), the max_rps formula
-(replicas × concurrency × 1000 / mean_ms) and the fan-out flow split stay
+(replicas x concurrency x 1000 / mean_ms) and the fan-out flow split stay
 honest. No LLM, no I/O: pure domain logic.
 """
 
@@ -65,7 +65,7 @@ class TestSaturationThresholdConstant:
 
 class TestBelowThreshold:
     def test_low_utilization_yields_no_errors(self) -> None:
-        """Manual: max_rps = 1 × 100 × 1000 / 10 = 10_000.
+        """Manual: max_rps = 1 x 100 x 1000 / 10 = 10_000.
         peak = 1_000 → util = 0.10 = 10%. Well under 98% → no error.
         """
         graph = _chain_graph(
@@ -158,7 +158,7 @@ class TestAboveThreshold:
 
 class TestReplicasMultiplyCapacity:
     def test_two_replicas_double_max_rps(self) -> None:
-        """Manual: replicas = 2 → max_rps = 2 × 100 × 1000 / 10 = 20_000.
+        """Manual: replicas = 2 → max_rps = 2 x 100 x 1000 / 10 = 20_000.
         peak = 15_000 → util = 0.75 → no error.
 
         A single replica would have produced util = 1.5 (an error). This
