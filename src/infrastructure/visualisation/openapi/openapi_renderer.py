@@ -37,13 +37,12 @@ class OpenApiRenderer:
 
             # Request Body
             if op.request_body:
+                schema_ref = op.request_body.schema_ref
                 op_spec["requestBody"] = {
                     "required": op.request_body.required,
                     "content": {
                         op.request_body.content_type: {
-                            "schema": {
-                                "$ref": f"#/components/schemas/{op.request_body.schema_ref}"
-                            }
+                            "schema": {"$ref": f"#/components/schemas/{schema_ref}"}
                         }
                     },
                 }

@@ -1,4 +1,4 @@
-"""Application service orchestrating the propose -> validate -> repair loop for API design."""
+"""Application service for the API design propose -> validate -> repair loop."""
 
 from __future__ import annotations
 

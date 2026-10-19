@@ -7,7 +7,7 @@ pytestmark = pytest.mark.unit
 
 
 def test_legacy_yaml_without_functional_requirements_parses_correctly() -> None:
-    """Regression test: Ensures old C4 scenarios still parse after adding Sequence features."""
+    """Keep legacy C4 scenarios valid after adding sequence features."""
     yaml_text = """
     identifier: legacy_project
     description: Just a plain C4 project

@@ -77,7 +77,9 @@ class SequenceStage:
                 duration_seconds=time.perf_counter() - stage_start,
                 total_tokens=0,
                 payload={},
-                message="No functional requirements provided; skipping sequence generation.",
+                message=(
+                    "No functional requirements provided; skipping sequence generation."
+                ),
             )
 
         upstream_name: str = self.depends_on[0]

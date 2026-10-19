@@ -61,7 +61,7 @@ def check_connection_rules(
     graph: ArchitectureGraph,
     allowed_connection_types: frozenset[ConnectionType],
 ) -> list[ArchitectureValidationError]:
-    """Validates that edge transitions strictly match the allowed architectural whitelist."""
+    """Validate edge transitions against the architectural whitelist."""
     errors: list[ArchitectureValidationError] = []
     node_lookup: dict[str, BaseNode] = {node.identifier: node for node in graph.nodes}
 
@@ -93,7 +93,7 @@ def check_connection_rules(
 def check_isolated_nodes(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Detects nodes with neither incoming nor outgoing connections in multi-node topologies."""
+    """Find isolated nodes in multi-node topologies."""
     if len(graph.nodes) <= 1:
         return []
 
@@ -112,7 +112,7 @@ def check_isolated_nodes(
 def check_acyclicity(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Ensures the graph is a Directed Acyclic Graph (DAG) with no cyclic dependencies."""
+    """Check that the graph is acyclic."""
     node_identifiers: list[str] = [node.identifier for node in graph.nodes]
     adjacency_list: dict[str, list[str]] = {
         identifier: [] for identifier in node_identifiers

@@ -28,7 +28,8 @@ OUTPUT_HARD_RULES: Final[str] = (
     "2. Every node participates in at least one edge: isolated nodes are forbidden.\n"
     "3. The topology is a strict DAG: cycles are forbidden.\n"
     "4. Every edge matches one of the allowed source -> target transitions.\n"
-    '5. Every node except "client" must provide all capacity fields with valid values.\n'
+    '5. Every node except "client" must provide all capacity fields '
+    "with valid values.\n"
     '6. Include a "client" node as the entry point of user traffic.\n'
     "7. Do not add fields that are not defined in the output format above.\n"
     "8. Every message_broker node is a routing bridge with DISTINCT ends:\n"
@@ -65,14 +66,29 @@ OUTPUT_HARD_RULES: Final[str] = (
 FEW_SHOT_GRAPH_JSON: Final[str] = """{
   "nodes": [
     {"identifier": "web_client", "node_type": "client"},
-    {"identifier": "edge_lb", "node_type": "load_balancer", "maximum_concurrency": 1000, "maximum_queue_size": 1000, "mean_processing_time_milliseconds": 1.0, "standard_deviation_processing_time": 0.5, "monthly_cost_usd": 20.0},
-    {"identifier": "orders_api", "node_type": "compute", "maximum_concurrency": 200, "maximum_queue_size": 500, "mean_processing_time_milliseconds": 15.0, "standard_deviation_processing_time": 3.0, "monthly_cost_usd": 80.0},
-    {"identifier": "orders_db", "node_type": "database", "maximum_concurrency": 150, "maximum_queue_size": 1000, "mean_processing_time_milliseconds": 8.0, "standard_deviation_processing_time": 2.0, "monthly_cost_usd": 120.0}
+    {"identifier": "edge_lb", "node_type": "load_balancer",
+     "maximum_concurrency": 1000, "maximum_queue_size": 1000,
+     "mean_processing_time_milliseconds": 1.0,
+     "standard_deviation_processing_time": 0.5, "monthly_cost_usd": 20.0},
+    {"identifier": "orders_api", "node_type": "compute",
+     "maximum_concurrency": 200, "maximum_queue_size": 500,
+     "mean_processing_time_milliseconds": 15.0,
+     "standard_deviation_processing_time": 3.0, "monthly_cost_usd": 80.0},
+    {"identifier": "orders_db", "node_type": "database",
+     "maximum_concurrency": 150, "maximum_queue_size": 1000,
+     "mean_processing_time_milliseconds": 8.0,
+     "standard_deviation_processing_time": 2.0, "monthly_cost_usd": 120.0}
   ],
   "edges": [
-    {"source_identifier": "web_client", "target_identifier": "edge_lb", "protocol": {"name": "sync_rest_http", "is_asynchronous": false}, "network_latency_milliseconds": 5.0},
-    {"source_identifier": "edge_lb", "target_identifier": "orders_api", "protocol": {"name": "sync_grpc", "is_asynchronous": false}, "network_latency_milliseconds": 2.0},
-    {"source_identifier": "orders_api", "target_identifier": "orders_db", "protocol": {"name": "sync_database_tcp", "is_asynchronous": false}, "network_latency_milliseconds": 1.0}
+    {"source_identifier": "web_client", "target_identifier": "edge_lb",
+     "protocol": {"name": "sync_rest_http", "is_asynchronous": false},
+     "network_latency_milliseconds": 5.0},
+    {"source_identifier": "edge_lb", "target_identifier": "orders_api",
+     "protocol": {"name": "sync_grpc", "is_asynchronous": false},
+     "network_latency_milliseconds": 2.0},
+    {"source_identifier": "orders_api", "target_identifier": "orders_db",
+     "protocol": {"name": "sync_database_tcp", "is_asynchronous": false},
+     "network_latency_milliseconds": 1.0}
   ]
 }"""
 
