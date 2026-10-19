@@ -21,7 +21,7 @@ _SIX_BIT_MASK: Final[int] = 0b111111
 
 
 def encode_plantuml_text(text: str) -> str:
-    """Encodes diagram source into the PlantUML server URL token.
+    """Encode diagram source into the PlantUML server URL token.
 
     The zlib container is stripped of its 2-byte header and 4-byte
     Adler-32 checksum: the server expects a raw DEFLATE stream.
@@ -31,7 +31,7 @@ def encode_plantuml_text(text: str) -> str:
 
 
 def encode_kroki_text(text: str) -> str:
-    """Encodes diagram source into the Kroki server URL token."""
+    """Encode diagram source into the Kroki server URL token."""
     compressed: bytes = zlib.compress(text.encode("utf-8"), 9)
     return base64.urlsafe_b64encode(compressed).decode("ascii")
 
@@ -41,7 +41,7 @@ def build_plantuml_url(
     source: str,
     image_format: DiagramImageFormat,
 ) -> str:
-    """Returns the GET URL that renders `source` on a PlantUML server."""
+    """Return the GET URL that renders `source` on a PlantUML server."""
     server: str = server_url.rstrip("/")
     return f"{server}/{image_format.value}/{encode_plantuml_text(source)}"
 
@@ -52,7 +52,7 @@ def build_kroki_url(
     image_format: DiagramImageFormat,
     diagram_type: str = "plantuml",
 ) -> str:
-    """Returns the GET URL that renders `source` on a Kroki gateway."""
+    """Return the GET URL that renders `source` on a Kroki gateway."""
     server: str = server_url.rstrip("/")
     token: str = encode_kroki_text(source)
     return f"{server}/{diagram_type}/{image_format.value}/{token}"
