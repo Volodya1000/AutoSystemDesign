@@ -51,7 +51,7 @@ def _component(lifeline_id: str, node_id: str, display: str) -> ComponentLifelin
 
 
 def _scenario(lifelines: list) -> InteractionScenario:
-    """Builds a scenario in which every lifeline participates in a message.
+    """Build a scenario in which every lifeline participates in a message.
 
     Chained messages ensure no lifeline is left unused, satisfying the
     model-level invariant in ``InteractionScenario.validate_scenario_integrity``.
