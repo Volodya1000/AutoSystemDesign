@@ -1,6 +1,9 @@
 """M1 capability gate: single-shot structured output over a real LLM."""
 
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -8,13 +11,15 @@ from application.exceptions.generation_exceptions import DesignProposalParsingEr
 from application.tasks import DesignProposal, DesignTask, DesignTaskMode
 from config.llm import StructuredOutputMode
 from config.root import AppSettings, with_llm_updates
-from config.testing import IntegrationSettings
-from domain.models import DesignScenario
-from domain.specifications.interfaces import ValidationResult
 from domain.specifications.structural_validator import StructuralTopologyValidator
 from infrastructure.agents.designer import ArchitectureDesignerAgent
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
 from infrastructure.llm.client import LiteLlmClient
+
+if TYPE_CHECKING:
+    from config.testing import IntegrationSettings
+    from domain.models import DesignScenario
+    from domain.specifications.interfaces import ValidationResult
 
 pytestmark = pytest.mark.integration
 

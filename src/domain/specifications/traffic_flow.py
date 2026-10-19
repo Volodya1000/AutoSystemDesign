@@ -8,11 +8,18 @@ validators, and by the metrics aggregator.
 from __future__ import annotations
 
 from collections import deque
+from typing import TYPE_CHECKING
 
-from domain.models.edges import Edge
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
 from domain.models.nodes import CacheNode, ClientNode
-from domain.models.scenarios import WorkloadProfile
-from domain.models.topology import ArchitectureGraph
+
+if TYPE_CHECKING:
+    from domain.models.edges import Edge
+    from domain.models.scenarios import WorkloadProfile
+    from domain.models.topology import ArchitectureGraph
 
 
 def _propagate_flows(
@@ -79,7 +86,7 @@ def _topological_order(graph: ArchitectureGraph) -> list[str]:
                 queue.append(target)
 
     if len(order) != len(node_ids):
-        raise ValueError("Graph contains a cycle; topology must be a DAG")
+        raise ModelValidationError(ModelValidationCode.TOPOLOGY_CYCLE)
     return order
 
 

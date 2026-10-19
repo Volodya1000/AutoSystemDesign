@@ -2,6 +2,7 @@
 
 from collections.abc import Sequence
 
+from application.exceptions.configuration_errors import GenerationConfigurationError
 from application.exceptions.generation_exceptions import DesignProposalParsingError
 from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from application.protocols import ArchitectureDesigner
@@ -69,13 +70,12 @@ class DesignGenerationService:
         scenario_validators: Sequence[ScenarioValidator] = (),
     ) -> None:
         if not MIN_ATTEMPTS <= max_attempts <= MAX_ATTEMPTS:
-            raise ValueError(
-                f"max_attempts must be between {MIN_ATTEMPTS} and {MAX_ATTEMPTS}, "
-                f"got {max_attempts}"
+            raise GenerationConfigurationError.attempts_out_of_range(
+                MIN_ATTEMPTS, MAX_ATTEMPTS, max_attempts
             )
         self._validators: tuple[BaseValidator, ...] = tuple(validators)
         if not self._validators:
-            raise ValueError("At least one validator is required")
+            raise GenerationConfigurationError.required_validators_missing("design")
         self._scenario_validators: tuple[ScenarioValidator, ...] = tuple(
             scenario_validators
         )

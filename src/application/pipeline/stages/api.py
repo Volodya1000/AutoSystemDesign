@@ -4,18 +4,22 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Mapping
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
-from application.pipeline.ports import ApiArtifactRenderer, GenerationReporter
-from application.pipeline.services import ApiGenerator
 from application.results import ApiGenerationResult, GenerationStatus
-from domain.models.api import ApiDesign
-from domain.models.scenarios import DesignScenario
-from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from pathlib import Path
+
+    from application.pipeline.ports import ApiArtifactRenderer, GenerationReporter
+    from application.pipeline.services import ApiGenerator
+    from domain.models.api import ApiDesign
+    from domain.models.scenarios import DesignScenario
+    from domain.models.sequence import InteractionScenario
 
 _logger: logging.Logger = logging.getLogger("pipeline.api")
 

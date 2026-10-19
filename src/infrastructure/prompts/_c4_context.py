@@ -8,7 +8,10 @@ prose differs, so the caller passes a heading and an optional footer.
 
 from __future__ import annotations
 
-from domain.models.topology import ArchitectureGraph
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from domain.models.topology import ArchitectureGraph
 
 
 def render_c4_components(

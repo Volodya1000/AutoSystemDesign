@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from application.pipeline.context import StageContext
-from application.pipeline.outcome import StageOutcome
+if TYPE_CHECKING:
+    from application.pipeline.context import StageContext
+    from application.pipeline.outcome import StageOutcome
 
 
 class PipelineStage(Protocol):

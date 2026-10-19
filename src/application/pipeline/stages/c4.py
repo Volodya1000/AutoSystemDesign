@@ -4,19 +4,20 @@ from __future__ import annotations
 
 import logging
 import time
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.ports import DiagramRenderer, GenerationReporter
-from application.pipeline.services import DesignGenerator
 from application.results import GenerationStatus
-from domain.models.scenarios import DesignScenario
-from domain.models.topology import ArchitectureGraph
-from domain.specifications.metrics import (
-    compute_project_metrics,
-    format_metrics_title,
-)
+from domain.specifications.metrics import compute_project_metrics, format_metrics_title
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from application.pipeline.context import StageContext
+    from application.pipeline.ports import DiagramRenderer, GenerationReporter
+    from application.pipeline.services import DesignGenerator
+    from domain.models.scenarios import DesignScenario
+    from domain.models.topology import ArchitectureGraph
 
 _logger = logging.getLogger("pipeline.c4")
 

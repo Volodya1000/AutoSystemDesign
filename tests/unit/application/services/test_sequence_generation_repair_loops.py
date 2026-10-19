@@ -1,11 +1,12 @@
 """Unit tests for sequence generation repair loops and partial results."""
 
-from collections.abc import Sequence
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import pytest
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
-from application.results import SequenceGenerationResult
 from application.services.sequence_generation_service import SequenceGenerationService
 from application.tasks import (
     JSON_DECODE_ERROR_TYPE,
@@ -21,11 +22,7 @@ from domain.models.ast_steps import MessageStep
 from domain.models.functional import FunctionalRequirement
 from domain.models.roles import BusinessRole, ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
-from domain.models.sequence import (
-    ComponentLifeline,
-    InteractionScenario,
-    UserLifeline,
-)
+from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 from domain.specifications.sequence_validator import (
@@ -34,7 +31,26 @@ from domain.specifications.sequence_validator import (
     SequenceScenarioValidator,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from application.results import SequenceGenerationResult
+
 pytestmark = pytest.mark.unit
+
+
+class UnexpectedExtraRolesProposalError(AssertionError):
+    """The service requested an unscripted roles proposal."""
+
+    def __init__(self) -> None:
+        super().__init__("Unexpected extra propose_roles call")
+
+
+class UnexpectedExtraInteractionProposalError(AssertionError):
+    """The service requested an unscripted interaction proposal."""
+
+    def __init__(self) -> None:
+        super().__init__("Unexpected extra propose_interaction call")
 
 
 def _requirement(identifier: str = "FR-1") -> FunctionalRequirement:
@@ -177,7 +193,7 @@ class FakeSequenceDesigner:
     def propose_roles(self, task: SequenceRoleTask) -> SequenceRoleProposal:
         self.role_tasks.append(task)
         if not self._role_script:
-            raise AssertionError("Unexpected extra propose_roles call")
+            raise UnexpectedExtraRolesProposalError
         item = self._role_script.pop(0)
         if isinstance(item, DesignProposalParsingError):
             raise item
@@ -189,7 +205,7 @@ class FakeSequenceDesigner:
         self.interaction_tasks.append(task)
         script = self._interaction_scripts[task.requirement.identifier]
         if not script:
-            raise AssertionError("Unexpected extra propose_interaction call")
+            raise UnexpectedExtraInteractionProposalError
         item = script.pop(0)
         if isinstance(item, DesignProposalParsingError):
             raise item

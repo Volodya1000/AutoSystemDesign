@@ -9,15 +9,9 @@ diagram renderer itself is diagram-type agnostic.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from application.pipeline.diagram_subjects import SequenceDiagramSubject
-from application.pipeline.ports import (
-    ArtifactWriter,
-    DiagramRenderer,
-    GenerationReporter,
-)
 from application.pipeline.runner import PipelineRunner
-from application.pipeline.stage import PipelineStage
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.sequence import SequenceStage
@@ -25,7 +19,6 @@ from application.services.api_generation_service import ApiGenerationService
 from application.services.design_generation_service import DesignGenerationService
 from application.services.sequence_generation_service import SequenceGenerationService
 from config.root import AppSettings, load_app_settings
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
 from domain.specifications.broker_consumer_validator import (
     MessageBrokerConsumerValidator,
@@ -33,7 +26,6 @@ from domain.specifications.broker_consumer_validator import (
 from domain.specifications.budget_validator import BudgetRequirementValidator
 from domain.specifications.cache_usage_validator import CacheUsageValidator
 from domain.specifications.capacity_validator import CapacitySaturationValidator
-from domain.specifications.interfaces import BaseValidator, ScenarioValidator
 from domain.specifications.latency_validator import LatencySloValidator
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
 from domain.specifications.sequence_validator import (
@@ -47,20 +39,28 @@ from infrastructure.agents.designer import ArchitectureDesignerAgent
 from infrastructure.agents.sequence_designer import SequenceDesignerAgent
 from infrastructure.llm.client import LiteLlmClient
 from infrastructure.persistence.artifact_writer import FileSystemArtifactWriter
-from infrastructure.reporting import (
-    LoggingGenerationReporter,
-    LoggingPipelineReporter,
-)
+from infrastructure.reporting import LoggingGenerationReporter, LoggingPipelineReporter
 from infrastructure.visualisation.openapi.renderers import DefaultApiArtifactRenderer
-from infrastructure.visualisation.plantuml import DiagramImageFormat
 from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4ContainerDiagramBuilder,
 )
-from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 from infrastructure.visualisation.plantuml.renderers import PlantUmlDiagramRenderer
 from infrastructure.visualisation.plantuml.sequence_builder import (
     SequenceDiagramBuilder,
 )
+
+if TYPE_CHECKING:
+    from application.pipeline.diagram_subjects import SequenceDiagramSubject
+    from application.pipeline.ports import (
+        ArtifactWriter,
+        DiagramRenderer,
+        GenerationReporter,
+    )
+    from application.pipeline.stage import PipelineStage
+    from domain.models.topology import ArchitectureGraph
+    from domain.specifications.interfaces import BaseValidator, ScenarioValidator
+    from infrastructure.visualisation.plantuml import DiagramImageFormat
+    from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 
 
 def build_design_generation_service(

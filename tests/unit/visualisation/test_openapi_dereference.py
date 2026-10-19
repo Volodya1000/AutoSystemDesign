@@ -11,15 +11,13 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import TYPE_CHECKING
 
-import pytest
+from infrastructure.visualisation.openapi.dereference import dereference_internal_refs
+from infrastructure.visualisation.openapi.swagger_ui_renderer import SwaggerUiRenderer
 
-from infrastructure.visualisation.openapi.dereference import (
-    dereference_internal_refs,
-)
-from infrastructure.visualisation.openapi.swagger_ui_renderer import (
-    SwaggerUiRenderer,
-)
+if TYPE_CHECKING:
+    import pytest
 
 
 def _chat_spec() -> dict:

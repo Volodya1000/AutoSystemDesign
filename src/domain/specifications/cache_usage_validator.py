@@ -24,15 +24,19 @@ irrelevant to this rule -- cycle detection belongs to
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
     CacheMissPathMissingError,
     CacheWriteOnlySinkError,
 )
-from domain.models.edges import Edge
 from domain.models.nodes import CacheNode
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import BaseValidator, ValidationResult
+
+if TYPE_CHECKING:
+    from domain.models.edges import Edge
+    from domain.models.topology import ArchitectureGraph
 
 
 def check_cache_usage(

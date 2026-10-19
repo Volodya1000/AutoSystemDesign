@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from dataclasses import dataclass
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.ports import ArtifactWriter
-from domain.models import DesignScenario
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from pathlib import Path
+
+    from application.pipeline.ports import ArtifactWriter
+    from domain.models import DesignScenario
 
 
 @dataclass(frozen=True)
@@ -21,6 +25,23 @@ class StageContext:
 
 class PipelineDependencyError(RuntimeError):
     """Raised when a stage's declared dependency is missing or ill-typed."""
+
+    @classmethod
+    def missing_upstream_stage(cls, stage_name: str) -> PipelineDependencyError:
+        return cls(f"Missing upstream stage '{stage_name}'")
+
+    @classmethod
+    def failed_upstream_stage(cls, stage_name: str) -> PipelineDependencyError:
+        return cls(f"Upstream stage '{stage_name}' failed; cannot consume its payload")
+
+    @classmethod
+    def unexpected_payload_type(
+        cls, stage_name: str, actual_type: str, expected_type: str
+    ) -> PipelineDependencyError:
+        return cls(
+            f"Upstream stage '{stage_name}' payload is {actual_type}, "
+            f"expected {expected_type}"
+        )
 
 
 def require_payload[PayloadT](
@@ -35,15 +56,12 @@ def require_payload[PayloadT](
     """
     outcome = context.upstream.get(stage_name)
     if outcome is None:
-        raise PipelineDependencyError(f"Missing upstream stage '{stage_name}'")
+        raise PipelineDependencyError.missing_upstream_stage(stage_name)
     if outcome.status is StageStatus.FAILED:
-        raise PipelineDependencyError(
-            f"Upstream stage '{stage_name}' failed; cannot consume its payload"
-        )
+        raise PipelineDependencyError.failed_upstream_stage(stage_name)
     payload = outcome.payload
     if not isinstance(payload, expected_type):
-        raise PipelineDependencyError(
-            f"Upstream stage '{stage_name}' payload is "
-            f"{type(payload).__name__}, expected {expected_type.__name__}"
+        raise PipelineDependencyError.unexpected_payload_type(
+            stage_name, type(payload).__name__, expected_type.__name__
         )
     return payload

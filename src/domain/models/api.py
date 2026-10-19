@@ -8,6 +8,11 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
+
 
 class ApiModel(BaseModel):
     """Base model enforcing strictness and dual name/alias population across API entities."""
@@ -61,17 +66,18 @@ class ApiParameter(ApiModel):
     @model_validator(mode="after")
     def _validate_types(self) -> Self:
         if self.data_type == DataType.ARRAY and self.item_type is None:
-            raise ValueError(
-                f"Parameter '{self.name}' has data_type='array' but 'item_type' is not defined."
+            raise ModelValidationError(
+                ModelValidationCode.API_ARRAY_REQUIRES_ITEM_TYPE, name=self.name
             )
         if self.data_type != DataType.ARRAY and self.item_type is not None:
-            raise ValueError(
-                f"Parameter '{self.name}' must not define 'item_type' when "
-                f"data_type is '{self.data_type.value}'."
+            raise ModelValidationError(
+                ModelValidationCode.API_NON_ARRAY_FORBIDS_ITEM_TYPE,
+                name=self.name,
+                data_type=self.data_type.value,
             )
         if self.in_location == ParameterLocation.PATH and not self.required:
-            raise ValueError(
-                f"Path parameter '{self.name}' must always have required=True."
+            raise ModelValidationError(
+                ModelValidationCode.API_PATH_PARAMETER_REQUIRED, name=self.name
             )
         return self
 
@@ -102,8 +108,9 @@ class ApiResponse(ApiModel):
     def _validate_status_code(self) -> Self:
         code = self.status_code.lower()
         if code != "default" and not _STATUS_CODE_PATTERN.match(code):
-            raise ValueError(
-                f"Invalid HTTP status code '{self.status_code}'. Must be 3-digit code or 'default'."
+            raise ModelValidationError(
+                ModelValidationCode.API_INVALID_STATUS_CODE,
+                status_code=self.status_code,
             )
         return self
 
@@ -143,9 +150,10 @@ class ApiOperation(ApiModel):
         seen = set()
         for resp in self.responses:
             if resp.status_code in seen:
-                raise ValueError(
-                    f"Duplicate response status code '{resp.status_code}' in "
-                    f"operation '{self.operation_id}'."
+                raise ModelValidationError(
+                    ModelValidationCode.API_DUPLICATE_RESPONSE_STATUS_CODE,
+                    status_code=resp.status_code,
+                    operation_id=self.operation_id,
                 )
             seen.add(resp.status_code)
         return self

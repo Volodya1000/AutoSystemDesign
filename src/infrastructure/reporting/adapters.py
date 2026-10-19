@@ -8,12 +8,16 @@ module. It delegates formatting to ``helpers`` so the adapters stay thin.
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.results import GenerationAttempt
-from application.usage import TokenUsage
 from infrastructure.reporting.helpers import log_attempts, log_token_totals
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from application.results import GenerationAttempt
+    from application.usage import TokenUsage
 
 _logger = logging.getLogger("pipeline.report")
 

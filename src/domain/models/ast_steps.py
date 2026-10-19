@@ -4,6 +4,11 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
+
 
 class MessageStep(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -67,21 +72,17 @@ class AltStep(BaseModel):
             if branch.condition is None:
                 else_count += 1
                 if i != len(self.branches) - 1:
-                    raise ValueError(
-                        "The default branch (else / condition=None) "
-                        "must be the last one in an alt block."
+                    raise ModelValidationError(
+                        ModelValidationCode.ALT_ELSE_BRANCH_MUST_BE_LAST
                     )
             else:
                 if not branch.condition.strip():
-                    raise ValueError(
-                        "A conditional branch cannot have an empty "
-                        "condition or consist only of spaces."
+                    raise ModelValidationError(
+                        ModelValidationCode.ALT_CONDITION_MUST_NOT_BE_EMPTY
                     )
 
         if else_count > 1:
-            raise ValueError(
-                "An 'alt' block can contain only one default (else) branch."
-            )
+            raise ModelValidationError(ModelValidationCode.ALT_SINGLE_ELSE_BRANCH)
 
         return self
 

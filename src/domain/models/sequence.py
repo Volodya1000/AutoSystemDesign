@@ -4,6 +4,10 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
 from domain.models.ast_steps import (
     AltStep,
     LoopStep,
@@ -62,9 +66,11 @@ def _validated_lifeline_ids(lifelines: list[ScenarioLifeline]) -> set[str]:
     for lifeline in lifelines:
         lifeline_id: str = lifeline.lifeline_id
         if not lifeline_id.strip():
-            raise ValueError("Lifeline identifier (lifeline_id) cannot be empty.")
+            raise ModelValidationError(ModelValidationCode.EMPTY_LIFELINE_ID)
         if lifeline_id in lifeline_ids:
-            raise ValueError(f"Duplicate lifeline identifier: '{lifeline_id}'")
+            raise ModelValidationError(
+                ModelValidationCode.DUPLICATE_LIFELINE_ID, lifeline_id=lifeline_id
+            )
         lifeline_ids.add(lifeline_id)
     return lifeline_ids
 
@@ -72,9 +78,13 @@ def _validated_lifeline_ids(lifelines: list[ScenarioLifeline]) -> set[str]:
 def _validate_message_endpoints(step: MessageStep, lifeline_ids: set[str]) -> None:
     """Raise when a message references a lifeline that is not declared."""
     if step.from_lifeline not in lifeline_ids:
-        raise ValueError(f"Unknown message sender: '{step.from_lifeline}'")
+        raise ModelValidationError(
+            ModelValidationCode.UNKNOWN_MESSAGE_SENDER, lifeline_id=step.from_lifeline
+        )
     if step.to_lifeline not in lifeline_ids:
-        raise ValueError(f"Unknown message recipient: '{step.to_lifeline}'")
+        raise ModelValidationError(
+            ModelValidationCode.UNKNOWN_MESSAGE_RECIPIENT, lifeline_id=step.to_lifeline
+        )
 
 
 def _collect_used_lifeline_ids(
@@ -122,9 +132,7 @@ class InteractionScenario(BaseModel):
         )
         unused = sorted(lifeline_ids - used_lifeline_ids)
         if unused:
-            raise ValueError(
-                f"Declared lifelines never participate in any message: {unused}. "
-                "Every lifeline must appear in at least one message step; "
-                "remove unused lifelines from the 'lifelines' array."
+            raise ModelValidationError(
+                ModelValidationCode.UNUSED_LIFELINES, unused=unused
             )
         return self

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
+from application.exceptions.configuration_errors import GenerationConfigurationError
 from application.exceptions.generation_exceptions import DesignProposalParsingError
 from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
-from application.protocols import ApiDesigner, ApiDesignValidatorPort
 from application.results import ApiGenerationResult, GenerationAttempt
 from application.tasks import (
     ApiDesignProposal,
@@ -15,11 +15,16 @@ from application.tasks import (
     DesignTaskMode,
     ValidationErrorFeedback,
 )
-from domain.models import DesignScenario
 from domain.models.api import ApiDesign
-from domain.models.sequence import InteractionScenario
-from domain.models.topology import ArchitectureGraph
-from domain.specifications.interfaces import ValidationResult
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from application.protocols import ApiDesigner, ApiDesignValidatorPort
+    from domain.models import DesignScenario
+    from domain.models.sequence import InteractionScenario
+    from domain.models.topology import ArchitectureGraph
+    from domain.specifications.interfaces import ValidationResult
 
 
 class ApiGenerationService:
@@ -30,9 +35,8 @@ class ApiGenerationService:
         max_attempts: int,
     ) -> None:
         if not MIN_ATTEMPTS <= max_attempts <= MAX_ATTEMPTS:
-            raise ValueError(
-                f"max_attempts must be between {MIN_ATTEMPTS} and "
-                f"{MAX_ATTEMPTS}, got {max_attempts}"
+            raise GenerationConfigurationError.attempts_out_of_range(
+                MIN_ATTEMPTS, MAX_ATTEMPTS, max_attempts
             )
         self._designer: ApiDesigner = designer
         self._validator: ApiDesignValidatorPort = validator

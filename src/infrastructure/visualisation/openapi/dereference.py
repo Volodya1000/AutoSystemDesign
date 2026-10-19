@@ -17,6 +17,13 @@ _logger: logging.Logger = logging.getLogger(__name__)
 _MISSING: Any = object()
 
 
+class InvalidDereferenceRootError(TypeError):
+    """Raised when dereferencing does not produce a mapping root."""
+
+    def __init__(self) -> None:
+        super().__init__("dereference_internal_refs requires a dict root")
+
+
 def _split_pointer(pointer: str) -> list[str]:
     """Splits a JSON Pointer into decoded segments, per RFC 6901.
 
@@ -144,5 +151,5 @@ def dereference_internal_refs(spec: dict) -> dict:
     """
     result: Any = _dereference(spec, (), spec)
     if not isinstance(result, dict):
-        raise TypeError("dereference_internal_refs requires a dict root")
+        raise InvalidDereferenceRootError
     return result

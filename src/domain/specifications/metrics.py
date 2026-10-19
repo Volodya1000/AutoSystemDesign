@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from domain.models.nodes import CapacityNode
 from domain.models.requirements import BudgetRequirement, LatencyRequirement
-from domain.models.scenarios import DesignScenario
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.capacity_validator import compute_node_utilization
 from domain.specifications.latency_validator import compute_critical_path
+
+if TYPE_CHECKING:
+    from domain.models.scenarios import DesignScenario
+    from domain.models.topology import ArchitectureGraph
 
 
 @dataclass(frozen=True)

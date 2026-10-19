@@ -12,6 +12,9 @@ _UNSAFE_FILENAME_CHARACTERS: Final[re.Pattern[str]] = re.compile(r"[^A-Za-z0-9._
 class DiagramSavingError(Exception):
     """Raised when diagram artifacts cannot be written to disk."""
 
+    def __init__(self, output_dir: Path, cause: OSError) -> None:
+        super().__init__(f"Cannot write diagram files to {output_dir}: {cause}")
+
 
 class DiagramFileWriter:
     """Writes diagram artifacts as a .puml file plus the rendered image.
@@ -43,8 +46,6 @@ class DiagramFileWriter:
                 )
                 image_path.write_bytes(artifacts.image_bytes)
                 written.append(image_path)
-            return written
         except OSError as error:
-            raise DiagramSavingError(
-                f"Cannot write diagram files to {output_dir}: {error}"
-            ) from error
+            raise DiagramSavingError(output_dir, error) from error
+        return written

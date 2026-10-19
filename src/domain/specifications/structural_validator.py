@@ -1,10 +1,9 @@
-from domain.exceptions.architecture_errors import ArchitectureValidationError
-from domain.models.topology import ArchitectureGraph
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from domain.specifications.interfaces import BaseValidator, ValidationResult
-from domain.specifications.rules import (
-    DEFAULT_ALLOWED_CONNECTION_TYPES,
-    ConnectionType,
-)
+from domain.specifications.rules import DEFAULT_ALLOWED_CONNECTION_TYPES, ConnectionType
 from domain.specifications.structural_rules import (
     check_acyclicity,
     check_connection_rules,
@@ -12,6 +11,10 @@ from domain.specifications.structural_rules import (
     check_isolated_nodes,
     check_node_identifiers_uniqueness,
 )
+
+if TYPE_CHECKING:
+    from domain.exceptions.architecture_errors import ArchitectureValidationError
+    from domain.models.topology import ArchitectureGraph
 
 
 class StructuralTopologyValidator(BaseValidator):

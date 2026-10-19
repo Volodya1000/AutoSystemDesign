@@ -1,8 +1,8 @@
-"""Fail only on duplicate-code findings involving changed Python files.
+"""Fail when a changed Python file introduces a new duplicate-code pair.
 
-The repository already contains legacy similarity findings. Keep the Pylint
-rule enabled, but make it incremental so unrelated changes are not blocked by
-pre-existing duplication elsewhere in the codebase.
+Pylint runs against both the PR base and the current tree. Existing similarity
+findings remain part of the baseline; only newly introduced pairs involving a
+changed file fail the check.
 """
 
 from __future__ import annotations
@@ -12,10 +12,34 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 DUPLICATE_HEADING = "R0801: Similar lines in"
 MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
+
+
+class EventPayloadReadError(RuntimeError):
+    """GitHub event metadata could not be read."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Unable to read the GitHub event payload for duplicate-code check"
+        )
+
+
+class InvalidEventPayloadError(RuntimeError):
+    """GitHub event metadata has an unexpected structure."""
+
+    def __init__(self) -> None:
+        super().__init__("GitHub event payload must be a JSON object")
+
+
+class PylintBaselineCheckError(RuntimeError):
+    """Pylint could not inspect the baseline revision."""
+
+    def __init__(self) -> None:
+        super().__init__("Pylint failed while checking the baseline revision")
 
 
 def git_output(arguments: list[str]) -> str:
@@ -42,12 +66,10 @@ def changed_files_from_git() -> set[str] | None:
         try:
             event_payload = json.loads(Path(event_path).read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
-            raise RuntimeError(
-                "Unable to read the GitHub event payload for duplicate-code check"
-            ) from error
+            raise EventPayloadReadError from error
 
         if not isinstance(event_payload, dict):
-            raise RuntimeError("GitHub event payload must be a JSON object")
+            raise InvalidEventPayloadError
 
         before = event_payload.get("before")
         if isinstance(before, str) and before:
@@ -124,18 +146,8 @@ def duplicate_pairs(output: str) -> list[tuple[str, str, str]]:
     return pairs
 
 
-def main() -> int:
-    """Report duplicate code only when at least one involved file changed."""
-    changed = changed_files_from_git()
-    if changed is None:
-        changed = {
-            Path(path).as_posix() for path in sys.argv[1:] if path.endswith(".py")
-        }
-
-    if not changed:
-        print("No changed Python files; duplicate-code check skipped.")
-        return 0
-
+def pylint_output(cwd: Path | None = None) -> tuple[int, str]:
+    """Run the duplicate-code checker and return its exit status and output."""
     result = subprocess.run(
         [
             sys.executable,
@@ -151,19 +163,79 @@ def main() -> int:
         check=False,
         capture_output=True,
         text=True,
+        cwd=cwd,
     )
-    output = result.stdout + result.stderr
+    return result.returncode, result.stdout + result.stderr
+
+
+def pair_key(pair: tuple[str, str, str]) -> tuple[str, str]:
+    """Normalize a duplicate finding to its two repository-relative paths."""
+    _, first_module, second_module = pair
+    first_path = module_to_path(first_module)
+    second_path = module_to_path(second_module)
+    return (min(first_path, second_path), max(first_path, second_path))
+
+
+def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
+    """Return duplicate pairs already present at the comparison base."""
+    with tempfile.TemporaryDirectory(prefix="asd-duplicate-baseline-") as directory:
+        baseline = Path(directory) / "baseline"
+        subprocess.run(
+            ["git", "worktree", "add", "--detach", "--quiet", str(baseline), base],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        try:
+            returncode, output = pylint_output(baseline)
+            if returncode & ~8:
+                print(output)
+                raise PylintBaselineCheckError
+            return {pair_key(pair) for pair in duplicate_pairs(output)}
+        finally:
+            subprocess.run(
+                ["git", "worktree", "remove", "--force", str(baseline)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+
+def main() -> int:
+    """Fail only when a changed file introduces a new duplicate-code pair."""
+    base_ref = os.environ.get("GITHUB_BASE_REF")
+    changed = changed_files_from_git()
+    if changed is None:
+        changed = {
+            Path(path).as_posix() for path in sys.argv[1:] if path.endswith(".py")
+        }
+
+    if not changed:
+        print("No changed Python files; duplicate-code check skipped.")
+        return 0
+
+    returncode, output = pylint_output()
     # R0801 is a refactor message (exit-code bit 8) and is handled below.
     # Other exit-code bits indicate a failed/invalid lint run and must fail CI.
-    if result.returncode & ~8:
+    if returncode & ~8:
         print(output)
         return 1
 
+    current_pairs = duplicate_pairs(output)
+    baseline_pairs: set[tuple[str, str]] = set()
+    if base_ref:
+        base = git_output(["git", "merge-base", f"origin/{base_ref}", "HEAD"])
+        baseline_pairs = baseline_duplicate_pairs(base)
+
     failures: list[str] = []
-    for heading, first_module, second_module in duplicate_pairs(output):
+    for pair in current_pairs:
+        heading, first_module, second_module = pair
         first_path = module_to_path(first_module)
         second_path = module_to_path(second_module)
-        if first_path in changed or second_path in changed:
+        key = pair_key(pair)
+        if (
+            first_path in changed or second_path in changed
+        ) and key not in baseline_pairs:
             failures.append(f"{heading}\n  {first_path}\n  {second_path}")
 
     if failures:

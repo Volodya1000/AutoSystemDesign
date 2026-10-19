@@ -1,22 +1,28 @@
 """Generate and validate one interaction scenario for a functional requirement."""
 
-from collections.abc import Sequence
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
-from application.protocols import SequenceDesigner
 from application.results import GenerationAttempt
 from application.tasks import (
     DesignTaskMode,
     SequenceInteractionTask,
     ValidationErrorFeedback,
 )
-from domain.exceptions.architecture_errors import ArchitectureValidationError
-from domain.models.functional import FunctionalRequirement
-from domain.models.roles import ProjectRolesCatalog
 from domain.models.sequence import InteractionScenario
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
-from domain.specifications.sequence_validator import SequenceScenarioValidator
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from application.protocols import SequenceDesigner
+    from domain.exceptions.architecture_errors import ArchitectureValidationError
+    from domain.models.functional import FunctionalRequirement
+    from domain.models.roles import ProjectRolesCatalog
+    from domain.models.topology import ArchitectureGraph
+    from domain.specifications.sequence_validator import SequenceScenarioValidator
 
 
 class InteractionScenarioGenerator:

@@ -1,7 +1,8 @@
 """Unit tests for sequence artifact persistence and rendering."""
 
-from collections.abc import Mapping
-from pathlib import Path
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -15,6 +16,10 @@ from domain.models.scenarios import DesignScenario
 from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
 from domain.models.topology import ArchitectureGraph
 from tests.unit.in_memory_writer import InMemoryWriter
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from pathlib import Path
 
 pytestmark = pytest.mark.unit
 

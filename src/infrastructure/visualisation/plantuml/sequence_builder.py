@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from domain.models.ast_steps import (
     AltStep,
@@ -8,15 +10,11 @@ from domain.models.ast_steps import (
     OptStep,
     ScenarioStep,
 )
-from domain.models.enums import NodeType
-from domain.models.sequence import (
-    InteractionScenario,
-    ScenarioLifeline,
-    UserLifeline,
-)
-from infrastructure.visualisation.plantuml.participant_kinds import (
-    participant_keyword,
-)
+from domain.models.sequence import InteractionScenario, ScenarioLifeline, UserLifeline
+from infrastructure.visualisation.plantuml.participant_kinds import participant_keyword
+
+if TYPE_CHECKING:
+    from domain.models.enums import NodeType
 
 
 class SequenceDiagramBuilder:

@@ -13,8 +13,7 @@ rendered. Adding a new diagram type only requires a new
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import DiagramRenderResult
 from infrastructure.visualisation.plantuml import (
@@ -25,7 +24,12 @@ from infrastructure.visualisation.plantuml import (
     resolve_image_renderer,
 )
 from infrastructure.visualisation.plantuml.diagram_service import DiagramService
-from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from pathlib import Path
+
+    from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 
 _logger = logging.getLogger("pipeline.diagram")
 

@@ -4,6 +4,7 @@ import logging
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from application.exceptions.configuration_errors import GenerationConfigurationError
 from application.generation_limits import (
     DEFAULT_SEQUENCE_PARALLELISM,
     MAX_ATTEMPTS,
@@ -58,24 +59,23 @@ class SequenceGenerationService:
         max_parallel_workers: int = DEFAULT_SEQUENCE_PARALLELISM,
     ) -> None:
         if not MIN_ATTEMPTS <= max_attempts <= MAX_ATTEMPTS:
-            raise ValueError(
-                f"max_attempts must be between {MIN_ATTEMPTS} and {MAX_ATTEMPTS}, "
-                f"got {max_attempts}"
+            raise GenerationConfigurationError.attempts_out_of_range(
+                MIN_ATTEMPTS, MAX_ATTEMPTS, max_attempts
             )
         if max_parallel_workers < 1:
-            raise ValueError(
-                f"max_parallel_workers must be at least 1, got {max_parallel_workers}"
+            raise GenerationConfigurationError.max_parallel_workers_too_small(
+                max_parallel_workers
             )
         catalog_validator_tuple: tuple[SequenceCatalogValidator, ...] = tuple(
             catalog_validators
         )
         if not catalog_validator_tuple:
-            raise ValueError("At least one catalog validator is required")
+            raise GenerationConfigurationError.required_validators_missing("catalog")
         scenario_validator_tuple: tuple[SequenceScenarioValidator, ...] = tuple(
             scenario_validators
         )
         if not scenario_validator_tuple:
-            raise ValueError("At least one scenario validator is required")
+            raise GenerationConfigurationError.required_validators_missing("scenario")
         self._roles_catalog_generator = RolesCatalogGenerator(
             designer=designer,
             validators=catalog_validator_tuple,

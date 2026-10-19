@@ -13,7 +13,6 @@ from application.pipeline.context import (
     require_payload,
 )
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.ports import ArtifactWriter
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stage import PipelineStage
 from domain.models import DesignScenario
@@ -69,7 +68,7 @@ def _run(
     return PipelineRunner(stages, reporter).run(
         _scenario(),
         Path("output"),
-        cast(ArtifactWriter, InMemoryWriter()),
+        InMemoryWriter(),
     )
 
 
@@ -128,7 +127,7 @@ def test_runner_passes_immutable_snapshot_of_prior_stage_outcomes() -> None:
     assert isinstance(upstream, MappingProxyType)
     assert upstream["c4"].payload == {"architecture": True}
     with pytest.raises(TypeError):
-        cast(dict[str, StageOutcome[object]], upstream)["new"] = upstream["c4"]
+        cast("dict[str, StageOutcome[object]]", upstream)["new"] = upstream["c4"]
     assert len(reporter.reports) == 1
     assert [outcome.name for outcome in reporter.reports[0]] == ["c4", "sequence"]
 
@@ -165,7 +164,7 @@ def _context(
     return StageContext(
         scenario=_scenario(),
         out_dir=Path("output"),
-        writer=cast(ArtifactWriter, InMemoryWriter()),
+        writer=InMemoryWriter(),
         upstream=upstream,
     )
 
