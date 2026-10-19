@@ -26,6 +26,7 @@ from domain.models.api import (
 from domain.models.nodes import ComputeNode
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
+from domain.specifications.interfaces import ValidationResult
 
 pytestmark = pytest.mark.unit
 
@@ -87,7 +88,7 @@ def _validate(
     *,
     schemas: dict[str, dict] | None = None,
     requirement_ids: set[str] | None = None,
-):
+) -> ValidationResult:
     api = ApiDesign(title="Test API", operations=operations, schemas=schemas or {})
     return ApiDesignValidator().validate(
         api, _graph(), requirement_ids if requirement_ids is not None else {"FR-1"}

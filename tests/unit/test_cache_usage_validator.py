@@ -16,7 +16,7 @@ from domain.exceptions.architecture_errors import (
 )
 from domain.models.edges import Edge
 from domain.models.enums import NodeType
-from domain.models.nodes import CacheNode, ComputeNode
+from domain.models.nodes import CacheNode, ComputeNode, DatabaseNode
 from domain.models.protocols import (
     ASYNCHRONOUS_MESSAGE_QUEUE,
     SYNCHRONOUS_DATABASE_TCP,
@@ -65,9 +65,7 @@ def _compute(identifier: str) -> ComputeNode:
     )
 
 
-def _db(identifier: str):
-    from domain.models.nodes import DatabaseNode  # local import to avoid noise at top
-
+def _db(identifier: str) -> DatabaseNode:
     return DatabaseNode(
         identifier=identifier,
         maximum_concurrency=200,
