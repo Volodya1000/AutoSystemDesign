@@ -148,7 +148,9 @@ def validate_source_backed_notes(
             issue_kind is RequirementIssueKind.CONFLICTING
             and len({" ".join(excerpt.split()) for excerpt in excerpts}) >= 2
         )
-        if unsupported or not (description_supported or synthesized_conflict_supported):
+        if unsupported or not (
+            description_supported or synthesized_conflict_supported
+        ):
             issues.append(
                 RequirementIssue(
                     kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
