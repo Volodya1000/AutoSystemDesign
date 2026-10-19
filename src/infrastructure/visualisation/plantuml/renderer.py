@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import TYPE_CHECKING, Final, Protocol
 
@@ -72,6 +73,10 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
     python-urllib agent. The INFO log identifies which server actually
     rendered the image when several are configured.
     """
+    parsed_url = urllib.parse.urlsplit(url)
+    if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+        raise ValueError("Diagram server URL must be an absolute HTTP(S) URL")
+
     request = urllib.request.Request(
         url, headers={"User-Agent": _USER_AGENT}, method="GET"
     )
