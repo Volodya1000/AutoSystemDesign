@@ -38,22 +38,27 @@ class ModelValidationError(ValueError):
             "Parameter '{name}' has data_type='array' but 'item_type' is not defined."
         ),
         ModelValidationCode.API_NON_ARRAY_FORBIDS_ITEM_TYPE: (
-            "Parameter '{name}' must not define 'item_type' when data_type is '{data_type}'."
+            "Parameter '{name}' must not define 'item_type' "
+            "when data_type is '{data_type}'."
         ),
         ModelValidationCode.API_PATH_PARAMETER_REQUIRED: (
             "Path parameter '{name}' must always have required=True."
         ),
         ModelValidationCode.API_INVALID_STATUS_CODE: (
-            "Invalid HTTP status code '{status_code}'. Must be 3-digit code or 'default'."
+            "Invalid HTTP status code '{status_code}'. "
+            "Must be a 3-digit code or 'default'."
         ),
         ModelValidationCode.API_DUPLICATE_RESPONSE_STATUS_CODE: (
-            "Duplicate response status code '{status_code}' in operation '{operation_id}'."
+            "Duplicate response status code '{status_code}' "
+            "in operation '{operation_id}'."
         ),
         ModelValidationCode.ALT_ELSE_BRANCH_MUST_BE_LAST: (
-            "The default branch (else / condition=None) must be the last one in an alt block."
+            "The default branch (else / condition=None) must be "
+            "the last one in an alt block."
         ),
         ModelValidationCode.ALT_CONDITION_MUST_NOT_BE_EMPTY: (
-            "A conditional branch cannot have an empty condition or consist only of spaces."
+            "A conditional branch cannot have an empty condition "
+            "or consist only of spaces."
         ),
         ModelValidationCode.ALT_SINGLE_ELSE_BRANCH: (
             "An 'alt' block can contain only one default (else) branch."
@@ -68,7 +73,8 @@ class ModelValidationError(ValueError):
             "CapacityNode is abstract: instantiate a concrete node subclass"
         ),
         ModelValidationCode.WORKLOAD_PEAK_BELOW_BASELINE: (
-            "peak_requests_per_second must be greater than or equal to baseline_requests_per_second"
+            "peak_requests_per_second must be greater than or equal "
+            "to baseline_requests_per_second"
         ),
         ModelValidationCode.EMPTY_LIFELINE_ID: (
             "Lifeline identifier (lifeline_id) cannot be empty."
