@@ -158,8 +158,10 @@ class TestDanglingBroker:
 
 class TestScopeBoundaries:
     def test_isolated_broker_is_structural_not_ours(self) -> None:
-        """A broker with neither incoming nor outgoing edges is IsolatedNodeError;
-        our rule must not double-report it (empty incoming -> no fire)."""
+        """Avoid double-reporting a broker with neither incoming nor outgoing edges.
+
+        Such a broker is handled by IsolatedNodeError (empty incoming means no fire).
+        """
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             create_test_node("compute", NodeType.COMPUTE),
@@ -276,8 +278,10 @@ class TestPhantomSourceBroker:
         assert "compute" in message
 
     def test_phantom_source_does_not_also_report_missing_consumer(self) -> None:
-        """The error is directional: a missing producer must not be
-        reported as a missing consumer as well."""
+        """Keep the error directional.
+
+        A missing producer must not also be reported as a missing consumer.
+        """
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             create_test_node("processor", NodeType.COMPUTE),
