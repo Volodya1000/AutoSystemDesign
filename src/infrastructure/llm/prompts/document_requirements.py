@@ -19,12 +19,14 @@ Rules:
   supplied document fragment, except whitespace may be normalized.
 - Do not return a requirement if you cannot cite supporting source text.
 - Report unclear statements in ambiguity_notes and incompatible statements in
-  conflict_notes. Include the conflicting facts; do not resolve them by guessing.
+  conflict_notes. Each note must include a description and all relevant source
+  excerpts in a non-empty source_evidence list. Do not resolve conflicts by guessing.
 - If the fragment is unrelated to software requirements, set is_relevant to false
   and return an empty requirements list.
 - Return exactly these top-level keys: requirements, is_relevant, ambiguity_notes,
   conflict_notes. Each requirement has statement, kind, source_evidence. Each source
-  evidence item has exactly one key, source_excerpt.
+  evidence item has exactly one key, source_excerpt. Each note has description and
+  source_evidence with one or more source_excerpt items.
 - Return all four top-level keys even when their values are empty lists.
 
 Source name: {source_name}
