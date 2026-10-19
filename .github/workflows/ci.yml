@@ -31,6 +31,10 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install dependencies
         run: uv sync --locked --all-groups
+      - name: Run read-only pre-commit checks
+        env:
+          SKIP: trailing-whitespace,end-of-file-fixer,uv-lock,ruff,ruff-format,file-hygiene,uv-lock-check,ruff-check,ruff-format-check,mypy,pylint,duplicate-code,import-linter,pytest
+        run: uv run pre-commit run --all-files
       - name: Check Ruff linting
         run: uv run ruff check .
       - name: Check Ruff formatting
