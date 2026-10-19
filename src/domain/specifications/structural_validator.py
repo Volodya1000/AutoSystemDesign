@@ -18,9 +18,9 @@ if TYPE_CHECKING:
 
 
 class StructuralTopologyValidator(BaseValidator):
-    """
-    Orchestrates pure structural rules to validate DAG topology,
-    referential consistency, and connection whitelist compliance.
+    """Orchestrates pure structural validation of DAG topology.
+
+    Checks referential consistency and connection whitelist compliance.
     """
 
     def __init__(
