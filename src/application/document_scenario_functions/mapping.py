@@ -14,9 +14,9 @@ from domain.models.requirements import (
     BudgetRequirement,
     LatencyRequirement,
     QueueSizePercentileRequirement,
-    Requirement as ScenarioRequirement,
     ResourceUtilizationRequirement,
 )
+from domain.models.requirements import Requirement as ScenarioRequirement
 from domain.models.scenarios import WorkloadProfile
 from domain.scenario_extraction import (
     EvidenceValue,
