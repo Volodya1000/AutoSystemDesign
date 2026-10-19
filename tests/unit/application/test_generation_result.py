@@ -48,17 +48,13 @@ def _attempt(
 class TestGenerationResultStatus:
     def test_succeeded_when_last_attempt_is_valid(self) -> None:
         result: DesignGenerationResult = DesignGenerationResult(
-            attempts=[
-                _attempt(parsed=True, successful=True, graph=_graph("a"))
-            ]
+            attempts=[_attempt(parsed=True, successful=True, graph=_graph("a"))]
         )
         assert result.status is GenerationStatus.SUCCEEDED
 
     def test_validation_failed_when_last_attempt_is_invalid(self) -> None:
         result: DesignGenerationResult = DesignGenerationResult(
-            attempts=[
-                _attempt(parsed=True, successful=False, graph=_graph("a"))
-            ]
+            attempts=[_attempt(parsed=True, successful=False, graph=_graph("a"))]
         )
         assert result.status is GenerationStatus.VALIDATION_FAILED
 

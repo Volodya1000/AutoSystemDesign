@@ -69,9 +69,7 @@ def _validated_lifeline_ids(lifelines: list[ScenarioLifeline]) -> set[str]:
     return lifeline_ids
 
 
-def _validate_message_endpoints(
-    step: MessageStep, lifeline_ids: set[str]
-) -> None:
+def _validate_message_endpoints(step: MessageStep, lifeline_ids: set[str]) -> None:
     """Raise when a message references a lifeline that is not declared."""
     if step.from_lifeline not in lifeline_ids:
         raise ValueError(f"Unknown message sender: '{step.from_lifeline}'")
@@ -95,7 +93,9 @@ def _collect_used_lifeline_ids(
                     _collect_used_lifeline_ids(branch.steps, lifeline_ids)
                 )
         elif isinstance(step, (OptStep, LoopStep)):
-            used_lifeline_ids.update(_collect_used_lifeline_ids(step.steps, lifeline_ids))
+            used_lifeline_ids.update(
+                _collect_used_lifeline_ids(step.steps, lifeline_ids)
+            )
     return used_lifeline_ids
 
 
