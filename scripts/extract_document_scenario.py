@@ -45,7 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _write_evidence_manifest(path: Path, result: Any) -> None:
+def _write_evidence_manifest(path: Path, result: DocumentScenarioResult) -> None:
     """Persist citations and diagnostics even when no safe scenario can be produced."""
     payload = {
         "source_name": result.source_name,
