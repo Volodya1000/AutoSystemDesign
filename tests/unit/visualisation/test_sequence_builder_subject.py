@@ -69,17 +69,17 @@ def _scenario(lifelines: list) -> InteractionScenario:
             )
         )
     else:
-        for index in range(len(lifelines) - 1):
-            steps.append(
-                MessageStep(
-                    kind="message",
-                    from_lifeline=lifelines[index].lifeline_id,
-                    to_lifeline=lifelines[index + 1].lifeline_id,
-                    action_name="POST /orders",
-                    message_kind="request",
-                    delivery_mode="sync",
-                )
+        steps.extend(
+            MessageStep(
+                kind="message",
+                from_lifeline=lifelines[index].lifeline_id,
+                to_lifeline=lifelines[index + 1].lifeline_id,
+                action_name="POST /orders",
+                message_kind="request",
+                delivery_mode="sync",
             )
+            for index in range(len(lifelines) - 1)
+        )
     return InteractionScenario(
         scenario_id="s1",
         requirement_identifier="REQ-1",

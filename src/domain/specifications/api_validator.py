@@ -134,15 +134,15 @@ class ApiDesignValidator:
                     )
                 )
 
-            for resp in op.responses:
-                if resp.schema_ref and resp.schema_ref not in available_schemas:
-                    errors.append(
-                        UnresolvedSchemaReferenceError(
-                            operation_id=op.operation_id,
-                            target=f"response_{resp.status_code}",
-                            missing_schema_ref=resp.schema_ref,
-                        )
-                    )
+            errors.extend(
+                UnresolvedSchemaReferenceError(
+                    operation_id=op.operation_id,
+                    target=f"response_{resp.status_code}",
+                    missing_schema_ref=resp.schema_ref,
+                )
+                for resp in op.responses
+                if resp.schema_ref and resp.schema_ref not in available_schemas
+            )
 
         return errors
 
@@ -177,14 +177,12 @@ class ApiDesignValidator:
         if not expected_requirement_ids:
             return []
 
-        errors: list[ArchitectureValidationError] = []
-        for op in operations:
-            for req_id in op.requirement_ids:
-                if req_id not in expected_requirement_ids:
-                    errors.append(
-                        NonExistentRequirementReferenceError(
-                            operation_id=op.operation_id,
-                            requirement_id=req_id,
-                        )
-                    )
-        return errors
+        return [
+            NonExistentRequirementReferenceError(
+                operation_id=op.operation_id,
+                requirement_id=req_id,
+            )
+            for op in operations
+            for req_id in op.requirement_ids
+            if req_id not in expected_requirement_ids
+        ]

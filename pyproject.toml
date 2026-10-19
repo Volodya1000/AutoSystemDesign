@@ -42,15 +42,19 @@ markers = [
 [tool.ruff.lint]
 # Add design-oriented checks while keeping Ruff's existing default rules.
 extend-select = [
-    "B",    # Bugbear: likely bugs and error-prone constructs.
-    "C90",  # McCabe: excessive cyclomatic complexity.
-    "FBT",  # Boolean traps in function interfaces and calls.
-    "RET",  # Consistent, explicit return paths.
-    "SIM",  # Simplify unnecessarily complicated control flow.
-    "TC",   # Type-checking import and annotation rules.
-    "TRY",  # Exception handling and error-design rules.
+    "A",     # Prevent shadowing Python builtins.
+    "B",     # Bugbear: likely bugs and error-prone constructs.
+    "C90",   # McCabe: excessive cyclomatic complexity.
+    "FBT",   # Boolean traps in function interfaces and calls.
+    "PERF",  # Avoid common performance anti-patterns.
+    "PIE",   # Remove unnecessary code constructs.
+    "RET",   # Consistent, explicit return paths.
+    "SIM",   # Simplify unnecessarily complicated control flow.
+    "TC",    # Type-checking import and annotation rules.
+    "TID",   # Keep imports explicit and maintainable.
+    "TRY",   # Exception handling and error-design rules.
 ]
-# All enabled TC and TRY rules must be fixed rather than suppressed.
+# All enabled rules must be fixed rather than suppressed.
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10

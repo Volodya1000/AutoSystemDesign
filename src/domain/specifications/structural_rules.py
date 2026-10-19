@@ -102,12 +102,11 @@ def check_isolated_nodes(
         connected_identifiers.add(edge.source_identifier)
         connected_identifiers.add(edge.target_identifier)
 
-    errors: list[ArchitectureValidationError] = []
-    for node in graph.nodes:
-        if node.identifier not in connected_identifiers:
-            errors.append(IsolatedNodeError(node_identifier=node.identifier))
-
-    return errors
+    return [
+        IsolatedNodeError(node_identifier=node.identifier)
+        for node in graph.nodes
+        if node.identifier not in connected_identifiers
+    ]
 
 
 def check_acyclicity(
