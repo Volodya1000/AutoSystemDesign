@@ -22,6 +22,7 @@ from domain.models.protocols import (
     SYNCHRONOUS_DATABASE_TCP,
     SYNCHRONOUS_GRPC,
     SYNCHRONOUS_REST_HTTP,
+    ConnectionProtocol,
 )
 from domain.models.topology import AnyNode, ArchitectureGraph
 from domain.specifications.cache_usage_validator import (
@@ -79,7 +80,7 @@ def _db(identifier: str) -> DatabaseNode:
 def _edge(
     source: str,
     target: str,
-    protocol,
+    protocol: ConnectionProtocol,
 ) -> Edge:
     return Edge(
         source_identifier=source,
