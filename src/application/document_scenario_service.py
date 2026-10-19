@@ -355,7 +355,10 @@ class DocumentScenarioService:
                 issues.append(
                     RequirementIssue(
                         kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
-                        description=f"Discarded scenario note with unsupported evidence: {note.description}",
+                        description=(
+                            "Discarded scenario note with unsupported evidence: "
+                            f"{note.description}"
+                        ),
                         evidence=unsupported,
                     )
                 )
