@@ -1,18 +1,19 @@
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
 
-from domain.document_requirements import RequirementIssueKind, RequirementIssue
+from domain.document_requirements import RequirementIssue, RequirementIssueKind
 from domain.models.scenarios import DesignScenario
 from domain.scenario_extraction import DocumentScenarioResult
 from scripts import extract_document_scenario as cli
 
 
 @pytest.mark.unit
-def test_main_writes_pipeline_yaml_and_evidence_manifest(
+def test_main_writes_evidence_and_runs_existing_pipeline(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     document = tmp_path / "spec.md"
@@ -35,6 +36,7 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
         is_relevant=True,
         source_name=document.name,
     )
+    pipeline_calls: list[list[str]] = []
 
     class FakeService:
         def __init__(self, requirements_service: Any, mapper: Any) -> None:
@@ -44,11 +46,19 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
             assert path == document
             return expected
 
+    def fake_run(command: list[str], check: bool) -> subprocess.CompletedProcess[bytes]:
+        assert not check
+        pipeline_calls.append(command)
+        return subprocess.CompletedProcess(command, 0)
+
     monkeypatch.setattr(cli, "load_app_settings", lambda: object())
     monkeypatch.setattr(cli, "LlmDocumentRequirementExtractor", lambda settings: object())
-    monkeypatch.setattr(cli, "DocumentRequirementsService", lambda reader, extractor: object())
+    monkeypatch.setattr(
+        cli, "DocumentRequirementsService", lambda reader, extractor: object()
+    )
     monkeypatch.setattr(cli, "LlmDocumentScenarioMapper", lambda settings: object())
     monkeypatch.setattr(cli, "DocumentScenarioService", FakeService)
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
 
     exit_code = cli.main(
         [
@@ -58,6 +68,10 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
             str(output),
             "--evidence-output",
             str(evidence_output),
+            "--run-pipeline",
+            "--no-diagram",
+            "--pipeline-out-dir",
+            str(tmp_path / "pipeline-output"),
         ]
     )
 
@@ -70,6 +84,12 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
         "The service supports login."
     )
     assert evidence_payload["scenario_created"]
+    assert len(pipeline_calls) == 1
+    assert any(item.endswith("generate_pipeline.py") for item in pipeline_calls[0])
+    assert "--scenario" in pipeline_calls[0]
+    assert str(output) in pipeline_calls[0]
+    assert "--no-diagram" in pipeline_calls[0]
+    assert "--out-dir" in pipeline_calls[0]
 
 
 @pytest.mark.unit
@@ -97,12 +117,21 @@ def test_main_does_not_write_scenario_without_validated_result(
 
     monkeypatch.setattr(cli, "load_app_settings", lambda: object())
     monkeypatch.setattr(cli, "LlmDocumentRequirementExtractor", lambda settings: object())
-    monkeypatch.setattr(cli, "DocumentRequirementsService", lambda reader, extractor: object())
+    monkeypatch.setattr(
+        cli, "DocumentRequirementsService", lambda reader, extractor: object()
+    )
     monkeypatch.setattr(cli, "LlmDocumentScenarioMapper", lambda settings: object())
     monkeypatch.setattr(cli, "DocumentScenarioService", FakeService)
 
     exit_code = cli.main(
-        ["--document", str(document), "--output", str(output), "--evidence-output", str(evidence_output)]
+        [
+            "--document",
+            str(document),
+            "--output",
+            str(output),
+            "--evidence-output",
+            str(evidence_output),
+        ]
     )
 
     assert exit_code == 1
