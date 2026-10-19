@@ -63,8 +63,10 @@ class SwaggerUiRenderer:
 </head>
 <body>
 <div id="swagger-ui"></div>
-<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" charset="UTF-8"></script>
-<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"
+        charset="UTF-8"></script>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"
+        charset="UTF-8"></script>
 <script>
   window.onload = () => {{
     if (typeof SwaggerUIBundle === "undefined") {{
