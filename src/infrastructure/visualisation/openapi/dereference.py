@@ -25,7 +25,7 @@ class InvalidDereferenceRootError(TypeError):
 
 
 def _split_pointer(pointer: str) -> list[str]:
-    """Splits a JSON Pointer into decoded segments, per RFC 6901.
+    """Split a JSON Pointer into decoded segments, per RFC 6901.
 
     "" -> []; "/" -> [""]; "/a/b" -> ["a", "b"]; "//" -> ["", ""].
     Only "~1" ("/") and "~0" ("~") escapes are decoded, in that order.
@@ -63,7 +63,7 @@ def _lookup_pointer(document: Any, pointer: str) -> Any:
 
 
 def _recursive_stub(ref: str) -> dict:
-    """Placeholder emitted instead of re-entering a cyclic reference."""
+    """Emit a placeholder instead of re-entering a cyclic reference."""
     return {
         "type": "object",
         "description": (
@@ -75,7 +75,7 @@ def _recursive_stub(ref: str) -> dict:
 
 
 def _unresolved_stub(ref: str) -> dict:
-    """Placeholder emitted for a dangling or malformed reference."""
+    """Emit a placeholder for a dangling or malformed reference."""
     return {"description": f"Unresolved reference: {ref}"}
 
 
@@ -126,7 +126,7 @@ def _dereference(node: Any, active: tuple[str, ...], root: Any) -> Any:
 
 
 def dereference_internal_refs(spec: dict) -> dict:
-    """Returns a rebuilt copy of *spec* with all internal ``$ref`` inlined.
+    """Return a rebuilt copy of *spec* with all internal ``$ref`` inlined.
 
     Why: Swagger UI resolves ``$ref`` pointers at runtime. Even when the
     document is embedded through the ``spec`` option, expanding an endpoint
