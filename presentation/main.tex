@@ -26,12 +26,12 @@
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{itemize item}{\raise0.15ex\hbox{\color{Accent}\small$\blacktriangleright$}}
 \setbeamertemplate{itemize subitem}{\raise0.1ex\hbox{\color{Muted}\tiny$\bullet$}}
-\setbeamertemplate{footline}{\leavevmode\hbox{\begin{beamercolorbox}[wd=.82\paperwidth,ht=2.6ex,dp=1.1ex,leftskip=1.2em]{normal text}\color{Muted}\scriptsize AutoSystemDesign\end{beamercolorbox}\begin{beamercolorbox}[wd=.18\paperwidth,ht=2.6ex,dp=1.1ex,rightskip=1.2em plus 1fil]{normal text}\color{Muted}\scriptsize\insertframenumber/\inserttotalframenumber\end{beamercolorbox}}}
+\setbeamertemplate{footline}[frame number]
 \setbeamersize{text margin left=0.75cm,text margin right=0.75cm}
 
 \newcommand{\diagramimage}[3]{\begin{center}\IfFileExists{images/diagrams/#1}{\includegraphics[width=\linewidth,height=#3,keepaspectratio]{images/diagrams/#1}}{\begin{tikzpicture}\node[draw=Line,rounded corners=7pt,fill=Panel,minimum width=.91\linewidth,minimum height=#3,align=center,text=Muted,inner sep=8pt]{\begin{minipage}{.78\linewidth}\centering{\large\bfseries #2}\\[5pt]\scriptsize Добавьте файл \texttt{images/diagrams/#1}\end{minipage}};\end{tikzpicture}}\end{center}}
 \newcommand{\sectionlabel}[1]{{\color{Accent}\scriptsize\bfseries #1}\par\vspace{5pt}}
-\newcommand{\softbox}[2]{\begin{tikzpicture}\node[draw=Line,fill=#1,rounded corners=6pt,inner sep=8pt,text width=.88\linewidth,align=left]{#2};\end{tikzpicture}}
+\newcommand{\softbox}[2]{\par\noindent{\color{Accent}\rule{2pt}{1.35em}}\hspace{0.45em}\begin{minipage}[t]{.91\linewidth}#2\end{minipage}\par}
 
 \title{AutoSystemDesign}
 \subtitle{Автоматизация проектирования архитектуры микросервисных систем}
@@ -40,41 +40,32 @@
 \begin{document}
 
 \begin{frame}[plain]
-\begin{tikzpicture}[remember picture,overlay]
-\fill[Accent] (current page.north west) rectangle ([xshift=0.18cm]current page.south west);
-\fill[AccentLight] ([xshift=8.6cm]current page.north east) rectangle (current page.south east);
-\draw[Accent!30,line width=1pt] ([xshift=9.1cm,yshift=-1.5cm]current page.north west) circle (1.7cm);
-\draw[Accent!22,line width=1pt] ([xshift=10.2cm,yshift=-3.2cm]current page.north west) circle (2.5cm);
-\node[draw=Accent!35,fill=white,rounded corners=8pt,minimum width=2.2cm,minimum height=.72cm] at ([xshift=10.4cm,yshift=-2.1cm]current page.north west) {\small C4};
-\node[draw=Accent!35,fill=white,rounded corners=8pt,minimum width=2.2cm,minimum height=.72cm] at ([xshift=10.4cm,yshift=-3.2cm]current page.north west) {\small Sequence};
-\node[draw=Accent!35,fill=white,rounded corners=8pt,minimum width=2.2cm,minimum height=.72cm] at ([xshift=10.4cm,yshift=-4.3cm]current page.north west) {\small OpenAPI};
-\end{tikzpicture}
-\vspace{1.3cm}
-{\color{Accent}\large\bfseries AutoSystemDesign\par}
-\vspace{0.35cm}
+
+\vspace{1.8cm}
+{\color{Accent}\large AutoSystemDesign\par}
+\vspace{0.5cm}
 {\LARGE\bfseries Автоматизация проектирования\\[3pt]архитектуры микросервисных систем\par}
-\vspace{0.9cm}
+\vspace{0.8cm}
 {\large Дичковский Владимир\par}
 \vfill
-{\color{Muted}\small Генерация структурированных архитектурных моделей и их проверка}
-\vspace{0.6cm}
+{\color{Muted}\small Генерация и проверка архитектурных моделей}
 \end{frame}
 
 \begin{frame}{Цель системы}
 \vspace{0.2cm}
-\softbox{AccentLight}{\textbf{\large Автоматизировать проектирование архитектуры} по функциональным и нефункциональным требованиям и профилю нагрузки.}
+\textbf{Цель:} автоматизировать проектирование архитектуры по функциональным и нефункциональным требованиям и профилю нагрузки.
 \vspace{0.3cm}
 \begin{columns}[T,onlytextwidth]
 \column{.48\textwidth}
 \sectionlabel{Система не просто рисует диаграмму}
 \begin{itemize}
-\item Формирует структурированную модель компонентов и связей.
-\item Проверяет её по формализованным логическим ограничениям.
-\item Выдаёт диагностические ошибки, если модель нарушает ограничения.
+\item Генерирует модель архитектуры.
+\item Проверяет модель по формализованным логическим требованиям.
+\item Выявляет нарушения и возвращает диагностические сообщения.
 \end{itemize}
 \column{.48\textwidth}
-\sectionlabel{Что означает валидация}
-\softbox{GoodLight}{Например: клиент может обращаться к балансировщику, но не должен соединяться напрямую с кэшем, если такая связь запрещена правилами архитектуры.}
+\sectionlabel{Пример проверки}
+Клиент может обращаться к балансировщику, но не должен соединяться напрямую с кэшем, если такая связь запрещена правилами архитектуры.
 \end{columns}
 \end{frame}
 
