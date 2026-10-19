@@ -6,7 +6,7 @@ from domain.document_requirements import Requirement
 
 
 class ExtractionChunk(BaseModel):
-    """Structured extraction result for a single text fragment."""
+    """Structured, source-grounded extraction result for one fragment."""
 
     model_config = ConfigDict(extra="forbid")
 
