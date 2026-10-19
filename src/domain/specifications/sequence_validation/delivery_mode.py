@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from domain.exceptions.sequence_errors import AsyncDeliveryModeError
 from domain.specifications.interfaces import ValidationResult
 
 from .helpers import iter_message_steps
+
+if TYPE_CHECKING:
+    from domain.models.roles import ProjectRolesCatalog
+    from domain.models.sequence import InteractionScenario
+    from domain.models.topology import ArchitectureGraph
 
 _ASYNC_MESSAGE_KINDS: frozenset[str] = frozenset({"event", "notification"})
 
@@ -31,11 +38,3 @@ class DeliveryModeValidator:
             and message.delivery_mode != "async"
         ]
         return ValidationResult(errors=errors)
-
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from domain.models.roles import ProjectRolesCatalog
-    from domain.models.sequence import InteractionScenario
-    from domain.models.topology import ArchitectureGraph
