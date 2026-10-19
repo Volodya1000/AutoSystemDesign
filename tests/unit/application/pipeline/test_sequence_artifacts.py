@@ -21,7 +21,7 @@ pytestmark = pytest.mark.unit
 
 class FakeRenderer:
     def __init__(self, result: DiagramRenderResult) -> None:
-        self.result = result
+        self.result: DiagramRenderResult = result
         self.calls: int = 0
         self.received_subject: SequenceDiagramSubject | None = None
 
