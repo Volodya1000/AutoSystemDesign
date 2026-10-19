@@ -133,7 +133,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         result = service.extract_file(args.document)
         _write_evidence_manifest(evidence_output, result)
-    except (LlmConnectionError, OSError, ValueError) as error:
+    except (LlmConnectionError, OSError, ValueError):
         logger.exception("Document-to-scenario extraction failed")
         return 2
 
