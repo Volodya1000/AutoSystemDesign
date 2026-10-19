@@ -1,6 +1,6 @@
 """Pure transformations from evidence-bearing candidates into scenario models."""
 
-from typing import TypeAlias, cast
+from typing import cast
 
 from pydantic import ValidationError
 
@@ -27,7 +27,7 @@ from domain.scenario_extraction import (
 )
 
 
-ScenarioRequirement: TypeAlias = Requirement
+type ScenarioRequirement = Requirement
 
 
 _ALL_METRIC_FIELDS: tuple[str, ...] = (
