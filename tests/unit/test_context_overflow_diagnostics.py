@@ -40,13 +40,13 @@ def test_reports_estimated_demand_limit_and_excess(
 @pytest.mark.unit
 def test_explains_when_endpoint_context_limit_is_unknown(
     monkeypatch: pytest.MonkeyPatch,
-    request: CompletionRequest,
+    completion_request: CompletionRequest,
 ) -> None:
     monkeypatch.setattr(litellm, "token_counter", lambda **kwargs: 20_000)
 
     diagnostic = context_overflow_diagnostic(
         Exception("maximum context length exceeded"),
-        request,
+        completion_request,
         model="openai/qwen2.5-coder-14b-instruct",
         context_window_tokens=None,
     )
