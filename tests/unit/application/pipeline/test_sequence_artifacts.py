@@ -177,4 +177,4 @@ def test_persist_interaction_aggregates_rendered_artifacts_and_warnings(
         scenario=interaction,
         architecture_graph=graph,
     )
-}
+
