@@ -3,6 +3,11 @@
 from __future__ import annotations
 
 
+DESIGN_VALIDATOR_KIND = "design"
+CATALOG_VALIDATOR_KIND = "catalog"
+SCENARIO_VALIDATOR_KIND = "scenario"
+
+
 class GenerationConfigurationError(ValueError):
     """Invalid retry or validator configuration for a generation service."""
 
@@ -25,8 +30,8 @@ class GenerationConfigurationError(ValueError):
         cls, validator_kind: str
     ) -> GenerationConfigurationError:
         messages = {
-            "design": "At least one validator is required",
-            "catalog": "At least one catalog validator is required",
-            "scenario": "At least one scenario validator is required",
+            DESIGN_VALIDATOR_KIND: "At least one validator is required",
+            CATALOG_VALIDATOR_KIND: "At least one catalog validator is required",
+            SCENARIO_VALIDATOR_KIND: "At least one scenario validator is required",
         }
         return cls(messages[validator_kind])
