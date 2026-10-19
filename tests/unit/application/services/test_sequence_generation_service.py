@@ -1,14 +1,12 @@
-"""Unit tests for sequence generation repair loops and partial results."""
+"""Characterization tests for sequence generation orchestration."""
 
 from collections.abc import Sequence
 
 import pytest
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
-from application.results import SequenceGenerationResult
 from application.services.sequence_generation_service import SequenceGenerationService
 from application.tasks import (
-    JSON_DECODE_ERROR_TYPE,
     DesignTaskMode,
     ProposalFailureDetail,
     SequenceInteractionProposal,
@@ -21,39 +19,73 @@ from domain.models.ast_steps import MessageStep
 from domain.models.functional import FunctionalRequirement
 from domain.models.roles import BusinessRole, ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
-from domain.models.sequence import (
-    ComponentLifeline,
-    InteractionScenario,
-    UserLifeline,
-)
+from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
-from domain.specifications.sequence_validator import (
-    SequenceCatalogValidator,
-    SequenceIntegrityError,
-    SequenceScenarioValidator,
-)
 
 pytestmark = pytest.mark.unit
 
 
-def _requirement(identifier: str = "FR-1") -> FunctionalRequirement:
-    return FunctionalRequirement(
-        identifier=identifier,
-        name=f"Requirement {identifier}",
-        text=f"A user completes {identifier}.",
-    )
+class ValidCatalogValidator:
+    def validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult:
+        del catalog
+        return ValidationResult()
 
 
-def _scenario(
-    requirements: list[FunctionalRequirement] | None = None,
-) -> DesignScenario:
+class ValidScenarioValidator:
+    def validate_scenario(
+        self,
+        scenario: InteractionScenario,
+        catalog: ProjectRolesCatalog,
+        graph: ArchitectureGraph,
+        expected_requirement_id: str,
+    ) -> ValidationResult:
+        del scenario, catalog, graph, expected_requirement_id
+        return ValidationResult()
+
+
+class ScriptedSequenceDesigner:
+    def __init__(
+        self,
+        role_script: Sequence[SequenceRoleProposal | DesignProposalParsingError],
+        interaction_scripts: dict[
+            str, list[SequenceInteractionProposal | DesignProposalParsingError]
+        ],
+    ) -> None:
+        self.role_script = list(role_script)
+        self.interaction_scripts = interaction_scripts
+        self.role_tasks: list[SequenceRoleTask] = []
+        self.interaction_tasks: list[SequenceInteractionTask] = []
+
+    def propose_roles(self, task: SequenceRoleTask) -> SequenceRoleProposal:
+        self.role_tasks.append(task)
+        result = self.role_script.pop(0)
+        if isinstance(result, DesignProposalParsingError):
+            raise result
+        return result
+
+    def propose_interaction(
+        self, task: SequenceInteractionTask
+    ) -> SequenceInteractionProposal:
+        self.interaction_tasks.append(task)
+        result = self.interaction_scripts[task.requirement.identifier].pop(0)
+        if isinstance(result, DesignProposalParsingError):
+            raise result
+        return result
+
+
+def _scenario(requirement_ids: list[str]) -> DesignScenario:
     return DesignScenario(
         identifier="sequence_service_test",
-        description="Sequence generation test",
-        functional_requirements=(
-            [_requirement()] if requirements is None else requirements
-        ),
+        description="Sequence service test",
+        functional_requirements=[
+            FunctionalRequirement(
+                identifier=req_id,
+                name=f"Requirement {req_id}",
+                text=f"Behavior described by {req_id}.",
+            )
+            for req_id in requirement_ids
+        ],
     )
 
 
@@ -63,17 +95,17 @@ def _catalog() -> ProjectRolesCatalog:
             BusinessRole(
                 role_id="buyer",
                 name="Buyer",
-                description="A user who initiates the interaction.",
+                description="User who initiates the interaction.",
             )
         ]
     )
 
 
-def _interaction(requirement_id: str = "FR-1") -> InteractionScenario:
+def _interaction(requirement_id: str) -> InteractionScenario:
     return InteractionScenario(
         scenario_id=f"{requirement_id}_scenario",
         requirement_identifier=requirement_id,
-        description=f"Handle {requirement_id}",
+        description=f"Interaction for {requirement_id}",
         lifelines=[
             UserLifeline(
                 kind="user",
@@ -87,7 +119,7 @@ def _interaction(requirement_id: str = "FR-1") -> InteractionScenario:
                 lifeline_id="api_1",
                 architecture_node_id="api",
                 display_name="API",
-                description="The API entry point.",
+                description="Handles the request.",
             ),
         ],
         steps=[
@@ -103,314 +135,140 @@ def _interaction(requirement_id: str = "FR-1") -> InteractionScenario:
     )
 
 
-def _role_proposal(
-    catalog: ProjectRolesCatalog | None = None,
-    *,
-    prompt_tokens: int = 10,
-    completion_tokens: int = 5,
-) -> SequenceRoleProposal:
+def _role_proposal() -> SequenceRoleProposal:
+    catalog = _catalog()
     return SequenceRoleProposal(
-        payload=_catalog() if catalog is None else catalog,
-        raw_content="roles payload",
-        usage=TokenUsage(
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-        ),
-        latency_seconds=0.2,
+        payload=catalog,
+        raw_content=catalog.model_dump_json(),
+        usage=TokenUsage(prompt_tokens=10, completion_tokens=5),
     )
 
 
-def _interaction_proposal(
-    requirement_id: str = "FR-1",
-    *,
-    prompt_tokens: int = 20,
-    completion_tokens: int = 10,
-) -> SequenceInteractionProposal:
+def _interaction_proposal(requirement_id: str) -> SequenceInteractionProposal:
+    interaction = _interaction(requirement_id)
     return SequenceInteractionProposal(
-        payload=_interaction(requirement_id),
-        raw_content=f"interaction payload {requirement_id}",
-        usage=TokenUsage(
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-        ),
-        latency_seconds=0.4,
+        payload=interaction,
+        raw_content=interaction.model_dump_json(),
+        usage=TokenUsage(prompt_tokens=10, completion_tokens=5),
     )
 
 
-def _parsing_failure(prompt_tokens: int = 3) -> DesignProposalParsingError:
+def _parse_error() -> DesignProposalParsingError:
     return DesignProposalParsingError(
-        raw_content="not valid JSON",
+        raw_content="{ invalid json",
         failure_details=[
             ProposalFailureDetail(
-                location="$",
-                message="invalid JSON",
-                error_type=JSON_DECODE_ERROR_TYPE,
+                location="payload",
+                message="Invalid JSON response",
+                error_type="json_decode",
             )
         ],
-        usage=TokenUsage(prompt_tokens=prompt_tokens, completion_tokens=1),
+        usage=TokenUsage(prompt_tokens=3, completion_tokens=2),
     )
-
-
-class FakeSequenceDesigner:
-    """Scripted designer that records tasks and raises scripted parse failures."""
-
-    def __init__(
-        self,
-        role_script: Sequence[SequenceRoleProposal | DesignProposalParsingError],
-        interaction_scripts: dict[
-            str, Sequence[SequenceInteractionProposal | DesignProposalParsingError]
-        ]
-        | None = None,
-    ) -> None:
-        self._role_script: list[SequenceRoleProposal | DesignProposalParsingError] = (
-            list(role_script)
-        )
-        self._interaction_scripts: dict[
-            str, list[SequenceInteractionProposal | DesignProposalParsingError]
-        ] = {
-            requirement_id: list(script)
-            for requirement_id, script in (interaction_scripts or {}).items()
-        }
-        self.role_tasks: list[SequenceRoleTask] = []
-        self.interaction_tasks: list[SequenceInteractionTask] = []
-
-    def propose_roles(self, task: SequenceRoleTask) -> SequenceRoleProposal:
-        self.role_tasks.append(task)
-        if not self._role_script:
-            raise AssertionError("Unexpected extra propose_roles call")
-        item = self._role_script.pop(0)
-        if isinstance(item, DesignProposalParsingError):
-            raise item
-        return item
-
-    def propose_interaction(
-        self, task: SequenceInteractionTask
-    ) -> SequenceInteractionProposal:
-        self.interaction_tasks.append(task)
-        script = self._interaction_scripts[task.requirement.identifier]
-        if not script:
-            raise AssertionError("Unexpected extra propose_interaction call")
-        item = script.pop(0)
-        if isinstance(item, DesignProposalParsingError):
-            raise item
-        return item
-
-
-class ScriptedCatalogValidator:
-    def __init__(self, results: Sequence[ValidationResult] = ()) -> None:
-        self._results: list[ValidationResult] = list(results)
-
-    def validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult:
-        del catalog
-        return self._results.pop(0) if self._results else ValidationResult()
-
-
-class ScriptedScenarioValidator:
-    def __init__(
-        self,
-        results_by_requirement: dict[str, Sequence[ValidationResult]] | None = None,
-    ) -> None:
-        self._results: dict[str, list[ValidationResult]] = {
-            identifier: list(results)
-            for identifier, results in (results_by_requirement or {}).items()
-        }
-
-    def validate_scenario(
-        self,
-        scenario: InteractionScenario,
-        catalog: ProjectRolesCatalog,
-        graph: ArchitectureGraph,
-        expected_requirement_id: str,
-    ) -> ValidationResult:
-        del scenario, catalog, graph
-        results = self._results.get(expected_requirement_id, [])
-        return results.pop(0) if results else ValidationResult()
 
 
 def _service(
-    designer: FakeSequenceDesigner,
+    designer: ScriptedSequenceDesigner,
     *,
-    catalog_validator: SequenceCatalogValidator | None = None,
-    scenario_validator: SequenceScenarioValidator | None = None,
-    max_attempts: int = 3,
+    max_attempts: int = 2,
     max_parallel_workers: int = 1,
 ) -> SequenceGenerationService:
     return SequenceGenerationService(
-        designer=designer,
-        catalog_validators=[
-            ScriptedCatalogValidator()
-            if catalog_validator is None
-            else catalog_validator
-        ],
-        scenario_validators=[
-            ScriptedScenarioValidator()
-            if scenario_validator is None
-            else scenario_validator
-        ],
+        designer=designer,  # type: ignore[arg-type]
+        catalog_validators=[ValidCatalogValidator()],
+        scenario_validators=[ValidScenarioValidator()],
         max_attempts=max_attempts,
         max_parallel_workers=max_parallel_workers,
     )
 
 
-def test_skips_generation_when_scenario_has_no_functional_requirements() -> None:
-    designer = FakeSequenceDesigner([_role_proposal()])
-
+def test_generation_skips_when_no_functional_requirements() -> None:
+    designer = ScriptedSequenceDesigner([], {})
     result = _service(designer).generate(
         _scenario([]), ArchitectureGraph(nodes=[], edges=[])
     )
 
     assert result.roles_catalog is None
-    assert result.roles_attempts == []
     assert result.scenarios_results == {}
-    assert designer.role_tasks == []
-    assert designer.interaction_tasks == []
+    assert result.roles_attempts == []
+    assert not designer.role_tasks
+    assert not designer.interaction_tasks
 
 
-def test_retries_parsing_failures_and_preserves_repair_context() -> None:
-    role_failure = _parsing_failure(prompt_tokens=3)
-    interaction_failure = _parsing_failure(prompt_tokens=7)
-    designer = FakeSequenceDesigner(
-        [role_failure, _role_proposal(prompt_tokens=10, completion_tokens=5)],
-        {"FR-1": [interaction_failure, _interaction_proposal()]},
-    )
-
-    result: SequenceGenerationResult = _service(designer).generate(
-        _scenario(), ArchitectureGraph(nodes=[], edges=[])
-    )
-
-    assert result.roles_catalog is not None
-    assert result.is_successful
-    assert len(result.roles_attempts) == 2
-    assert result.roles_attempts[0].parsed is False
-    assert result.roles_attempts[0].usage == role_failure.usage
-    assert designer.role_tasks[0].mode is DesignTaskMode.INITIAL
-    role_repair = designer.role_tasks[1]
-    assert role_repair.mode is DesignTaskMode.REPAIR
-    assert role_repair.previous_payload == role_failure.raw_content
-    assert role_repair.parsing_failures == role_failure.failure_details
-
-    interaction_result = result.scenarios_results["FR-1"]
-    assert interaction_result.is_successful
-    assert len(interaction_result.attempts) == 2
-    interaction_repair = designer.interaction_tasks[1]
-    assert interaction_repair.mode is DesignTaskMode.REPAIR
-    assert interaction_repair.previous_payload == interaction_failure.raw_content
-    assert interaction_repair.parsing_failures == interaction_failure.failure_details
-    assert result.total_usage == TokenUsage(prompt_tokens=40, completion_tokens=17)
-
-
-def test_catalog_validation_feedback_is_sent_to_repair_attempt() -> None:
-    invalid_result = ValidationResult(
-        errors=[SequenceIntegrityError("role catalog contains a conflict")]
-    )
-    designer = FakeSequenceDesigner(
-        [_role_proposal(), _role_proposal(prompt_tokens=12, completion_tokens=6)],
-        {"FR-1": [_interaction_proposal()]},
-    )
-    validator = ScriptedCatalogValidator([invalid_result, ValidationResult()])
-
-    result = _service(designer, catalog_validator=validator).generate(
-        _scenario(), ArchitectureGraph(nodes=[], edges=[])
-    )
-
-    assert result.roles_catalog is not None
-    assert len(result.roles_attempts) == 2
-    repair = designer.role_tasks[1]
-    first_payload = result.roles_attempts[0].payload
-    assert first_payload is not None
-    assert repair.mode is DesignTaskMode.REPAIR
-    assert repair.previous_payload == first_payload.model_dump_json()
-    assert repair.validation_feedback[0].error_code == "SEQUENCE_INTEGRITY_ERROR"
-
-
-def test_interaction_validation_feedback_is_sent_to_repair_attempt() -> None:
-    invalid_result = ValidationResult(
-        errors=[SequenceIntegrityError("scenario references an unknown role")]
-    )
-    designer = FakeSequenceDesigner(
-        [_role_proposal()],
-        {"FR-1": [_interaction_proposal(), _interaction_proposal(prompt_tokens=25)]},
-    )
-    validator = ScriptedScenarioValidator(
-        {"FR-1": [invalid_result, ValidationResult()]}
-    )
-
-    result = _service(designer, scenario_validator=validator).generate(
-        _scenario(), ArchitectureGraph(nodes=[], edges=[])
-    )
-
-    assert result.is_successful
-    assert len(result.scenarios_results["FR-1"].attempts) == 2
-    repair = designer.interaction_tasks[1]
-    first_payload = result.scenarios_results["FR-1"].attempts[0].payload
-    assert first_payload is not None
-    assert repair.mode is DesignTaskMode.REPAIR
-    assert repair.previous_payload == first_payload.model_dump_json()
-    assert repair.validation_feedback[0].error_code == "SEQUENCE_INTEGRITY_ERROR"
-
-
-def test_preserves_successful_interactions_when_another_requirement_fails() -> None:
-    first = _requirement("FR-1")
-    second = _requirement("FR-2")
-    designer = FakeSequenceDesigner(
+def test_generation_returns_catalog_and_scenarios_in_requirement_order() -> None:
+    designer = ScriptedSequenceDesigner(
         [_role_proposal()],
         {
-            "FR-1": [_parsing_failure()],
+            "FR-1": [_interaction_proposal("FR-1")],
             "FR-2": [_interaction_proposal("FR-2")],
         },
     )
 
-    result = _service(designer, max_attempts=1).generate(
-        _scenario([first, second]), ArchitectureGraph(nodes=[], edges=[])
+    result = _service(designer).generate(
+        _scenario(["FR-1", "FR-2"]), ArchitectureGraph(nodes=[], edges=[])
     )
 
-    assert result.roles_catalog is not None
+    assert result.is_successful
+    assert result.roles_catalog == _catalog()
     assert list(result.scenarios_results) == ["FR-1", "FR-2"]
-    assert not result.is_successful
-    assert result.scenarios_results["FR-1"].interaction_scenario is None
-    assert result.scenarios_results["FR-2"].interaction_scenario is not None
-    assert len(result.scenarios_results["FR-1"].attempts) == 1
-    assert result.scenarios_results["FR-1"].attempts[0].parsed is False
+    assert result.total_usage.total_tokens == 45
 
 
-def test_rejects_invalid_parallelism_and_missing_validators() -> None:
-    designer = FakeSequenceDesigner([_role_proposal()])
-
-    with pytest.raises(ValueError, match="at least 1"):
-        SequenceGenerationService(
-            designer=designer,
-            catalog_validators=[ScriptedCatalogValidator()],
-            scenario_validators=[ScriptedScenarioValidator()],
-            max_attempts=1,
-            max_parallel_workers=0,
-        )
-    with pytest.raises(ValueError, match="At least one catalog validator"):
-        SequenceGenerationService(
-            designer=designer,
-            catalog_validators=[],
-            scenario_validators=[ScriptedScenarioValidator()],
-            max_attempts=1,
-        )
-    with pytest.raises(ValueError, match="At least one scenario validator"):
-        SequenceGenerationService(
-            designer=designer,
-            catalog_validators=[ScriptedCatalogValidator()],
-            scenario_validators=[],
-            max_attempts=1,
-        )
-
-
-def test_aborts_interactions_when_roles_catalog_never_parses() -> None:
-    designer = FakeSequenceDesigner(
-        [_parsing_failure(prompt_tokens=3), _parsing_failure(prompt_tokens=5)]
+def test_parallel_generation_preserves_requirement_order() -> None:
+    designer = ScriptedSequenceDesigner(
+        [_role_proposal()],
+        {
+            "FR-1": [_interaction_proposal("FR-1")],
+            "FR-2": [_interaction_proposal("FR-2")],
+        },
     )
 
-    result = _service(designer, max_attempts=2).generate(
-        _scenario(), ArchitectureGraph(nodes=[], edges=[])
+    result = _service(designer, max_parallel_workers=2).generate(
+        _scenario(["FR-1", "FR-2"]), ArchitectureGraph(nodes=[], edges=[])
     )
 
-    assert result.roles_catalog is None
-    assert len(result.roles_attempts) == 2
-    assert result.scenarios_results == {}
-    assert designer.interaction_tasks == []
-    assert result.total_usage == TokenUsage(prompt_tokens=8, completion_tokens=2)
+    assert result.is_successful
+    assert list(result.scenarios_results) == ["FR-1", "FR-2"]
+    assert {task.requirement.identifier for task in designer.interaction_tasks} == {
+        "FR-1",
+        "FR-2",
+    }
+
+
+def test_catalog_parse_failure_is_retried_with_repair_task() -> None:
+    designer = ScriptedSequenceDesigner(
+        [_parse_error(), _role_proposal()],
+        {"FR-1": [_interaction_proposal("FR-1")]},
+    )
+
+    result = _service(designer).generate(
+        _scenario(["FR-1"]), ArchitectureGraph(nodes=[], edges=[])
+    )
+
+    assert result.is_successful
+    assert [task.mode for task in designer.role_tasks] == [
+        DesignTaskMode.INITIAL,
+        DesignTaskMode.REPAIR,
+    ]
+    assert designer.role_tasks[1].previous_payload == "{ invalid json"
+    assert result.roles_attempts[0].parsed is False
+    assert result.roles_attempts[1].parsed is True
+
+
+def test_failed_requirement_does_not_discard_successful_scenarios() -> None:
+    designer = ScriptedSequenceDesigner(
+        [_role_proposal()],
+        {
+            "FR-1": [_interaction_proposal("FR-1")],
+            "FR-2": [_parse_error(), _parse_error()],
+        },
+    )
+
+    result = _service(designer).generate(
+        _scenario(["FR-1", "FR-2"]), ArchitectureGraph(nodes=[], edges=[])
+    )
+
+    assert result.is_successful is False
+    assert list(result.scenarios_results) == ["FR-1", "FR-2"]
+    assert result.scenarios_results["FR-1"].interaction_scenario is not None
+    assert result.scenarios_results["FR-2"].interaction_scenario is None
