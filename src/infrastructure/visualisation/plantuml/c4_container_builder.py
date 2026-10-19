@@ -140,6 +140,7 @@ class C4ContainerDiagramBuilder:
         element_specs: Mapping[NodeType, C4ElementSpec] | None = None,
         c4_include: str = C4_STDLIB_BUNDLED_INCLUDE,
         system_boundary_label: str = "System",
+        *,
         show_legend: bool = True,
     ) -> None:
         merged_specs: dict[NodeType, C4ElementSpec] = dict(DEFAULT_ELEMENT_SPECS)

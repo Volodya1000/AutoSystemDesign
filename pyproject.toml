@@ -39,6 +39,19 @@ markers = [
     "integration: tests that call a real LLM via LM Studio",
 ]
 
+[tool.ruff.lint]
+# Add design-oriented checks while keeping Ruff's existing default rules.
+extend-select = [
+    "B",    # Bugbear: likely bugs and error-prone constructs.
+    "C90",  # McCabe: excessive cyclomatic complexity.
+    "FBT",  # Boolean traps in function interfaces and calls.
+    "RET",  # Consistent, explicit return paths.
+    "SIM",  # Simplify unnecessarily complicated control flow.
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
 [tool.mypy]
 python_version = "3.13"
 mypy_path = "src"

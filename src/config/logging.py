@@ -5,7 +5,7 @@ import logging
 _NOISY_LOGGERS: tuple[str, ...] = ("LiteLLM", "httpcore", "httpx")
 
 
-def configure_logging(verbose: bool) -> None:
+def configure_logging(*, verbose: bool) -> None:
     logging.basicConfig(
         level=logging.DEBUG if verbose else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",

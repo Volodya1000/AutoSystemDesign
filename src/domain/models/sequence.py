@@ -56,6 +56,49 @@ ScenarioLifeline = Annotated[
 ]
 
 
+def _validated_lifeline_ids(lifelines: list[ScenarioLifeline]) -> set[str]:
+    """Validate lifeline identifiers and return their unique IDs."""
+    lifeline_ids: set[str] = set()
+    for lifeline in lifelines:
+        lifeline_id: str = lifeline.lifeline_id
+        if not lifeline_id.strip():
+            raise ValueError("Lifeline identifier (lifeline_id) cannot be empty.")
+        if lifeline_id in lifeline_ids:
+            raise ValueError(f"Duplicate lifeline identifier: '{lifeline_id}'")
+        lifeline_ids.add(lifeline_id)
+    return lifeline_ids
+
+
+def _validate_message_endpoints(step: MessageStep, lifeline_ids: set[str]) -> None:
+    """Raise when a message references a lifeline that is not declared."""
+    if step.from_lifeline not in lifeline_ids:
+        raise ValueError(f"Unknown message sender: '{step.from_lifeline}'")
+    if step.to_lifeline not in lifeline_ids:
+        raise ValueError(f"Unknown message recipient: '{step.to_lifeline}'")
+
+
+def _collect_used_lifeline_ids(
+    steps: list[ScenarioStep], lifeline_ids: set[str]
+) -> set[str]:
+    """Collect referenced lifelines while validating nested message endpoints."""
+    used_lifeline_ids: set[str] = set()
+    for step in steps:
+        if isinstance(step, MessageStep):
+            _validate_message_endpoints(step, lifeline_ids)
+            used_lifeline_ids.add(step.from_lifeline)
+            used_lifeline_ids.add(step.to_lifeline)
+        elif isinstance(step, AltStep):
+            for branch in step.branches:
+                used_lifeline_ids.update(
+                    _collect_used_lifeline_ids(branch.steps, lifeline_ids)
+                )
+        elif isinstance(step, (OptStep, LoopStep)):
+            used_lifeline_ids.update(
+                _collect_used_lifeline_ids(step.steps, lifeline_ids)
+            )
+    return used_lifeline_ids
+
+
 class InteractionScenario(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -73,39 +116,10 @@ class InteractionScenario(BaseModel):
 
     @model_validator(mode="after")
     def validate_scenario_integrity(self) -> InteractionScenario:
-        lifeline_ids = set()
-        for lifeline in self.lifelines:
-            if not lifeline.lifeline_id.strip():
-                raise ValueError("Lifeline identifier (lifeline_id) cannot be empty.")
-            if lifeline.lifeline_id in lifeline_ids:
-                raise ValueError(
-                    f"Duplicate lifeline identifier: '{lifeline.lifeline_id}'"
-                )
-            lifeline_ids.add(lifeline.lifeline_id)
-
-        used_lifeline_ids: set[str] = set()
-
-        def check_steps(steps_list: list[ScenarioStep]) -> None:
-            for step in steps_list:
-                if isinstance(step, MessageStep):
-                    if step.from_lifeline not in lifeline_ids:
-                        raise ValueError(
-                            f"Unknown message sender: '{step.from_lifeline}'"
-                        )
-                    if step.to_lifeline not in lifeline_ids:
-                        raise ValueError(
-                            f"Unknown message recipient: '{step.to_lifeline}'"
-                        )
-                    used_lifeline_ids.add(step.from_lifeline)
-                    used_lifeline_ids.add(step.to_lifeline)
-                elif isinstance(step, AltStep):
-                    for branch in step.branches:
-                        check_steps(branch.steps)
-                elif isinstance(step, (OptStep, LoopStep)):
-                    check_steps(step.steps)
-
-        check_steps(self.steps)
-
+        lifeline_ids: set[str] = _validated_lifeline_ids(self.lifelines)
+        used_lifeline_ids: set[str] = _collect_used_lifeline_ids(
+            self.steps, lifeline_ids
+        )
         unused = sorted(lifeline_ids - used_lifeline_ids)
         if unused:
             raise ValueError(
