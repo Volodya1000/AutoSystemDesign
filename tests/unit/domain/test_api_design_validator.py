@@ -1,7 +1,8 @@
 """Unit tests for semantic validation of generated API designs."""
 
-import pytest
 from typing import TypedDict, Unpack
+
+import pytest
 
 from domain.exceptions.architecture_errors import (
     DuplicateOperationIdError,
