@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 def check_node_identifiers_uniqueness(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Ensures all node identifiers within the topology graph are unique."""
+    """Ensure all node identifiers within the topology graph are unique."""
     errors: list[ArchitectureValidationError] = []
     seen_identifiers: set[str] = set()
 
@@ -35,7 +35,7 @@ def check_node_identifiers_uniqueness(
 def check_edge_referential_integrity(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Ensures all edges connect nodes that actually exist in the topology."""
+    """Ensure all edges connect nodes that actually exist in the topology."""
     errors: list[ArchitectureValidationError] = []
     existing_identifiers: set[str] = {node.identifier for node in graph.nodes}
 
@@ -61,7 +61,7 @@ def check_connection_rules(
     graph: ArchitectureGraph,
     allowed_connection_types: frozenset[ConnectionType],
 ) -> list[ArchitectureValidationError]:
-    """Validates that edge transitions strictly match the allowed architectural whitelist."""
+    """Validate that edge transitions strictly match the allowed architectural whitelist."""
     errors: list[ArchitectureValidationError] = []
     node_lookup: dict[str, BaseNode] = {node.identifier: node for node in graph.nodes}
 
@@ -93,7 +93,7 @@ def check_connection_rules(
 def check_isolated_nodes(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Detects nodes with neither incoming nor outgoing connections in multi-node topologies."""
+    """Detect nodes with neither incoming nor outgoing connections in multi-node topologies."""
     if len(graph.nodes) <= 1:
         return []
 
@@ -112,7 +112,7 @@ def check_isolated_nodes(
 def check_acyclicity(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Ensures the graph is a Directed Acyclic Graph (DAG) with no cyclic dependencies."""
+    """Ensure the graph is a Directed Acyclic Graph (DAG) with no cyclic dependencies."""
     node_identifiers: list[str] = [node.identifier for node in graph.nodes]
     adjacency_list: dict[str, list[str]] = {
         identifier: [] for identifier in node_identifiers
