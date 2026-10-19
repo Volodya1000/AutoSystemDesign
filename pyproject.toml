@@ -57,7 +57,6 @@ extend-select = [
     "PLR0912", # Keep branching logic manageable.
     "PLR0913", # Keep function interfaces small.
     "PLR0915", # Keep functions focused on one responsibility.
-    "PLR1702", # Avoid deeply nested control flow.
     "SLF",    # Enforce encapsulation by preventing private-member access.
 ]
 # All enabled rules must be fixed rather than suppressed.
