@@ -53,6 +53,8 @@ extend-select = [
     "TC",    # Type-checking import and annotation rules.
     "TID",   # Keep imports explicit and maintainable.
     "TRY",   # Exception handling and error-design rules.
+    "PLR0914", # Keep functions from accumulating too many local variables.
+    "PLR1702", # Keep control flow from becoming deeply nested.
 ]
 # All enabled rules must be fixed rather than suppressed.
 
