@@ -40,7 +40,7 @@ _logger: logging.Logger = logging.getLogger("pipeline")
 
 def main() -> int:
     args: argparse.Namespace = _parse_args()
-    configure_logging(args.verbose)
+    configure_logging(verbose=args.verbose)
 
     try:
         settings: AppSettings = load_app_settings()

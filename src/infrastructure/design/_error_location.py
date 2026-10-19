@@ -16,8 +16,5 @@ def format_error_location(loc: tuple[int | str, ...]) -> str:
         return "$"
     path: str = str(loc[0])
     for part in loc[1:]:
-        if isinstance(part, int):
-            path = f"{path}[{part}]"
-        else:
-            path = f"{path}.{part}"
+        path = f"{path}[{part}]" if isinstance(part, int) else f"{path}.{part}"
     return f"$.{path}"

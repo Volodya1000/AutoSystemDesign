@@ -25,6 +25,7 @@ def _graph(identifier: str) -> ArchitectureGraph:
 
 
 def _attempt(
+    *,
     parsed: bool,
     successful: bool | None,
     graph: ArchitectureGraph | None = None,
@@ -47,27 +48,36 @@ def _attempt(
 class TestGenerationResultStatus:
     def test_succeeded_when_last_attempt_is_valid(self) -> None:
         result: DesignGenerationResult = DesignGenerationResult(
-            attempts=[_attempt(True, True, graph=_graph("a"))]
+            attempts=[
+                _attempt(parsed=True, successful=True, graph=_graph("a"))
+            ]
         )
         assert result.status is GenerationStatus.SUCCEEDED
 
     def test_validation_failed_when_last_attempt_is_invalid(self) -> None:
         result: DesignGenerationResult = DesignGenerationResult(
-            attempts=[_attempt(True, False, graph=_graph("a"))]
+            attempts=[
+                _attempt(parsed=True, successful=False, graph=_graph("a"))
+            ]
         )
         assert result.status is GenerationStatus.VALIDATION_FAILED
 
     def test_parsing_failed_when_last_attempt_is_unparseable(self) -> None:
         result: DesignGenerationResult = DesignGenerationResult(
-            attempts=[_attempt(False, None)]
+            attempts=[_attempt(parsed=False, successful=None)]
         )
         assert result.status is GenerationStatus.PARSING_FAILED
 
     def test_status_reflects_only_the_last_attempt(self) -> None:
         result: DesignGenerationResult = DesignGenerationResult(
             attempts=[
-                _attempt(True, True, graph=_graph("a"), attempt_number=1),
-                _attempt(False, None, attempt_number=2),
+                _attempt(
+                    parsed=True,
+                    successful=True,
+                    graph=_graph("a"),
+                    attempt_number=1,
+                ),
+                _attempt(parsed=False, successful=None, attempt_number=2),
             ]
         )
         assert result.status is GenerationStatus.PARSING_FAILED
@@ -77,23 +87,38 @@ class TestGenerationResultStatus:
         second: ArchitectureGraph = _graph("node_b")
         result: DesignGenerationResult = DesignGenerationResult(
             attempts=[
-                _attempt(True, False, graph=first, attempt_number=1),
-                _attempt(True, True, graph=second, attempt_number=2),
+                _attempt(
+                    parsed=True,
+                    successful=False,
+                    graph=first,
+                    attempt_number=1,
+                ),
+                _attempt(
+                    parsed=True,
+                    successful=True,
+                    graph=second,
+                    attempt_number=2,
+                ),
             ]
         )
         assert result.graph is second
 
     def test_graph_is_none_when_never_parsed(self) -> None:
         result: DesignGenerationResult = DesignGenerationResult(
-            attempts=[_attempt(False, None)]
+            attempts=[_attempt(parsed=False, successful=None)]
         )
         assert result.graph is None
 
     def test_total_usage_aggregates_attempts(self) -> None:
         result: DesignGenerationResult = DesignGenerationResult(
             attempts=[
-                _attempt(True, True, graph=_graph("a"), attempt_number=1),
-                _attempt(False, None, attempt_number=2),
+                _attempt(
+                    parsed=True,
+                    successful=True,
+                    graph=_graph("a"),
+                    attempt_number=1,
+                ),
+                _attempt(parsed=False, successful=None, attempt_number=2),
             ]
         )
         assert result.total_usage == TokenUsage(prompt_tokens=2, completion_tokens=2)
