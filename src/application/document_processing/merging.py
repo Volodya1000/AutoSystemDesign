@@ -2,18 +2,44 @@
 
 from collections.abc import Iterable
 
-from domain.document_requirements import Requirement, RequirementIssue
+from domain.document_requirements import (
+    Requirement,
+    RequirementEvidence,
+    RequirementIssue,
+)
 
 
 def deduplicate_requirements(
     requirements: Iterable[Requirement],
 ) -> list[Requirement]:
-    """Keep the first requirement for each kind and normalized statement."""
+    """Merge duplicate claims without discarding their source citations."""
     unique: dict[tuple[str, str], Requirement] = {}
     for requirement in requirements:
         normalized_statement = " ".join(requirement.statement.casefold().split())
         key = (requirement.kind.value, normalized_statement)
-        unique.setdefault(key, requirement)
+        existing = unique.get(key)
+        if existing is None:
+            unique[key] = requirement
+            continue
+
+        evidence_by_key: dict[tuple[str, str | None], RequirementEvidence] = {
+            (
+                " ".join(evidence.source_excerpt.split()),
+                evidence.source_location,
+            ): evidence
+            for evidence in existing.source_evidence
+        }
+        for evidence in requirement.source_evidence:
+            evidence_key = (
+                " ".join(evidence.source_excerpt.split()),
+                evidence.source_location,
+            )
+            evidence_by_key.setdefault(evidence_key, evidence)
+        unique[key] = Requirement(
+            statement=existing.statement,
+            kind=existing.kind,
+            source_evidence=list(evidence_by_key.values()),
+        )
     return list(unique.values())
 
 
