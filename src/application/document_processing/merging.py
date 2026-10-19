@@ -1,6 +1,7 @@
 """Pure deduplication functions for extracted requirements and diagnostics."""
 
 from collections.abc import Iterable
+from typing import NamedTuple
 
 from domain.document_requirements import (
     Requirement,
@@ -9,14 +10,29 @@ from domain.document_requirements import (
 )
 
 
+class RequirementKey(NamedTuple):
+    """Named dictionary key for semantically identical requirement claims."""
+
+    kind: str
+    normalized_statement: str
+
+
+class RequirementIssueKey(NamedTuple):
+    """Named dictionary key for equivalent diagnostic issues."""
+
+    kind: str
+    field: str | None
+    normalized_description: str
+
+
 def deduplicate_requirements(
     requirements: Iterable[Requirement],
 ) -> list[Requirement]:
     """Merge duplicate claims without discarding their source citations."""
-    unique: dict[tuple[str, str], Requirement] = {}
+    unique: dict[RequirementKey, Requirement] = {}
     for requirement in requirements:
         normalized_statement = " ".join(requirement.statement.casefold().split())
-        key = (requirement.kind.value, normalized_statement)
+        key = RequirementKey(requirement.kind.value, normalized_statement)
         existing = unique.get(key)
         if existing is None:
             unique[key] = requirement
@@ -39,10 +55,14 @@ def deduplicate_requirements(
 
 def deduplicate_issues(issues: Iterable[RequirementIssue]) -> list[RequirementIssue]:
     """Merge duplicate diagnostics while preserving every distinct evidence item."""
-    unique: dict[tuple[str, str | None, str], RequirementIssue] = {}
+    unique: dict[RequirementIssueKey, RequirementIssue] = {}
     for issue in issues:
         normalized_description = " ".join(issue.description.casefold().split())
-        key = (issue.kind.value, issue.field, normalized_description)
+        key = RequirementIssueKey(
+            issue.kind.value,
+            issue.field,
+            normalized_description,
+        )
         existing = unique.get(key)
         if existing is None:
             unique[key] = issue
