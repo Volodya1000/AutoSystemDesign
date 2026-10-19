@@ -169,8 +169,9 @@ class MissingPathParameterError(ArchitectureValidationError):
 
     def __init__(self, operation_id: str, missing_parameters: list[str]) -> None:
         message: str = (
-            f"Operation '{operation_id}' defines URL path variables {sorted(missing_parameters)} "
-            "that are missing from the declared parameters list with in='path'."
+            f"Operation '{operation_id}' defines URL path variables "
+            f"{sorted(missing_parameters)} that are missing from the declared "
+            "parameters list with in='path'."
         )
         super().__init__(message=message)
         self.operation_id: str = operation_id
@@ -182,8 +183,9 @@ class UndeclaredPathParameterError(ArchitectureValidationError):
 
     def __init__(self, operation_id: str, undeclared_parameters: list[str]) -> None:
         message: str = (
-            f"Operation '{operation_id}' declares path parameters {sorted(undeclared_parameters)} "
-            "that do not exist in the URL path template."
+            f"Operation '{operation_id}' declares path parameters "
+            f"{sorted(undeclared_parameters)} that do not exist in the URL "
+            "path template."
         )
         super().__init__(message=message)
         self.operation_id: str = operation_id
@@ -226,8 +228,9 @@ class NonExistentRequirementReferenceError(ArchitectureValidationError):
 
     def __init__(self, operation_id: str, requirement_id: str) -> None:
         message: str = (
-            f"Operation '{operation_id}' references unknown requirement '{requirement_id}', "
-            "which is not declared in scenario functional requirements."
+            f"Operation '{operation_id}' references unknown requirement "
+            f"'{requirement_id}', which is not declared in scenario functional "
+            "requirements."
         )
         super().__init__(message=message)
         self.operation_id: str = operation_id
