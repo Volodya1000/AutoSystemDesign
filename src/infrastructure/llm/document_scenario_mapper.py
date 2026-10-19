@@ -1,7 +1,5 @@
 """LLM adapter for mapping verified claims to scenario-shaped candidates."""
 
-import json
-
 from config.root import AppSettings
 from domain.document_requirements import DocumentRequirements
 from domain.scenario_extraction import DocumentScenarioExtraction
@@ -12,7 +10,10 @@ from infrastructure.llm.prompts.document_scenario import (
     USER_PROMPT_TEMPLATE,
 )
 from infrastructure.llm.protocols import CompletionClient
-from infrastructure.llm.structured_output import complete_structured_response
+from infrastructure.llm.structured_output import (
+    complete_structured_response,
+    encode_prompt_data,
+)
 
 
 class LlmDocumentScenarioMapper:
@@ -34,10 +35,6 @@ class LlmDocumentScenarioMapper:
                 for requirement in requirements.requirements
             ]
         }
-        encoded_requirements = json.dumps(verified_claims, ensure_ascii=False)
-        encoded_requirements = encoded_requirements.replace("<", "\\u003c").replace(
-            ">", "\\u003e"
-        )
         response_content = complete_structured_response(
             settings=self._settings,
             client=self._client,
@@ -46,7 +43,7 @@ class LlmDocumentScenarioMapper:
                 Message(
                     role=MessageRole.USER,
                     content=USER_PROMPT_TEMPLATE.format(
-                        requirements_json=encoded_requirements
+                        requirements_json=encode_prompt_data(verified_claims)
                     ),
                 ),
             ],

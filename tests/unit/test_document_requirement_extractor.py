@@ -1,6 +1,7 @@
 import json
 
 import pytest
+
 from domain.extraction_chunk import ExtractionChunk
 from infrastructure.llm.document_requirement_extractor import (
     LlmDocumentRequirementExtractor,

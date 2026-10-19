@@ -10,9 +10,9 @@ from domain.document_requirements import (
     RequirementKind,
     SourceBackedNote,
 )
-from tests.test_support import has_issue
 from domain.extraction_chunk import ExtractionChunk
 from infrastructure.document_readers.markdown_reader import MarkdownReader
+from tests.test_support import has_issue
 
 
 class FakeExtractor:

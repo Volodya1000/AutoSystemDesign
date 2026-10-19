@@ -1,6 +1,7 @@
 import json
 
 import pytest
+
 from domain.document_requirements import (
     DocumentRequirements,
     Requirement,

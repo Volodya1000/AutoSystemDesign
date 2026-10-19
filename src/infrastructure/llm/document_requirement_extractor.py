@@ -1,7 +1,5 @@
 """LLM adapter for source-grounded document requirement extraction."""
 
-import json
-
 from config.root import AppSettings
 from domain.extraction_chunk import ExtractionChunk
 from infrastructure.llm.client import LiteLlmClient
@@ -11,7 +9,10 @@ from infrastructure.llm.prompts.document_requirements import (
     USER_PROMPT_TEMPLATE,
 )
 from infrastructure.llm.protocols import CompletionClient
-from infrastructure.llm.structured_output import complete_structured_response
+from infrastructure.llm.structured_output import (
+    complete_structured_response,
+    encode_prompt_data,
+)
 
 
 class LlmDocumentRequirementExtractor:
@@ -27,13 +28,6 @@ class LlmDocumentRequirementExtractor:
 
     def extract(self, text: str, source_name: str) -> ExtractionChunk:
         """Extract source-backed requirements from one text fragment."""
-        encoded_text = json.dumps(text, ensure_ascii=False)
-        # Prevent document content from breaking the prompt's data boundary.
-        encoded_text = encoded_text.replace("<", "\\u003c").replace(">", "\\u003e")
-        encoded_source_name = json.dumps(source_name, ensure_ascii=False)
-        encoded_source_name = encoded_source_name.replace("<", "\\u003c").replace(
-            ">", "\\u003e"
-        )
         response_content = complete_structured_response(
             settings=self._settings,
             client=self._client,
@@ -42,8 +36,8 @@ class LlmDocumentRequirementExtractor:
                 Message(
                     role=MessageRole.USER,
                     content=USER_PROMPT_TEMPLATE.format(
-                        source_name_json=encoded_source_name,
-                        text_json=encoded_text,
+                        source_name_json=encode_prompt_data(source_name),
+                        text_json=encode_prompt_data(text),
                     ),
                 ),
             ],

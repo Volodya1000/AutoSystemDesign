@@ -4,9 +4,7 @@ from typing import cast
 
 from pydantic import ValidationError
 
-from application.document_scenario_functions.evidence import (
-    resolve_candidate,
-)
+from application.document_scenario_functions.evidence import resolve_candidate
 from application.document_scenario_functions.naming import functional_name
 from application.document_scenario_functions.results import MappingOutcome
 from domain.document_requirements import RequirementIssue, RequirementIssueKind

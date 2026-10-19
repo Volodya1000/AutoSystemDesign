@@ -1,10 +1,17 @@
 """Shared request handling for schema-constrained LLM completions."""
 
+import json
 from typing import Any
 
 from config.root import AppSettings
 from infrastructure.llm.models import CompletionRequest, FinishReason, Message
 from infrastructure.llm.protocols import CompletionClient
+
+
+def encode_prompt_data(value: object) -> str:
+    """JSON-encode untrusted prompt data without exposing markup delimiters."""
+    encoded = json.dumps(value, ensure_ascii=False)
+    return encoded.replace("<", "\\u003c").replace(">", "\\u003e")
 
 
 def complete_structured_response(

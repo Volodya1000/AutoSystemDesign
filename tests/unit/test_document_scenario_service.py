@@ -4,7 +4,6 @@ import pytest
 
 from application.document_scenario_service import DocumentScenarioService
 from domain import document_requirements as req_doc
-from tests.test_support import has_issue
 from domain.scenario_extraction import (
     DocumentScenarioExtraction,
     EvidenceValue,
@@ -12,6 +11,7 @@ from domain.scenario_extraction import (
     ExtractedMetricRequirement,
     ExtractedWorkload,
 )
+from tests.test_support import has_issue
 
 BASELINE = "During normal operation, checkout should support 120 requests per second."
 PEAK = "During a seasonal sale, traffic may reach 400 requests per second."
