@@ -102,7 +102,7 @@ class TestBrokerWithConsumer:
 
 class TestDanglingBroker:
     def test_broker_with_incoming_but_no_outgoing_is_rejected(self) -> None:
-        """This is exactly the pattern the LLM produced on the
+        """Reproduce the exact pattern the LLM produced on the
 
         social_network_chat run: processor -> broker (async), but the
         broker has no consumer. Messages accumulate in the queue forever."""
