@@ -69,9 +69,7 @@ def changed_files_from_git() -> set[str] | None:
         base = git_output(
             [git_executable(), "merge-base", f"origin/{base_ref}", "HEAD"]
         )
-        changed = git_output(
-            [git_executable(), "diff", "--name-only", base, "HEAD"]
-        )
+        changed = git_output([git_executable(), "diff", "--name-only", base, "HEAD"])
         return {Path(path).as_posix() for path in changed.splitlines() if path}
 
     event_path = os.environ.get("GITHUB_EVENT_PATH")
@@ -99,9 +97,7 @@ def changed_files_from_git() -> set[str] | None:
     # Compatibility fallback for custom CI environments that export this value.
     before = os.environ.get("GITHUB_EVENT_BEFORE")
     if before and set(before) != {"0"}:
-        changed = git_output(
-            [git_executable(), "diff", "--name-only", before, "HEAD"]
-        )
+        changed = git_output([git_executable(), "diff", "--name-only", before, "HEAD"])
         return {Path(path).as_posix() for path in changed.splitlines() if path}
 
     return None
