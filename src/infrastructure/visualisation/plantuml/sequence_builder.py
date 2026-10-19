@@ -81,7 +81,7 @@ class SequenceDiagramBuilder:
         keyword = participant_keyword(lifeline, node_type_by_id)
         if isinstance(lifeline, UserLifeline):
             return (
-                f'{keyword} "{lifeline.scenario_role}\\n'
+                f'{keyword} "{lifeline.scenario_role}\\\\n'
                 f'({lifeline.business_role_id})" '
                 f"as {lifeline.lifeline_id}"
             )
@@ -96,8 +96,7 @@ class SequenceDiagramBuilder:
                 desc = f" [{step.description}]" if step.description else ""
                 label = _wrap_label(f"{step.action_name}{desc}")
                 lines.append(
-                    f"{indent}{step.from_lifeline} {arrow} {step.to_lifeline} "
-                    f": {label}"
+                    f"{indent}{step.from_lifeline} {arrow} {step.to_lifeline} : {label}"
                 )
             elif isinstance(step, AltStep):
                 for i, branch in enumerate(step.branches):
