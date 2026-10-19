@@ -54,7 +54,9 @@ class SequenceStage:
         reporter: GenerationReporter,
     ) -> None:
         self._service: SequenceGenerator = service
-        self._artifact_processor = SequenceArtifactProcessor(renderer)
+        self._artifact_processor: SequenceArtifactProcessor = SequenceArtifactProcessor(
+            renderer
+        )
         self._reporter: GenerationReporter = reporter
 
     def run(
@@ -64,9 +66,9 @@ class SequenceStage:
         graph: ArchitectureGraph = require_payload(
             context, upstream_name, ArchitectureGraph
         )
-        scenario = context.scenario
+        scenario: DesignScenario = context.scenario
 
-        early_collision_error = self._check_early_collisions(scenario)
+        early_collision_error: str | None = self._check_early_collisions(scenario)
         if early_collision_error is not None:
             _logger.error("Identifier collision: %s", early_collision_error)
             return self._failed(0.0, 0, early_collision_error)
@@ -103,6 +105,8 @@ class SequenceStage:
         # ``graph`` is forwarded so ``_process_requirement`` can build a
         # ``SequenceDiagramSubject`` that carries both the scenario and the
         # C4 topology to the renderer (see ``_process_requirement``).
+        req_artifacts: list[Path]
+        warnings: list[str]
         req_artifacts, warnings = self._process_all_requirements(
             context, base_names, result.scenarios_results, graph
         )
@@ -122,7 +126,7 @@ class SequenceStage:
 
     @staticmethod
     def _check_early_collisions(scenario: DesignScenario) -> str | None:
-        early_ids = functional_requirement_ids(scenario)
+        early_ids: Sequence[str] = functional_requirement_ids(scenario)
         if early_ids:
             try:
                 plan_base_names(scenario.identifier, early_ids)
@@ -165,6 +169,8 @@ class SequenceStage:
         artifacts: list[Path] = []
         warnings: list[str] = []
         for req_id, req_result in scenarios_results.items():
+            req_artifacts: list[Path]
+            req_warnings: list[str]
             req_artifacts, req_warnings = self._process_requirement(
                 context, base_names[req_id], req_id, req_result, graph
             )
@@ -186,7 +192,9 @@ class SequenceStage:
 
         interaction: InteractionScenario | None = req_result.interaction_scenario
         if interaction is None:
-            warning = f"Failed to generate sequence diagram for requirement: {req_id}"
+            warning: str = (
+                f"Failed to generate sequence diagram for requirement: {req_id}"
+            )
             _logger.warning(warning)
             return [], [warning]
 
