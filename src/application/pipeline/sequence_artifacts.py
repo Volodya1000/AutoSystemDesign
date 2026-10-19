@@ -4,9 +4,9 @@ from pathlib import Path
 
 from application.pipeline.context import StageContext
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
-from application.pipeline.models.sequence_artifacts import SequenceArtifactResult
 from application.pipeline.outcome import DiagramRenderResult
 from application.pipeline.ports import DiagramRenderer
+from application.pipeline.sequence_artifact_models import SequenceArtifactResult
 from domain.models.roles import ProjectRolesCatalog
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
