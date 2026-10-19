@@ -24,6 +24,17 @@ def encode_prompt_data(value: object) -> str:
     return encoded.replace("<", "\\u003c").replace(">", "\\u003e")
 
 
+def strip_markdown_json_fence(content: str) -> str:
+    """Remove one enclosing Markdown JSON code fence, if present."""
+    stripped = content.strip()
+    lines = stripped.splitlines()
+    if len(lines) < 3 or lines[-1].strip() != "```":
+        return stripped
+    if lines[0].strip().lower() not in {"```", "```json"}:
+        return stripped
+    return "\n".join(lines[1:-1]).strip()
+
+
 class StructuredOutputAdapter:
     """Share dependency setup, prompt assembly, and response validation."""
 
@@ -68,4 +79,5 @@ class StructuredOutputAdapter:
             )
         if not response.content.strip():
             raise ValueError(f"LLM returned an empty {operation} response")
-        return response_model.model_validate_json(response.content)
+        content = strip_markdown_json_fence(response.content)
+        return response_model.model_validate_json(content)
