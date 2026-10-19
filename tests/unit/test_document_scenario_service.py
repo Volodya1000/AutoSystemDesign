@@ -118,6 +118,7 @@ def test_maps_verified_fields_into_pipeline_compatible_scenario() -> None:
     assert len(result.scenario.requirements) == 2
     assert result.scenario.functional_requirements[0].identifier == "FR-001"
     assert result.field_evidence["workload.baseline_requests_per_second"] == BASELINE
+    assert result.field_evidence["requirements[0].type_identifier"] == LATENCY
     assert any(
         issue.kind is RequirementIssueKind.MISSING
         and issue.field == "workload.read_ratio"
@@ -187,3 +188,29 @@ def test_does_not_call_mapper_for_irrelevant_or_ungrounded_document() -> None:
     assert result.scenario is None
     assert not result.is_relevant
     assert mapper.calls == 0
+
+
+@pytest.mark.unit
+def test_rejects_functional_text_not_present_in_its_citation() -> None:
+    source = make_source_requirements()
+    mapping = make_mapping()
+    mapping.functional_requirements = [
+        ExtractedFunctionalRequirement(
+            text=EvidenceValue(
+                value="The system guarantees biometric authentication.",
+                source_excerpt=FUNCTIONAL,
+            )
+        )
+    ]
+
+    result = DocumentScenarioService(
+        FakeRequirementsService(source), FakeMapper(mapping)
+    ).map_requirements(source)
+
+    assert result.scenario is not None
+    assert result.scenario.functional_requirements == []
+    assert any(
+        issue.kind is RequirementIssueKind.UNSUPPORTED_EVIDENCE
+        and issue.field == "functional_requirements[0].text"
+        for issue in result.issues
+    )
