@@ -157,7 +157,7 @@ class TestRequirementValidationDispatcher:
         assert not result.errors
 
     def test_duplicate_validator_for_same_type_is_rejected(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Duplicate RequirementValidator"):
             RequirementValidationDispatcher(
                 [_RecordingRequirementValidator(), _RecordingRequirementValidator()]
             )
