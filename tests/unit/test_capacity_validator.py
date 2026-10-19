@@ -19,7 +19,11 @@ from domain.specifications.capacity_validator import (
     CapacitySaturationValidator,
     compute_node_utilization,
 )
-from tests.factories import create_test_compute_node, create_test_edge, create_test_node
+from tests.factories import (
+    create_test_compute_node,
+    create_test_edge,
+    create_test_node,
+)
 
 pytestmark = pytest.mark.unit
 
