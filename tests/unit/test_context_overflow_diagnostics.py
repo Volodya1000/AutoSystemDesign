@@ -8,7 +8,7 @@ from infrastructure.llm.models import CompletionRequest, Message
 
 
 @pytest.fixture
-def request() -> CompletionRequest:
+def completion_request() -> CompletionRequest:
     return CompletionRequest(
         messages=[Message(role="user", content="Generate an architecture.")],
         max_tokens=16_000,
@@ -18,13 +18,13 @@ def request() -> CompletionRequest:
 @pytest.mark.unit
 def test_reports_estimated_demand_limit_and_excess(
     monkeypatch: pytest.MonkeyPatch,
-    request: CompletionRequest,
+    completion_request: CompletionRequest,
 ) -> None:
     monkeypatch.setattr(litellm, "token_counter", lambda **kwargs: 20_000)
 
     diagnostic = context_overflow_diagnostic(
         Exception("Error code: 400 - Context size has been exceeded."),
-        request,
+        completion_request,
         model="openai/qwen2.5-coder-14b-instruct",
         context_window_tokens=32_768,
     )
