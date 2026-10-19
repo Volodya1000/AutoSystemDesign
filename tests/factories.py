@@ -1,6 +1,6 @@
 """Typed factories for architecture topology tests."""
 
-from typing import Any
+from typing import Any, TypedDict, Unpack
 
 from domain.models.edges import Edge
 from domain.models.enums import NodeType
@@ -26,6 +26,30 @@ def _capacity_fields(replicas_count: int) -> dict[str, Any]:
         "standard_deviation_processing_time": 2.0,
         "monthly_cost_usd": 50.0,
     }
+
+
+class _CapacityOverrides(TypedDict, total=False):
+    concurrency: int
+    mean_ms: float
+    std_ms: float
+    replicas: int
+    cost: float
+
+
+def create_test_compute_node(
+    identifier: str, **overrides: Unpack[_CapacityOverrides]
+) -> ComputeNode:
+    """Build a compute node with optional capacity values for focused tests."""
+    field_names = {
+        "concurrency": "maximum_concurrency",
+        "mean_ms": "mean_processing_time_milliseconds",
+        "std_ms": "standard_deviation_processing_time",
+        "replicas": "replicas_count",
+        "cost": "monthly_cost_usd",
+    }
+    capacity = _capacity_fields(replicas_count=1)
+    capacity.update({field_names[name]: value for name, value in overrides.items()})
+    return ComputeNode(identifier=identifier, **capacity)
 
 
 class UnsupportedTestNodeTypeError(ValueError):

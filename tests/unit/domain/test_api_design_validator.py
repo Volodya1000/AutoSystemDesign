@@ -1,5 +1,7 @@
 """Unit tests for semantic validation of generated API designs."""
 
+from typing import TypedDict, Unpack
+
 import pytest
 
 from domain.exceptions.architecture_errors import (
@@ -44,30 +46,40 @@ def _graph() -> ArchitectureGraph:
     )
 
 
-def _operation(
-    *,
-    operation_id: str = "get_resource",
-    method: HttpMethod = HttpMethod.GET,
-    path: str = "/v1/resources",
-    entrypoint: str = "api",
-    handler: str = "api",
-    requirement_ids: list[str] | None = None,
-    parameters: list[ApiParameter] | None = None,
-    request_body: ApiRequestBody | None = None,
-    responses: list[ApiResponse] | None = None,
-) -> ApiOperation:
-    return ApiOperation(
-        operation_id=operation_id,
-        method=method,
-        path=path,
+class _OperationOverrides(TypedDict, total=False):
+    operation_id: str
+    method: HttpMethod
+    path: str
+    entrypoint_component_id: str
+    handler_component_id: str
+    requirement_ids: list[str] | None
+    parameters: list[ApiParameter] | None
+    request_body: ApiRequestBody | None
+    responses: list[ApiResponse] | None
+
+
+def _operation(**overrides: Unpack[_OperationOverrides]) -> ApiOperation:
+    operation = ApiOperation(
+        operation_id="get_resource",
+        method=HttpMethod.GET,
+        path="/v1/resources",
         summary="Get resource",
-        entrypoint_component_id=entrypoint,
-        handler_component_id=handler,
-        requirement_ids=requirement_ids or [],
-        parameters=parameters or [],
-        request_body=request_body,
-        responses=responses or [ApiResponse(status_code="200", description="OK")],
+        entrypoint_component_id="api",
+        handler_component_id="api",
+        requirement_ids=[],
+        parameters=[],
+        request_body=None,
+        responses=[ApiResponse(status_code="200", description="OK")],
     )
+    operation_data = operation.model_dump(mode="python")
+    operation_data.update(overrides)
+    if not operation_data["requirement_ids"]:
+        operation_data["requirement_ids"] = []
+    if not operation_data["parameters"]:
+        operation_data["parameters"] = []
+    if not operation_data["responses"]:
+        operation_data["responses"] = [ApiResponse(status_code="200", description="OK")]
+    return ApiOperation.model_validate(operation_data)
 
 
 def _validate(
@@ -166,8 +178,8 @@ def test_unknown_components_and_requirement_references_are_rejected() -> None:
     result = _validate(
         [
             _operation(
-                entrypoint="missing_entrypoint",
-                handler="missing_handler",
+                entrypoint_component_id="missing_entrypoint",
+                handler_component_id="missing_handler",
                 requirement_ids=["FR-404"],
             )
         ]
