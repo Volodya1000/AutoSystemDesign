@@ -68,7 +68,6 @@ extend-select = [
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
     "EM101", # Avoid raising exceptions directly from string literals.
-    "PLC0415", # Keep imports at module scope unless a local import is necessary.
 ]
 # All enabled rules must be fixed rather than suppressed.
 
