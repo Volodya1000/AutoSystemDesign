@@ -48,5 +48,4 @@ class DiagramFileWriter:
                 written.append(image_path)
         except OSError as error:
             raise DiagramSavingError(output_dir, error) from error
-        else:
-            return written
+        return written
