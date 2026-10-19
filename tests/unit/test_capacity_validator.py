@@ -8,6 +8,8 @@ honest. No LLM, no I/O: pure domain logic.
 
 from __future__ import annotations
 
+from typing import TypedDict, Unpack
+
 import pytest
 
 from domain.exceptions.architecture_errors import CapacitySaturationError
@@ -31,14 +33,16 @@ pytestmark = pytest.mark.unit
 # ------------------------------------------------------------------ helpers
 
 
+class _ComputeNodeOverrides(TypedDict, total=False):
+    concurrency: int
+    mean_ms: float
+    std_ms: float
+    replicas: int
+    cost: float
+
+
 def _custom_compute(
-    identifier: str,
-    *,
-    concurrency: int = 100,
-    mean_ms: float = 10.0,
-    std_ms: float = 2.0,
-    replicas: int = 1,
-    cost: float = 50.0,
+    identifier: str, **overrides: Unpack[_ComputeNodeOverrides]
 ) -> ComputeNode:
     """ComputeNode with explicit capacity fields, bypassing test factory defaults.
 
@@ -46,15 +50,26 @@ def _custom_compute(
     the saturation tests below need other values to hit specific utilization
     ratios, so we build the node directly.
     """
-    return ComputeNode(
-        identifier=identifier,
-        replicas_count=replicas,
-        maximum_concurrency=concurrency,
-        maximum_queue_size=500,
-        mean_processing_time_milliseconds=mean_ms,
-        standard_deviation_processing_time=std_ms,
-        monthly_cost_usd=cost,
+    node_data: dict[str, object] = {
+        "identifier": identifier,
+        "replicas_count": 1,
+        "maximum_concurrency": 100,
+        "maximum_queue_size": 500,
+        "mean_processing_time_milliseconds": 10.0,
+        "standard_deviation_processing_time": 2.0,
+        "monthly_cost_usd": 50.0,
+    }
+    field_names = {
+        "concurrency": "maximum_concurrency",
+        "mean_ms": "mean_processing_time_milliseconds",
+        "std_ms": "standard_deviation_processing_time",
+        "replicas": "replicas_count",
+        "cost": "monthly_cost_usd",
+    }
+    node_data.update(
+        {field_names[name]: value for name, value in overrides.items()}
     )
+    return ComputeNode.model_validate(node_data)
 
 
 def _scenario(peak_rps: float) -> DesignScenario:
