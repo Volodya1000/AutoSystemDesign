@@ -48,9 +48,7 @@ def make_source_requirements() -> DocumentRequirements:
 
 def make_mapping() -> DocumentScenarioExtraction:
     return DocumentScenarioExtraction(
-        description=EvidenceValue(
-            value="Online store checkout requirements.", source_excerpt=FUNCTIONAL
-        ),
+        description=EvidenceValue(value=FUNCTIONAL, source_excerpt=FUNCTIONAL),
         workload=ExtractedWorkload(
             baseline_requests_per_second=EvidenceValue(
                 value=120.0, source_excerpt=BASELINE
@@ -60,14 +58,14 @@ def make_mapping() -> DocumentScenarioExtraction:
         ),
         requirements=[
             ExtractedMetricRequirement(
-                type_identifier="latency",
+                type_identifier=EvidenceValue(value="latency", source_excerpt=LATENCY),
                 threshold_value=EvidenceValue(value=300.0, source_excerpt=LATENCY),
                 percentile=EvidenceValue(value=95.0, source_excerpt=LATENCY),
                 minimum_value=EvidenceValue(value=None, source_excerpt=None),
                 maximum_value=EvidenceValue(value=None, source_excerpt=None),
             ),
             ExtractedMetricRequirement(
-                type_identifier="availability",
+                type_identifier=EvidenceValue(value="availability", source_excerpt=AVAILABILITY),
                 threshold_value=EvidenceValue(value=99.9, source_excerpt=AVAILABILITY),
                 percentile=EvidenceValue(value=None, source_excerpt=None),
                 minimum_value=EvidenceValue(value=None, source_excerpt=None),
