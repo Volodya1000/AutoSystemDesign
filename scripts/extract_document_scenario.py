@@ -97,6 +97,22 @@ def _run_pipeline(args: argparse.Namespace) -> int:
         return 2
 
 
+def _scenario_payload(result: DocumentScenarioResult) -> dict[str, object]:
+    """Serialize a scenario while preserving required union discriminators."""
+    if result.scenario is None:
+        raise ValueError("Cannot serialize a result without a scenario.")
+
+    payload = result.scenario.model_dump(
+        mode="json", exclude_unset=True, exclude_none=True
+    )
+    payload["requirements"] = [
+        requirement.model_dump(mode="json", exclude_unset=True, exclude_none=True)
+        | {"type_identifier": requirement.type_identifier}
+        for requirement in result.scenario.requirements
+    ]
+    return payload
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run extraction, save evidence diagnostics, and write canonical scenario YAML."""
     configure_logging(verbose=False)
@@ -131,9 +147,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 1
 
-    output_payload = result.scenario.model_dump(
-        mode="json", exclude_unset=True, exclude_none=True
-    )
+    output_payload = _scenario_payload(result)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         yaml.safe_dump(output_payload, allow_unicode=True, sort_keys=False),
