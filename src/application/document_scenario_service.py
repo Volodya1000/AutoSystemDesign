@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import re
+from pathlib import Path
 from typing import Protocol, TypeVar
 
 from pydantic import ValidationError
@@ -32,6 +33,7 @@ from domain.scenario_extraction import (
     DocumentScenarioResult,
     EvidenceValue,
     ExtractedMetricRequirement,
+    ExtractedWorkload,
 )
 
 
@@ -181,12 +183,8 @@ class DocumentScenarioService:
         self._requirements_service = requirements_service
         self._mapper = mapper
 
-    def extract_file(self, path: str | re.Pattern[str] | object) -> DocumentScenarioResult:
+    def extract_file(self, path: Path) -> DocumentScenarioResult:
         """Read a Markdown document and map its verified claims to a scenario."""
-        from pathlib import Path
-
-        if not isinstance(path, Path):
-            raise TypeError("path must be pathlib.Path")
         requirements = self._requirements_service.extract_file(path)
         return self.map_requirements(requirements)
 
@@ -340,7 +338,7 @@ class DocumentScenarioService:
 
     @staticmethod
     def _build_workload(
-        extracted: object,
+        extracted: ExtractedWorkload,
         verified_excerpts: list[str],
         issues: list[RequirementIssue],
         field_evidence: dict[str, str],
@@ -425,7 +423,7 @@ class DocumentScenarioService:
         field_evidence: dict[str, str],
     ) -> list[ScenarioRequirement]:
         output: list[ScenarioRequirement] = []
-        for candidate_index, candidate in enumerate(candidates):
+        for candidate in candidates:
             base_path = f"requirements[{len(output)}]"
             local_evidence: dict[str, str] = {}
             if candidate.type_identifier in {"latency", "queue_size_percentile"}:
@@ -452,47 +450,62 @@ class DocumentScenarioService:
                     numeric=True,
                 )
 
-            unexpected_fields = required_fields ^ {
+            all_fields = (
                 "threshold_value",
                 "percentile",
                 "minimum_value",
                 "maximum_value",
-            }
-            invalid_unused = any(
-                _reject_unexpected_value(
-                    getattr(candidate, field_name),
-                    f"{base_path}.{field_name}",
-                    issues,
-                )
-                for field_name in unexpected_fields
             )
+            invalid_unused = False
+            for field_name in all_fields:
+                if field_name not in required_fields:
+                    rejected = _reject_unexpected_value(
+                        getattr(candidate, field_name),
+                        f"{base_path}.{field_name}",
+                        issues,
+                    )
+                    invalid_unused = rejected or invalid_unused
             if invalid_unused or any(values[name] is None for name in required_fields):
                 continue
 
             try:
                 match candidate.type_identifier:
                     case "latency":
+                        threshold = values["threshold_value"]
+                        percentile = values["percentile"]
+                        if threshold is None or percentile is None:
+                            continue
                         metric = LatencyRequirement(
-                            threshold_value=values["threshold_value"],
-                            percentile=values["percentile"],
+                            threshold_value=threshold,
+                            percentile=percentile,
                         )
                     case "queue_size_percentile":
+                        threshold = values["threshold_value"]
+                        percentile = values["percentile"]
+                        if threshold is None or percentile is None:
+                            continue
                         metric = QueueSizePercentileRequirement(
-                            threshold_value=values["threshold_value"],
-                            percentile=values["percentile"],
+                            threshold_value=threshold,
+                            percentile=percentile,
                         )
                     case "budget":
-                        metric = BudgetRequirement(
-                            threshold_value=values["threshold_value"],
-                        )
+                        threshold = values["threshold_value"]
+                        if threshold is None:
+                            continue
+                        metric = BudgetRequirement(threshold_value=threshold)
                     case "availability":
-                        metric = AvailabilityRequirement(
-                            threshold_value=values["threshold_value"],
-                        )
+                        threshold = values["threshold_value"]
+                        if threshold is None:
+                            continue
+                        metric = AvailabilityRequirement(threshold_value=threshold)
                     case "resource_utilization":
+                        minimum = values["minimum_value"]
+                        maximum = values["maximum_value"]
+                        if minimum is None or maximum is None:
+                            continue
                         metric = ResourceUtilizationRequirement(
-                            minimum_value=values["minimum_value"],
-                            maximum_value=values["maximum_value"],
+                            minimum_value=minimum,
+                            maximum_value=maximum,
                         )
                 output.append(metric)
                 field_evidence.update(local_evidence)
