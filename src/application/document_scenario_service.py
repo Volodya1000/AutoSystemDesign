@@ -19,13 +19,16 @@ from application.document_scenario_ports import (
 )
 from domain.document_requirements import (
     DocumentRequirements,
+    RequirementEvidence,
     RequirementIssue,
     RequirementIssueKind,
-    RequirementEvidence,
     RequirementKind,
 )
 from domain.models.scenarios import DesignScenario
-from domain.scenario_extraction import DocumentScenarioResult, EvidenceValue
+from domain.scenario_extraction import (
+    DocumentScenarioResult,
+    EvidenceValue,
+)
 
 
 class DocumentScenarioService:
