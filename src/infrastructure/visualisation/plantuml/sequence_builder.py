@@ -95,10 +95,7 @@ class SequenceDiagramBuilder:
                 arrow = "-->>" if step.delivery_mode == "async" else "->"
                 desc = f" [{step.description}]" if step.description else ""
                 label = _wrap_label(f"{step.action_name}{desc}")
-                lines.append(
-                    f"{indent}{step.from_lifeline} {arrow} {step.to_lifeline} "
-                    f": {label}"
-                )
+                lines.append(f"{indent}{step.from_lifeline} {arrow} {step.to_lifeline} : {label}")
             elif isinstance(step, AltStep):
                 for i, branch in enumerate(step.branches):
                     keyword = "alt" if i == 0 else "else"

@@ -217,8 +217,12 @@ def test_long_message_labels_are_wrapped_at_word_boundaries() -> None:
     source = SequenceDiagramBuilder().build(scenario)
 
     assert r"\n" in source
-    message_line = next(line for line in source.splitlines() if "Validate customer" in line)
-    assert len(message_line.split(": ", maxsplit=1)[1]) <= 36
+    message_label = next(
+        line.split(": ", maxsplit=1)[1]
+        for line in source.splitlines()
+        if "Validate customer" in line
+    )
+    assert all(len(line) <= 36 for line in message_label.split(r"\n"))
 
 
 def test_long_diagram_title_is_wrapped_at_word_boundaries() -> None:
