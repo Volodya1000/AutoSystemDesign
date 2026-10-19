@@ -254,3 +254,64 @@ def test_rejects_partial_citation_even_when_numeric_value_is_present() -> None:
         and issue.field == "workload.baseline_requests_per_second"
         for issue in result.issues
     )
+
+
+@pytest.mark.unit
+def test_uses_verified_functional_requirement_when_description_is_missing() -> None:
+    source = make_source_requirements()
+    mapping = make_mapping()
+    mapping.description = EvidenceValue(value=None, source_excerpt=None)
+
+    result = DocumentScenarioService(
+        FakeRequirementsService(source), FakeMapper(mapping)
+    ).map_requirements(source)
+
+    assert result.scenario is not None
+    assert result.scenario.description == FUNCTIONAL
+    assert result.field_evidence["description"] == FUNCTIONAL
+    assert not any(
+        issue.kind is req_doc.RequirementIssueKind.MISSING
+        and issue.field == "description"
+        for issue in result.issues
+    )
+
+
+@pytest.mark.unit
+def test_keeps_synthesized_conflict_when_all_source_excerpts_are_verified() -> None:
+    source = make_source_requirements()
+    first = "The confirmation email must be sent within 10 seconds."
+    second = "Confirmation emails may be delayed by up to 2 minutes during peak traffic."
+    source.requirements.extend(
+        [
+            req_doc.Requirement(
+                statement=excerpt,
+                kind=req_doc.RequirementKind.NON_FUNCTIONAL,
+                source_evidence=[req_doc.RequirementEvidence(source_excerpt=excerpt)],
+            )
+            for excerpt in (first, second)
+        ]
+    )
+    mapping = make_mapping()
+    mapping.conflict_notes = [
+        SourceBackedNote(
+            description=(
+                "The email delivery target conflicts with the permitted peak delay."
+            ),
+            source_evidence=[
+                req_doc.RequirementEvidence(source_excerpt=first),
+                req_doc.RequirementEvidence(source_excerpt=second),
+            ],
+        )
+    ]
+
+    result = DocumentScenarioService(
+        FakeRequirementsService(source), FakeMapper(mapping)
+    ).map_requirements(source)
+
+    conflict_issues = [
+        issue
+        for issue in result.issues
+        if issue.kind is req_doc.RequirementIssueKind.CONFLICTING
+    ]
+    assert len(conflict_issues) == 1
+    assert conflict_issues[0].evidence == [first, second]

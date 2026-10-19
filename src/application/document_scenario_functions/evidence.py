@@ -141,7 +141,16 @@ def validate_source_backed_notes(
             )
             for excerpt in excerpts
         )
-        if unsupported or not description_supported:
+        # A conflict can be a relation between separate statements, so its
+        # explanation need not be a substring of either statement. Requiring
+        # multiple independently verified citations keeps this exception narrow.
+        synthesized_conflict_supported = (
+            issue_kind is RequirementIssueKind.CONFLICTING
+            and len({" ".join(excerpt.split()) for excerpt in excerpts}) >= 2
+        )
+        if unsupported or not (
+            description_supported or synthesized_conflict_supported
+        ):
             issues.append(
                 RequirementIssue(
                     kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
