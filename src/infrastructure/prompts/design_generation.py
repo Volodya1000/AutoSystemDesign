@@ -13,7 +13,7 @@ from infrastructure.prompts.fragments_schema import (
 
 
 def build_initial_messages(task: DesignTask) -> list[Message]:
-    """Builds the [SYSTEM, USER] message pair for the first design attempt."""
+    """Build the [SYSTEM, USER] message pair for the first design attempt."""
     user_content: str = "\n\n".join(
         [
             (
