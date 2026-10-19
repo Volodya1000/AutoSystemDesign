@@ -11,7 +11,7 @@ from __future__ import annotations
 
 
 def format_error_location(loc: tuple[int | str, ...]) -> str:
-    """Formats a pydantic error location as a JSONPath-like string."""
+    """Format a pydantic error location as a JSONPath-like string."""
     if not loc:
         return "$"
     path: str = str(loc[0])
