@@ -201,9 +201,9 @@ class SequenceStage:
 
         artifact_result: SequenceArtifactResult = (
             self._artifact_processor.persist_interaction(
-            context,
-            base_name=base_name,
-            interaction=interaction,
+                context,
+                base_name=base_name,
+                interaction=interaction,
                 graph=graph,
             )
         )
