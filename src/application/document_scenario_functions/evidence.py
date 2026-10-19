@@ -2,8 +2,8 @@
 
 import math
 import re
-from dataclasses import dataclass
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from application.document_processing import (
     is_evidence_supported,

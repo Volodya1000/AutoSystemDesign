@@ -44,6 +44,10 @@ _REQUIRED_METRIC_FIELDS: dict[MetricType, frozenset[str]] = {
 }
 
 
+class UnsupportedMetricTypeError(AssertionError):
+    """Raised if an unsupported metric type bypasses domain validation."""
+
+
 def build_workload(
     extracted: ExtractedWorkload,
     verified_excerpts: list[str],
@@ -67,8 +71,7 @@ def build_workload(
         extracted.peak_requests_per_second,
         "workload.peak_requests_per_second",
         verified_excerpts,
-        required=True,
-        numeric=True,
+        options=CandidateValidationOptions(required=True, numeric=True),
     )
     read_ratio = resolve_candidate(
         extracted.read_ratio,
@@ -191,6 +194,7 @@ def _build_metric_requirement(
         f"{base_path}.type_identifier",
         verified_excerpts,
         options=CandidateValidationOptions(required=True),
+    )
     issues = list(type_result.issues)
     if type_result.value is None:
         return MappingOutcome(value=None, issues=tuple(issues))
@@ -252,7 +256,7 @@ def _create_metric(
         case "latency":
             return LatencyRequirement(
                 threshold_value=cast("float", values["threshold_value"]),
-                percentile=cast(float, values["percentile"]),
+                percentile=cast("float", values["percentile"]),
             )
         case "queue_size_percentile":
             return QueueSizePercentileRequirement(
@@ -273,7 +277,7 @@ def _create_metric(
                 maximum_value=cast(float, values["maximum_value"]),
             )
         case _:
-            raise ValueError(f"Unsupported metric type: {metric_type}")
+            raise UnsupportedMetricTypeError(f"Unsupported metric type: {metric_type}")
 
 
 def build_functional_requirements(
