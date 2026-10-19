@@ -84,7 +84,7 @@ def test_json_schema_mode_without_schema_raises_before_transport() -> None:
     client = _client(StructuredOutputMode.JSON_SCHEMA)
     with (
         patch(_COMPLETION_TARGET) as mocked,
-        pytest.raises(ValueError, match="requires request.response_schema"),
+        pytest.raises(ValueError, match=r"requires request\.response_schema"),
     ):
         client.complete(_request())
     mocked.assert_not_called()
