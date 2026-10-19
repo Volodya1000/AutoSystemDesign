@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from domain.models.ast_steps import (
@@ -15,6 +15,26 @@ from infrastructure.visualisation.plantuml.participant_kinds import participant_
 
 if TYPE_CHECKING:
     from domain.models.enums import NodeType
+
+
+MAX_LABEL_LINE_LENGTH: Final[int] = 36
+
+
+def _wrap_label(text: str, max_length: int = MAX_LABEL_LINE_LENGTH) -> str:
+    """Insert PlantUML line breaks at word boundaries to limit diagram width."""
+    words = text.split()
+    lines: list[str] = []
+    current_line = ""
+    for word in words:
+        candidate = f"{current_line} {word}" if current_line else word
+        if current_line and len(candidate) > max_length:
+            lines.append(current_line)
+            current_line = word
+        else:
+            current_line = candidate
+    if current_line:
+        lines.append(current_line)
+    return r"\n".join(lines)
 
 
 class SequenceDiagramBuilder:
@@ -32,7 +52,7 @@ class SequenceDiagramBuilder:
         title: str | None = None,
     ) -> str:
         scenario, node_type_by_id = self._unpack(subject)
-        lines = ["@startuml", f"title {title or scenario.description}"]
+        lines = ["@startuml", f"title {_wrap_label(title or scenario.description)}"]
         lines.extend(
             self._format_participant(lifeline, node_type_by_id)
             for lifeline in scenario.lifelines
@@ -74,9 +94,10 @@ class SequenceDiagramBuilder:
             if isinstance(step, MessageStep):
                 arrow = "-->>" if step.delivery_mode == "async" else "->"
                 desc = f" [{step.description}]" if step.description else ""
+                label = _wrap_label(f"{step.action_name}{desc}")
                 lines.append(
                     f"{indent}{step.from_lifeline} {arrow} {step.to_lifeline} "
-                    f": {step.action_name}{desc}"
+                    f": {label}"
                 )
             elif isinstance(step, AltStep):
                 for i, branch in enumerate(step.branches):
