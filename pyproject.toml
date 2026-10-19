@@ -53,8 +53,13 @@ extend-select = [
     "TC",    # Type-checking import and annotation rules.
     "TID",   # Keep imports explicit and maintainable.
     "TRY",   # Exception handling and error-design rules.
+    "PLR0911", # Keep functions from accumulating too many return paths.
+    "PLR0912", # Keep branching logic manageable.
+    "PLR0913", # Keep function interfaces small.
     "PLR0914", # Keep functions from accumulating too many local variables.
+    "PLR0915", # Keep functions focused on one responsibility.
     "PLR1702", # Keep control flow from becoming deeply nested.
+    "SLF",    # Enforce encapsulation by preventing private-member access.
 ]
 # All enabled rules must be fixed rather than suppressed.
 

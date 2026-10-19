@@ -16,9 +16,18 @@ if TYPE_CHECKING:
 
 
 class DefaultApiArtifactRenderer:
-    def __init__(self) -> None:
-        self._openapi_renderer: OpenApiRenderer = OpenApiRenderer()
-        self._swagger_renderer: SwaggerUiRenderer = SwaggerUiRenderer()
+    def __init__(
+        self,
+        *,
+        openapi_renderer: OpenApiRenderer | None = None,
+        swagger_renderer: SwaggerUiRenderer | None = None,
+    ) -> None:
+        self._openapi_renderer = (
+            openapi_renderer if openapi_renderer is not None else OpenApiRenderer()
+        )
+        self._swagger_renderer = (
+            swagger_renderer if swagger_renderer is not None else SwaggerUiRenderer()
+        )
 
     def render(
         self,

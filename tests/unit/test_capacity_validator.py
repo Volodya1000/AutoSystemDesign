@@ -12,7 +12,6 @@ import pytest
 
 from domain.exceptions.architecture_errors import CapacitySaturationError
 from domain.models.enums import NodeType
-from domain.models.nodes import ComputeNode
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import AnyNode, ArchitectureGraph
 from domain.specifications.capacity_validator import (
@@ -20,7 +19,8 @@ from domain.specifications.capacity_validator import (
     CapacitySaturationValidator,
     compute_node_utilization,
 )
-from tests.unit.test_structural_validator import (
+from tests.factories import (
+    create_test_compute_node,
     create_test_edge,
     create_test_node,
 )
@@ -29,32 +29,6 @@ pytestmark = pytest.mark.unit
 
 
 # ------------------------------------------------------------------ helpers
-
-
-def _custom_compute(
-    identifier: str,
-    *,
-    concurrency: int = 100,
-    mean_ms: float = 10.0,
-    std_ms: float = 2.0,
-    replicas: int = 1,
-    cost: float = 50.0,
-) -> ComputeNode:
-    """ComputeNode with explicit capacity fields, bypassing test factory defaults.
-
-    The structural-validator factory hardcodes concurrency=100 and mean=10;
-    the saturation tests below need other values to hit specific utilization
-    ratios, so we build the node directly.
-    """
-    return ComputeNode(
-        identifier=identifier,
-        replicas_count=replicas,
-        maximum_concurrency=concurrency,
-        maximum_queue_size=500,
-        mean_processing_time_milliseconds=mean_ms,
-        standard_deviation_processing_time=std_ms,
-        monthly_cost_usd=cost,
-    )
 
 
 def _scenario(peak_rps: float) -> DesignScenario:
@@ -96,7 +70,7 @@ class TestBelowThreshold:
         """
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1"),
+            create_test_compute_node("compute_1"),
         )
         result = CapacitySaturationValidator().validate(graph, _scenario(1_000.0))
         assert result.is_successful is True
@@ -106,7 +80,7 @@ class TestBelowThreshold:
         """compute_node_utilization always reports every capacity node."""
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1"),
+            create_test_compute_node("compute_1"),
         )
         utilization = compute_node_utilization(graph, _scenario(1_000.0))
         assert utilization == {"compute_1": pytest.approx(0.10, rel=1e-9)}
@@ -123,7 +97,7 @@ class TestBoundaryAt98Percent:
         """
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1"),
+            create_test_compute_node("compute_1"),
         )
         result = CapacitySaturationValidator().validate(graph, _scenario(9_799.0))
         assert result.is_successful is True
@@ -137,7 +111,7 @@ class TestBoundaryAt98Percent:
         """
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1"),
+            create_test_compute_node("compute_1"),
         )
         result = CapacitySaturationValidator().validate(graph, _scenario(9_800.0))
         assert result.is_successful is False
@@ -163,7 +137,7 @@ class TestAboveThreshold:
         """
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1"),
+            create_test_compute_node("compute_1"),
         )
         result = CapacitySaturationValidator().validate(graph, _scenario(10_500.0))
 
@@ -193,7 +167,7 @@ class TestReplicasMultiplyCapacity:
         """
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1", replicas=2),
+            create_test_compute_node("compute_1", replicas=2),
         )
         result = CapacitySaturationValidator().validate(graph, _scenario(15_000.0))
         assert result.is_successful is True
@@ -216,8 +190,8 @@ class TestMultipleNodes:
         """
         client_1 = create_test_node("client_1", NodeType.CLIENT)
         client_2 = create_test_node("client_2", NodeType.CLIENT)
-        compute_1 = _custom_compute("compute_1", concurrency=1_200)
-        compute_2 = _custom_compute("compute_2", concurrency=500)
+        compute_1 = create_test_compute_node("compute_1", concurrency=1_200)
+        compute_2 = create_test_compute_node("compute_2", concurrency=500)
 
         graph = ArchitectureGraph(
             nodes=[client_1, client_2, compute_1, compute_2],
@@ -248,7 +222,7 @@ class TestMissingWorkload:
     def test_compute_node_utilization_returns_empty_dict(self) -> None:
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1"),
+            create_test_compute_node("compute_1"),
         )
         scenario = DesignScenario(
             identifier="no_workload",
@@ -260,7 +234,7 @@ class TestMissingWorkload:
     def test_validator_returns_empty_result(self) -> None:
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1"),
+            create_test_compute_node("compute_1"),
         )
         scenario = DesignScenario(
             identifier="no_workload",
@@ -281,7 +255,7 @@ class TestClientNodeExclusion:
         to utilization (and never be the target of a saturation error)."""
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1"),
+            create_test_compute_node("compute_1"),
         )
         utilization = compute_node_utilization(graph, _scenario(1_000.0))
         assert "client" not in utilization
@@ -292,7 +266,7 @@ class TestClientNodeExclusion:
         no queue, no error."""
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
-            _custom_compute("compute_1", concurrency=10_000, mean_ms=1.0),
+            create_test_compute_node("compute_1", concurrency=10_000, mean_ms=1.0),
         )
         result = CapacitySaturationValidator().validate(graph, _scenario(1_000_000.0))
         assert result.is_successful is True
