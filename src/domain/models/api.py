@@ -137,8 +137,7 @@ class ApiOperation(ApiModel):
 
     entrypoint_component_id: str = Field(
         description=(
-            "C4 Node ID accepting external traffic "
-            + "(e.g. 'edge_lb', 'api_gateway')"
+            "C4 Node ID accepting external traffic " + "(e.g. 'edge_lb', 'api_gateway')"
         )
     )
     handler_component_id: str = Field(
