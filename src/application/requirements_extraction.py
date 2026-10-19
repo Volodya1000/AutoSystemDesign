@@ -16,6 +16,7 @@ from domain.document_requirements import (
     RequirementEvidence,
     RequirementIssue,
     RequirementIssueKind,
+    SourceBackedNote,
 )
 from domain.extraction_chunk import ExtractionChunk
 
@@ -48,13 +49,16 @@ class DocumentRequirementsService:
         self._overlap_chars = overlap_chars
 
     def extract_file(self, path: Path) -> DocumentRequirements:
-        text = self._reader.read_text(path)
+        return self.extract_text(self._reader.read_text(path), path.name)
+
+    def extract_text(self, text: str, source_name: str) -> DocumentRequirements:
+        """Extract requirements from already-read text without rereading the file."""
         chunks = split_document_text(
             text,
             max_chars=self._max_chars,
             overlap_chars=self._overlap_chars,
         )
-        results = [self._extractor.extract(chunk, path.name) for chunk in chunks]
+        results = [self._extractor.extract(chunk, source_name) for chunk in chunks]
         requirements: list[Requirement] = []
         issues: list[RequirementIssue] = []
 
@@ -92,18 +96,20 @@ class DocumentRequirementsService:
                     )
 
             issues.extend(
-                RequirementIssue(
-                    kind=RequirementIssueKind.AMBIGUOUS,
-                    description=note,
-                    evidence=[note],
+                self._note_issue(
+                    note,
+                    chunk,
+                    RequirementIssueKind.AMBIGUOUS,
+                    "ambiguity note",
                 )
                 for note in result.ambiguity_notes
             )
             issues.extend(
-                RequirementIssue(
-                    kind=RequirementIssueKind.CONFLICTING,
-                    description=note,
-                    evidence=[note],
+                self._note_issue(
+                    note,
+                    chunk,
+                    RequirementIssueKind.CONFLICTING,
+                    "conflict note",
                 )
                 for note in result.conflict_notes
             )
@@ -122,5 +128,32 @@ class DocumentRequirementsService:
             requirements=deduplicate_requirements(requirements),
             issues=deduplicate_issues(issues),
             is_relevant=any(result.is_relevant for result in results),
-            source_name=path.name,
+            source_name=source_name,
+        )
+
+    @staticmethod
+    def _note_issue(
+        note: SourceBackedNote,
+        chunk: str,
+        issue_kind: RequirementIssueKind,
+        note_label: str,
+    ) -> RequirementIssue:
+        unsupported = [
+            evidence.source_excerpt
+            for evidence in note.source_evidence
+            if not is_evidence_supported(evidence, chunk)
+        ]
+        if unsupported:
+            return RequirementIssue(
+                kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
+                description=f"Discarded {note_label} with unsupported citations: "
+                f"{note.description}",
+                evidence=[f"Unverified citation: {excerpt}" for excerpt in unsupported],
+            )
+        return RequirementIssue(
+            kind=issue_kind,
+            description=note.description,
+            evidence=[
+                evidence.source_excerpt for evidence in note.source_evidence
+            ],
         )
