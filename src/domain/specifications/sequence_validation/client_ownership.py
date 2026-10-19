@@ -42,7 +42,9 @@ class ClientOwnershipValidator:
             for lifeline in scenario.lifelines
             if isinstance(lifeline, UserLifeline)
         }
-        client_roles: dict[str, set[str]] = {client_id: set() for client_id in client_ids}
+        client_roles: dict[str, set[str]] = {
+            client_id: set() for client_id in client_ids
+        }
         for message in iter_message_steps(scenario.steps):
             for client_id, user_id in (
                 (message.from_lifeline, message.to_lifeline),
