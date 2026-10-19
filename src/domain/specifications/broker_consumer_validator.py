@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 def check_message_broker_linkage(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Returns one error per broker with a broken producer/consumer link.
+    """Return one error per broker with a broken producer/consumer link.
 
     Errors are mutually exclusive per broker: the check walks the states in
     order (no producer, no consumer, self-loop) and stops at the first
