@@ -425,17 +425,19 @@ class DocumentScenarioService:
                     kind=RequirementIssueKind.MISSING,
                     field="workload.read_ratio",
                     description=(
-                        "Read/write ratio is not source-backed. The existing "
-                        "WorkloadProfile default of 0.8 will apply when this YAML "
-                        "is loaded; confirm it or add an explicit ratio."
+                        "The workload was omitted because the source-backed "
+                        "read/write ratio is missing. The existing model defaults "
+                        "to 0.8 if a workload is created without this field; "
+                        "the extractor does not apply that assumption."
                     ),
                 )
             )
+            return None
         try:
             workload = WorkloadProfile(
                 baseline_requests_per_second=baseline,
                 peak_requests_per_second=peak,
-                **({"read_ratio": read_ratio} if read_ratio is not None else {}),
+                read_ratio=read_ratio,
             )
         except ValidationError as error:
             issues.append(
