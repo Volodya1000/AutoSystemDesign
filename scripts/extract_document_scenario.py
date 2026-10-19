@@ -23,8 +23,6 @@ from infrastructure.llm.document_requirement_extractor import (
 from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMapper
 
 
-_logger: logging.Logger = logging.getLogger(__name__)
-
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line interface for document-to-scenario generation."""
@@ -86,6 +84,7 @@ def _write_evidence_manifest(path: Path, result: DocumentScenarioResult) -> None
 
 def _run_pipeline(args: argparse.Namespace) -> int:
     """Invoke the existing pipeline CLI so its orchestration remains the single source."""
+    logger = logging.getLogger(__name__)
     script_path = Path(__file__).with_name("generate_pipeline.py")
     command = [sys.executable, str(script_path), "--scenario", str(args.output)]
     if args.pipeline_out_dir is not None:
@@ -95,13 +94,14 @@ def _run_pipeline(args: argparse.Namespace) -> int:
     try:
         return subprocess.run(command, check=False).returncode
     except OSError as error:
-        _logger.error("Could not start the design pipeline: %s", error)
+        logger.error("Could not start the design pipeline: %s", error)
         return 2
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run extraction, save evidence diagnostics, and write canonical scenario YAML."""
     configure_logging(verbose=False)
+    logger = logging.getLogger(__name__)
     args = build_parser().parse_args(argv)
     evidence_output: Path = args.evidence_output or args.output.with_name(
         f"{args.output.stem}.evidence.json"
@@ -121,11 +121,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = service.extract_file(args.document)
         _write_evidence_manifest(evidence_output, result)
     except (LlmConnectionError, OSError, ValueError) as error:
-        _logger.error("Document-to-scenario extraction failed: %s", error)
+        logger.error("Document-to-scenario extraction failed: %s", error)
         return 2
 
     if result.scenario is None:
-        _logger.error(
+        logger.error(
             "No pipeline scenario was written because required fields or source "
             "evidence could not be validated. Inspect %s.",
             evidence_output,
@@ -140,13 +140,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         yaml.safe_dump(output_payload, allow_unicode=True, sort_keys=False),
         encoding="utf-8",
     )
-    _logger.info("Generated scenario: %s", args.output)
-    _logger.info("Evidence manifest: %s", evidence_output)
-    _logger.info(
+    logger.info("Generated scenario: %s", args.output)
+    logger.info("Evidence manifest: %s", evidence_output)
+    logger.info(
         "Functional requirements: %d", len(result.scenario.functional_requirements)
     )
-    _logger.info("Non-functional requirements: %d", len(result.scenario.requirements))
-    _logger.info("Diagnostics: %d", len(result.issues))
+    logger.info("Non-functional requirements: %d", len(result.scenario.requirements))
+    logger.info("Diagnostics: %d", len(result.issues))
     if args.run_pipeline:
         return _run_pipeline(args)
     return 0

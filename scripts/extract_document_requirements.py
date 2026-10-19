@@ -15,8 +15,6 @@ from infrastructure.llm.document_requirement_extractor import (
     LlmDocumentRequirementExtractor,
 )
 
-_logger: logging.Logger = logging.getLogger(__name__)
-
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line interface for raw requirement extraction."""
@@ -41,6 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     """Extract claims, validate their citations, and write JSON diagnostics."""
     configure_logging(verbose=False)
+    logger = logging.getLogger(__name__)
     args = build_parser().parse_args(argv)
     try:
         settings = load_app_settings()
@@ -56,12 +55,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             encoding="utf-8",
         )
     except (LlmConnectionError, OSError, ValueError) as error:
-        _logger.error("Document requirement extraction failed: %s", error)
+        logger.error("Document requirement extraction failed: %s", error)
         return 2
 
-    _logger.info("Extracted %d requirements.", len(result.requirements))
-    _logger.info("Reported %d diagnostic issues.", len(result.issues))
-    _logger.info("JSON result: %s", args.output)
+    logger.info("Extracted %d requirements.", len(result.requirements))
+    logger.info("Reported %d diagnostic issues.", len(result.issues))
+    logger.info("JSON result: %s", args.output)
     return 0
 
 
