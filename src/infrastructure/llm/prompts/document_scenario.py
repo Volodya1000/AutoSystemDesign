@@ -16,9 +16,12 @@ Rules:
 - For numeric fields, copy the number supported by the citation. Do not convert
   units, normalize percentages to fractions, or guess a percentile. When a numeric
   value is not explicit in a source excerpt, use null.
-- description.value should be a concise summary supported by its cited source text.
-- Each functional requirement represents one distinct system behaviour. Its text
-  must be supported by its citation. Do not infer implementation details.
+- description.value must be copied verbatim from a cited excerpt, not summarized
+  or paraphrased. If no suitable source excerpt exists, set both fields to null.
+- Each functional requirement's text must be a contiguous verbatim substring of its
+  cited source_excerpt. Never paraphrase, strengthen, or add implications.
+- The type_identifier of each metric must have a source_excerpt that supports this
+  classification; cite the requirement statement or another verified excerpt.
 - Supported non-functional types are latency, queue_size_percentile, budget,
   availability, and resource_utilization. Cite each numeric field separately.
 - For latency and queue_size_percentile, include threshold_value and percentile
