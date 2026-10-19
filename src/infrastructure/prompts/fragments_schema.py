@@ -78,7 +78,7 @@ FEW_SHOT_GRAPH_JSON: Final[str] = """{
 
 
 def render_output_schema() -> str:
-    """Renders the output contract for the architecture graph.
+    """Render the output contract for the architecture graph.
 
     The structural part is generated from ArchitectureGraph.model_json_schema()
     so any change to the pydantic models is reflected in the prompt with no
