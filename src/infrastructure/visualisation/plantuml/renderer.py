@@ -66,7 +66,7 @@ class PlantumlImageRenderer(Protocol):
 
 
 def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
-    """Downloads the URL content with a client user agent.
+    """Download the URL content with a client user agent.
 
     A custom user agent is required: the Cloudflare in front of the
     public PlantUML server answers HTTP 403 to the default
@@ -92,7 +92,7 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
 
 
 class PlantumlServerImageRenderer:
-    """Fetches images from a PlantUML HTTP server over GET.
+    """Fetch images from a PlantUML HTTP server over GET.
 
     Works with the public plantuml.com server and with self-hosted
     plantuml-server instances (for example the docker compose
@@ -109,11 +109,11 @@ class PlantumlServerImageRenderer:
         self._timeout_seconds: float = timeout_seconds
 
     def build_image_url(self, source: str, image_format: DiagramImageFormat) -> str:
-        """Returns the URL that renders the source in the given format."""
+        """Return the URL that renders the source in the given format."""
         return build_plantuml_url(self._server_url, source, image_format)
 
     def render(self, source: str, image_format: DiagramImageFormat) -> bytes:
-        """Downloads the rendered image from the PlantUML server."""
+        """Download the rendered image from the PlantUML server."""
         return _fetch(
             self.build_image_url(source, image_format),
             f"PlantUML server {self._server_url}",
@@ -122,7 +122,7 @@ class PlantumlServerImageRenderer:
 
 
 class KrokiImageRenderer:
-    """Fetches images from a Kroki diagram gateway over GET.
+    """Fetch images from a Kroki diagram gateway over GET.
 
     Kroki (https://kroki.io) renders PlantUML among many other diagram
     types and accepts programmatic clients without bot protection,
@@ -138,11 +138,11 @@ class KrokiImageRenderer:
         self._timeout_seconds: float = timeout_seconds
 
     def build_image_url(self, source: str, image_format: DiagramImageFormat) -> str:
-        """Returns the URL that renders the source in the given format."""
+        """Return the URL that renders the source in the given format."""
         return build_kroki_url(self._server_url, source, image_format)
 
     def render(self, source: str, image_format: DiagramImageFormat) -> bytes:
-        """Downloads the rendered image from the Kroki gateway."""
+        """Download the rendered image from the Kroki gateway."""
         return _fetch(
             self.build_image_url(source, image_format),
             f"Kroki server {self._server_url}",
@@ -187,11 +187,11 @@ class FallbackImageRenderer:
         self._renderers: tuple[PlantumlImageRenderer, ...] = tuple(renderers)
 
     def build_image_url(self, source: str, image_format: DiagramImageFormat) -> str:
-        """Returns the image URL of the primary renderer."""
+        """Return the image URL of the primary renderer."""
         return self._renderers[0].build_image_url(source, image_format)
 
     def render(self, source: str, image_format: DiagramImageFormat) -> bytes:
-        """Renders through the first server that responds successfully."""
+        """Render through the first server that responds successfully."""
         failures: list[str] = []
         renderer: PlantumlImageRenderer
         for renderer in self._renderers:
@@ -206,7 +206,7 @@ class FallbackImageRenderer:
 
 
 def resolve_image_renderer(server: str) -> PlantumlImageRenderer:
-    """Builds the renderer for a server selection string.
+    """Build the renderer for a server selection string.
 
     Supported selections:
     - "auto": the public PlantUML server with the public Kroki gateway
