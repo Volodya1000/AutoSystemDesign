@@ -293,7 +293,7 @@ def test_keeps_synthesized_conflict_when_all_source_excerpts_are_verified() -> N
     )
     mapping = make_mapping()
     mapping.conflict_notes = [
-        SourceBackedNote(
+        req_doc.SourceBackedNote(
             description=(
                 "The email delivery target conflicts with the permitted peak delay."
             ),

@@ -126,5 +126,5 @@ def test_extractor_rejects_invalid_json_schema_payload() -> None:
     client = FakeCompletionClient(make_response(content, FinishReason.STOP))
     extractor = LlmDocumentRequirementExtractor(make_settings(), client)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="validation error"):
         extractor.extract("Some requirement.", "spec.md")

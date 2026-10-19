@@ -1,5 +1,7 @@
 """Pure text chunking functions."""
 
+from application.document_reader import DocumentInputError
+
 
 def split_document_text(
     text: str,
@@ -9,9 +11,9 @@ def split_document_text(
 ) -> list[str]:
     """Split text into bounded overlapping windows, preferring paragraph breaks."""
     if max_chars < 1:
-        raise ValueError("max_chars must be positive")
+        raise DocumentInputError("max_chars must be positive")
     if overlap_chars < 0 or overlap_chars >= max_chars:
-        raise ValueError("overlap_chars must be in [0, max_chars)")
+        raise DocumentInputError("overlap_chars must be in [0, max_chars)")
     if not text:
         return []
 

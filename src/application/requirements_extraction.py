@@ -10,7 +10,7 @@ from application.document_processing import (
     matches_verified_excerpt,
     split_document_text,
 )
-from application.document_reader import DocumentReader
+from application.document_reader import DocumentInputError, DocumentReader
 from domain.document_requirements import (
     DocumentRequirements,
     Requirement,
@@ -41,9 +41,9 @@ class DocumentRequirementsService:
         overlap_chars: int = 500,
     ) -> None:
         if max_chars < 1:
-            raise ValueError("max_chars must be positive")
+            raise DocumentInputError("max_chars must be positive")
         if overlap_chars < 0 or overlap_chars >= max_chars:
-            raise ValueError("overlap_chars must be in [0, max_chars)")
+            raise DocumentInputError("overlap_chars must be in [0, max_chars)")
         self._reader = reader
         self._extractor = extractor
         self._max_chars = max_chars

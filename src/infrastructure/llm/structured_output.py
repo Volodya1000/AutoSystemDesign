@@ -15,6 +15,10 @@ from infrastructure.llm.models import (
 )
 from infrastructure.llm.protocols import CompletionClient
 
+class StructuredOutputError(ValueError):
+    """The LLM response cannot be used as structured output."""
+
+
 ModelT = TypeVar("ModelT", bound=BaseModel)
 
 
@@ -69,7 +73,7 @@ class StructuredOutputAdapter:
         )
         response = self._client.complete(request)
         if response.finish_reason is FinishReason.LENGTH:
-            raise ValueError(
+            raise StructuredOutputError(
                 f"LLM {operation} response was truncated; reduce input size "
                 "or increase the configured token limit."
             )

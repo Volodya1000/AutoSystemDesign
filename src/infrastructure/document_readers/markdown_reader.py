@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from application.document_reader import DocumentReader
+from application.document_reader import DocumentInputError, DocumentReader
 
 
 class MarkdownReader(DocumentReader):
@@ -10,7 +10,7 @@ class MarkdownReader(DocumentReader):
 
     def read_text(self, path: Path) -> str:
         if path.suffix.lower() not in {".md", ".markdown"}:
-            raise ValueError(f"Unsupported Markdown extension: {path.suffix}")
+            raise DocumentInputError(f"Unsupported Markdown extension: {path.suffix}")
         try:
             text = path.read_text(encoding="utf-8-sig")
         except UnicodeDecodeError as exc:

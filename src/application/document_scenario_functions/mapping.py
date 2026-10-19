@@ -4,7 +4,10 @@ from typing import cast
 
 from pydantic import ValidationError
 
-from application.document_scenario_functions.evidence import resolve_candidate
+from application.document_scenario_functions.evidence import (
+    CandidateValidationOptions,
+    resolve_candidate,
+)
 from application.document_scenario_functions.naming import functional_name
 from application.document_scenario_functions.results import MappingOutcome
 from domain.document_requirements import RequirementIssue, RequirementIssueKind
@@ -58,8 +61,7 @@ def build_workload(
         extracted.baseline_requests_per_second,
         "workload.baseline_requests_per_second",
         verified_excerpts,
-        required=True,
-        numeric=True,
+        options=CandidateValidationOptions(required=True, numeric=True),
     )
     peak = resolve_candidate(
         extracted.peak_requests_per_second,
@@ -72,8 +74,7 @@ def build_workload(
         extracted.read_ratio,
         "workload.read_ratio",
         verified_excerpts,
-        required=False,
-        numeric=True,
+        options=CandidateValidationOptions(required=False, numeric=True),
     )
     issues = [*baseline.issues, *peak.issues, *read_ratio.issues]
     local_evidence = dict(
@@ -189,8 +190,7 @@ def _build_metric_requirement(
         candidate.type_identifier,
         f"{base_path}.type_identifier",
         verified_excerpts,
-        required=True,
-    )
+        options=CandidateValidationOptions(required=True),
     issues = list(type_result.issues)
     if type_result.value is None:
         return MappingOutcome(value=None, issues=tuple(issues))
@@ -205,8 +205,9 @@ def _build_metric_requirement(
             getattr(candidate, field_name),
             f"{base_path}.{field_name}",
             verified_excerpts,
-            required=field_name in required_fields,
-            numeric=True,
+            options=CandidateValidationOptions(
+                required=field_name in required_fields, numeric=True
+            ),
         )
         issues.extend(field_result.issues)
         values[field_name] = field_result.value
@@ -250,7 +251,7 @@ def _create_metric(
     match metric_type:
         case "latency":
             return LatencyRequirement(
-                threshold_value=cast(float, values["threshold_value"]),
+                threshold_value=cast("float", values["threshold_value"]),
                 percentile=cast(float, values["percentile"]),
             )
         case "queue_size_percentile":
@@ -272,7 +273,7 @@ def _create_metric(
                 maximum_value=cast(float, values["maximum_value"]),
             )
         case _:
-            raise AssertionError(f"Unsupported metric type: {metric_type}")
+            raise ValueError(f"Unsupported metric type: {metric_type}")
 
 
 def build_functional_requirements(
@@ -290,8 +291,7 @@ def build_functional_requirements(
             candidate.text,
             field_path,
             verified_excerpts,
-            required=True,
-            verbatim_text=True,
+            options=CandidateValidationOptions(required=True, verbatim_text=True),
         )
         issues.extend(result.issues)
         if result.value is None:

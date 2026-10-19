@@ -4,6 +4,10 @@ from pathlib import Path
 from typing import Protocol
 
 
+class DocumentInputError(ValueError):
+    """Invalid document input or chunking configuration."""
+
+
 class DocumentReader(Protocol):
     """Strategy contract implemented by format-specific infrastructure adapters."""
 

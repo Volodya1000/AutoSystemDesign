@@ -2,6 +2,7 @@
 
 import math
 import re
+from dataclasses import dataclass
 from collections.abc import Sequence
 
 from application.document_processing import (
@@ -38,16 +39,25 @@ def _contains_number(text: str, expected: float) -> bool:
     return False
 
 
+@dataclass(frozen=True)
+class CandidateValidationOptions:
+    """Optional validation rules for a source-backed scenario field."""
+
+    required: bool
+    numeric: bool = False
+    verbatim_text: bool = False
+
+
 def resolve_candidate[ValueT](
     candidate: EvidenceValue[ValueT],
     field_path: str,
     verified_excerpts: Sequence[str],
-    *,
-    required: bool,
-    numeric: bool = False,
-    verbatim_text: bool = False,
+    options: CandidateValidationOptions,
 ) -> MappingOutcome[ValueT | None]:
     """Validate a candidate without mutating caller-owned collections."""
+    required = options.required
+    numeric = options.numeric
+    verbatim_text = options.verbatim_text
     value = candidate.value
     excerpt = candidate.source_excerpt
     if value is None:

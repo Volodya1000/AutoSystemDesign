@@ -70,7 +70,7 @@ class LiteLlmClient:
             original_message = (
                 f"{diagnostic} Provider error: {error}" if diagnostic else str(error)
             )
-            self.logger.error(
+            self.logger.exception(
                 "LLM call to %s failed: %s", self._settings.base_url, original_message
             )
             raise LlmConnectionError(

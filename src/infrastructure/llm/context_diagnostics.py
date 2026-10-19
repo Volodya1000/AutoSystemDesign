@@ -1,6 +1,11 @@
 """Diagnostics for provider-side context-window overflow errors."""
 
-from infrastructure.llm.models import CompletionRequest
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from infrastructure.llm.models import CompletionRequest
 
 
 _CONTEXT_OVERFLOW_MARKERS: tuple[str, ...] = (
@@ -37,7 +42,7 @@ def context_overflow_diagnostic(
                 messages=[item.model_dump() for item in request.messages],
             )
         )
-    except Exception:  # diagnostics must never hide the original provider error
+    except (ValueError, TypeError, KeyError, AttributeError):  # token counter is best-effort
         prompt_tokens = None
 
     details = ["LLM context window exceeded."]

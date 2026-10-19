@@ -77,7 +77,7 @@ def test_mapper_rejects_invalid_output_and_truncated_response() -> None:
         make_response('{"is_relevant": true}', FinishReason.STOP)
     )
     mapper = LlmDocumentScenarioMapper(make_settings(), invalid_client)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="validation error"):
         mapper.map(
             DocumentRequirements(
                 requirements=[], is_relevant=True, source_name="spec.md"

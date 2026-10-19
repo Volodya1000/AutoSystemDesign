@@ -8,6 +8,10 @@ from domain.document_requirements import RequirementIssue, SourceBackedNote
 from domain.models.scenarios import DesignScenario
 
 
+class EvidencePairValidationError(ValueError):
+    """Evidence value and citation are inconsistent."""
+
+
 class EvidenceValue[ValueT](BaseModel):
     """A candidate field value paired with a source citation or two nulls."""
 
@@ -19,11 +23,11 @@ class EvidenceValue[ValueT](BaseModel):
     @model_validator(mode="after")
     def _validate_evidence_pair(self) -> Self:
         if (self.value is None) != (self.source_excerpt is None):
-            raise ValueError(
+            raise EvidencePairValidationError(
                 "value and source_excerpt must both be set or both be null"
             )
         if self.source_excerpt is not None and not self.source_excerpt.strip():
-            raise ValueError("source_excerpt must not be blank")
+            raise EvidencePairValidationError("source_excerpt must not be blank")
         return self
 
 

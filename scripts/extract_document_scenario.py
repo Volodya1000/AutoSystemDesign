@@ -94,7 +94,7 @@ def _run_pipeline(args: argparse.Namespace) -> int:
     try:
         return subprocess.run(command, check=False).returncode
     except OSError as error:
-        logger.error("Could not start the design pipeline: %s", error)
+        logger.exception("Could not start the design pipeline: %s", error)
         return 2
 
 
@@ -134,7 +134,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = service.extract_file(args.document)
         _write_evidence_manifest(evidence_output, result)
     except (LlmConnectionError, OSError, ValueError) as error:
-        logger.error("Document-to-scenario extraction failed: %s", error)
+        logger.exception("Document-to-scenario extraction failed: %s", error)
         return 2
 
     if result.scenario is None:
