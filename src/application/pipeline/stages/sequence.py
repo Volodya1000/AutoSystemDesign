@@ -63,18 +63,31 @@ class SequenceStage:
     def run(
         self, context: StageContext
     ) -> StageOutcome[dict[str, InteractionScenario]]:
+        stage_start: float = time.perf_counter()
+        scenario: DesignScenario = context.scenario
+
+        if not scenario.functional_requirements:
+            _logger.info(
+                "No functional requirements provided; skipping sequence generation."
+            )
+            return StageOutcome(
+                name=self.name,
+                status=StageStatus.SUCCEEDED,
+                duration_seconds=time.perf_counter() - stage_start,
+                total_tokens=0,
+                payload={},
+                message="No functional requirements provided; skipping sequence generation.",
+            )
+
         upstream_name: str = self.depends_on[0]
         graph: ArchitectureGraph = require_payload(
             context, upstream_name, ArchitectureGraph
         )
-        scenario: DesignScenario = context.scenario
-
         early_collision_error: str | None = self._check_early_collisions(scenario)
         if early_collision_error is not None:
             _logger.error("Identifier collision: %s", early_collision_error)
             return self._failed(0.0, 0, early_collision_error)
 
-        stage_start: float = time.perf_counter()
         generation_start: float = time.perf_counter()
         result: SequenceGenerationResult = self._service.generate(scenario, graph)
         generation_seconds: float = time.perf_counter() - generation_start

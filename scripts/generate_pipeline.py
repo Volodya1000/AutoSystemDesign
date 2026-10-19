@@ -61,6 +61,7 @@ def main() -> int:
 
     try:
         wiring = build_pipeline(
+            settings=settings,
             diagram_server=server,
             image_format=image_format,
             render_diagrams=not args.no_diagram,

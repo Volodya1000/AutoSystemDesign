@@ -20,34 +20,42 @@ from application.tasks import JSON_DECODE_ERROR_TYPE, ProposalFailureDetail
 from application.usage import TokenUsage
 from infrastructure.design._error_location import format_error_location
 
-_THINK_BLOCK_PATTERN: re.Pattern[str] = re.compile(r"", re.DOTALL)
+_THINK_BLOCK_PATTERN: re.Pattern[str] = re.compile(
+    r"<think>.*?</think>", re.DOTALL | re.IGNORECASE
+)
 _CODE_FENCE_PATTERN: re.Pattern[str] = re.compile(
     r"```[a-zA-Z]*\s*(.*?)\s*```", re.DOTALL
 )
 
 
 def extract_json_payload(raw: str) -> str:
-    """Extracts the JSON payload from a raw LLM completion.
+    """Extract a JSON object from an LLM completion.
 
-    Steps: strip Qwen-style think blocks, unwrap markdown code fences, then
-    fall back to the substring between the first '{' and the last '}'.
+    Think blocks and markdown fences are removed first. A JSON decoder then
+    identifies the first complete object, including when non-JSON commentary
+    follows it. If no complete object can be decoded, the remaining text is
+    returned unchanged so the caller can report a normal JSON decoding error.
     """
     text: str = _THINK_BLOCK_PATTERN.sub("", raw).strip()
     fenced_match: re.Match[str] | None = _CODE_FENCE_PATTERN.search(text)
     if fenced_match is not None:
         text = fenced_match.group(1).strip()
-    if not text.startswith("{"):
-        first_brace: int = text.find("{")
-        last_brace: int = text.rfind("}")
-        if first_brace != -1 and last_brace > first_brace:
-            text = text[first_brace : last_brace + 1]
-    return text.strip()
+
+    first_brace: int = text.find("{")
+    if first_brace == -1:
+        return text
+
+    try:
+        _, end_index = json.JSONDecoder().raw_decode(text, first_brace)
+    except json.JSONDecodeError:
+        return text
+    return text[first_brace:end_index].strip()
 
 
 def parse_payload[ModelT: BaseModel](
     text: str, model: type[ModelT], usage: TokenUsage
 ) -> ModelT:
-    """Extracts JSON from ``text`` and validates it against ``model``.
+    """Extract JSON from ``text`` and validate it against ``model``.
 
     On failure raises ``DesignProposalParsingError`` carrying the original
     text (before extraction) so repair prompts can show the model what it

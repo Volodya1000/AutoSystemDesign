@@ -29,17 +29,9 @@ from infrastructure.visualisation.plantuml import (
     DiagramSavingError,
 )
 from infrastructure.visualisation.plantuml import renderers as renderers_mod
+from tests.unit.in_memory_writer import InMemoryWriter
 
 # --- fakes ------------------------------------------------------------------
-
-
-class InMemoryWriter:
-    def __init__(self) -> None:
-        self.writes: list[tuple[Path, str]] = []
-
-    def write_text(self, path: Path, content: str) -> Path:
-        self.writes.append((path, content))
-        return path
 
 
 class NullGenerationReporter:
