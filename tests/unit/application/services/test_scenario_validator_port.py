@@ -76,6 +76,7 @@ class _ScenarioTopologyValidatorStub(BaseValidator):
         self.errors = list(errors)
 
     def validate(self, graph: ArchitectureGraph) -> ValidationResult:
+        del graph
         return ValidationResult(errors=list(self.errors))
 
 

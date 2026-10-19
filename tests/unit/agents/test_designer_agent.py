@@ -61,6 +61,7 @@ class RaisingLlmClient:
         self._error = error
 
     def complete(self, request: CompletionRequest) -> CompletionResult:
+        del request
         raise self._error
 
 
