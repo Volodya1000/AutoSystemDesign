@@ -1,5 +1,11 @@
-from typing import Any
+"""Diagram generation service joining source building and image rendering."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import overload
+
+from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4ContainerDiagramBuilder,
 )
@@ -15,18 +21,52 @@ from infrastructure.visualisation.plantuml.renderer import (
 )
 
 
-class DiagramService:
+class DiagramService[SubjectT = ArchitectureGraph]:
+    """Turns a typed diagram subject into source and rendered image bytes.
+
+    Omitting source_builder selects the legacy C4 path and is only valid for
+    ArchitectureGraph. Other diagram types must inject a matching builder.
+    """
+
+    @overload
+    def __init__(
+        self: DiagramService[ArchitectureGraph],
+        source_builder: None = None,
+        image_renderer: PlantumlImageRenderer | None = None,
+        image_format: DiagramImageFormat = DiagramImageFormat.SVG,
+    ) -> None: ...
+
+    @overload
     def __init__(
         self,
-        source_builder: DiagramSourceBuilder | None = None,
+        source_builder: DiagramSourceBuilder[SubjectT],
+        image_renderer: PlantumlImageRenderer | None = None,
+        image_format: DiagramImageFormat = DiagramImageFormat.SVG,
+    ) -> None: ...
+
+    def __init__(
+        self,
+        source_builder: DiagramSourceBuilder[SubjectT] | None = None,
         image_renderer: PlantumlImageRenderer | None = None,
         image_format: DiagramImageFormat = DiagramImageFormat.SVG,
     ) -> None:
-        self._source_builder: DiagramSourceBuilder = (
-            source_builder
-            if source_builder is not None
-            else C4ContainerDiagramBuilder()
-        )
+        self._build_source: Callable[[SubjectT, str | None], str]
+        if source_builder is None:
+
+            def build_default_source(subject: SubjectT, title: str | None) -> str:
+                # Keep runtime safety even if callers bypass static type checking.
+                if not isinstance(subject, ArchitectureGraph):
+                    raise TypeError(
+                        "The default DiagramService builder accepts "
+                        "ArchitectureGraph; inject a matching source_builder "
+                        "for other subject types."
+                    )
+                return C4ContainerDiagramBuilder().build(subject, title)
+
+            self._build_source = build_default_source
+        else:
+            self._build_source = source_builder.build
+
         self._image_renderer: PlantumlImageRenderer = (
             image_renderer
             if image_renderer is not None
@@ -34,8 +74,9 @@ class DiagramService:
         )
         self._image_format: DiagramImageFormat = image_format
 
-    def generate(self, graph: Any, title: str | None = None) -> DiagramArtifacts:
-        source: str = self._source_builder.build(graph, title)
+    def generate(self, subject: SubjectT, title: str | None = None) -> DiagramArtifacts:
+        """Build source for the typed subject and prepare its rendering URL."""
+        source: str = self._build_source(subject, title)
         return DiagramArtifacts(
             source=source,
             image_url=self._image_renderer.build_image_url(source, self._image_format),
@@ -43,4 +84,5 @@ class DiagramService:
         )
 
     def render_image(self, artifacts: DiagramArtifacts) -> bytes:
+        """Render the previously prepared source into image bytes."""
         return self._image_renderer.render(artifacts.source, artifacts.image_format)
