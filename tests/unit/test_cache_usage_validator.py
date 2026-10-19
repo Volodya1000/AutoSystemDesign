@@ -18,6 +18,7 @@ from domain.models.edges import Edge
 from domain.models.enums import NodeType
 from domain.models.nodes import CacheNode, ComputeNode, DatabaseNode
 from domain.models.protocols import (
+    ConnectionProtocol,
     ASYNCHRONOUS_MESSAGE_QUEUE,
     SYNCHRONOUS_DATABASE_TCP,
     SYNCHRONOUS_GRPC,
@@ -79,7 +80,7 @@ def _db(identifier: str) -> DatabaseNode:
 def _edge(
     source: str,
     target: str,
-    protocol,
+    protocol: ConnectionProtocol,
 ) -> Edge:
     return Edge(
         source_identifier=source,
