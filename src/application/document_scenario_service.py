@@ -540,6 +540,8 @@ def _create_metric(
                 minimum_value=cast(float, values["minimum_value"]),
                 maximum_value=cast(float, values["maximum_value"]),
             )
+        case _:
+            raise AssertionError(f"Unsupported metric type: {metric_type}")
     @staticmethod
     def _build_functional_requirements(
         extraction: DocumentScenarioExtraction,
