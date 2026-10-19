@@ -53,13 +53,13 @@ _ASYNC_MESSAGE_KINDS: frozenset[str] = frozenset({"event", "notification"})
 
 
 class SequenceCatalogValidator(Protocol):
-    """Validates a ``ProjectRolesCatalog``."""
+    """Validate a ``ProjectRolesCatalog``."""
 
     def validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult: ...
 
 
 class SequenceScenarioValidator(Protocol):
-    """Validates an ``InteractionScenario`` against its context."""
+    """Validate an ``InteractionScenario`` against its context."""
 
     def validate_scenario(
         self,
@@ -74,7 +74,7 @@ class SequenceScenarioValidator(Protocol):
 
 
 def _iter_message_steps(steps: Sequence[ScenarioStep]) -> Iterator[MessageStep]:
-    """Yields every ``MessageStep``, recursively descending into blocks."""
+    """Yield every ``MessageStep``, recursively descending into blocks."""
     for step in steps:
         if isinstance(step, MessageStep):
             yield step
