@@ -120,8 +120,9 @@ class SequenceIntegrityValidator:
         if scenario.requirement_identifier != expected_requirement_id:
             errors.append(
                 SequenceIntegrityError(
-                    f"Scenario claims to implement '{scenario.requirement_identifier}', "
-                    f"but was requested for '{expected_requirement_id}'."
+                    f"Scenario claims to implement "
+                    f"'{scenario.requirement_identifier}', but was requested for "
+                    f"'{expected_requirement_id}'."
                 )
             )
 
@@ -143,7 +144,8 @@ class SequenceIntegrityValidator:
             ):
                 errors.append(
                     SequenceIntegrityError(
-                        f"ComponentLifeline '{lifeline.lifeline_id}' references unknown "
+                        f"ComponentLifeline '{lifeline.lifeline_id}' "
+                        "references unknown "
                         f"architecture_node_id '{lifeline.architecture_node_id}'. "
                         "Must be a valid C4 node."
                     )
