@@ -7,18 +7,16 @@ root_packages =
 include_external_packages = True
 
 [importlinter:contract:layer-dependencies]
-name = Infrastructure may depend on configuration; application may depend only on domain
+name = Infrastructure may depend on configuration and application; domain is foundational
 type = layers
 layers =
     infrastructure
-    config
-    application
+    config | application
     domain
 
-[importlinter:contract:configuration-does-not-import-infrastructure]
-name = Configuration must not depend on infrastructure adapters
-type = forbidden
-source_modules =
-    config
-forbidden_modules =
+[importlinter:contract:acyclic-infrastructure-siblings]
+name = Infrastructure modules and adapters must not form dependency cycles
+type = acyclic_siblings
+ancestors =
     infrastructure
+depth = 10
