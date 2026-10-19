@@ -73,7 +73,7 @@ extend-select = [
     "D404", # Avoid starting docstrings with "This".
     "RUF002", # Avoid ambiguous Unicode in docstrings.
     "RUF005", # Prefer clearer sequence concatenation.
-    "E501",   # Enforce the configured 88-column line limit.
+    "E501",   # Enforce the configured source line-length limit.
 ]
 # All enabled rules must be fixed rather than suppressed.
 
