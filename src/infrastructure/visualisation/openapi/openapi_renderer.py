@@ -42,9 +42,7 @@ class OpenApiRenderer:
                     "required": op.request_body.required,
                     "content": {
                         op.request_body.content_type: {
-                            "schema": {
-                                "$ref": f"#/components/schemas/{schema_ref}"
-                            }
+                            "schema": {"$ref": f"#/components/schemas/{schema_ref}"}
                         }
                     },
                 }
