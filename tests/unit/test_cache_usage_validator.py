@@ -232,8 +232,10 @@ class TestMissPathMissing:
 
 class TestMultipleSyncReaders:
     def test_only_compute_without_fallback_is_reported(self) -> None:
-        """Two compute nodes read the same cache; one has a DB fallback,
-        the other does not. Only the second must be reported."""
+        """Report only the reader without a database fallback.
+
+        Two compute nodes read the same cache; one has a DB fallback and the other does not.
+        """
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             _compute("producer_a"),
