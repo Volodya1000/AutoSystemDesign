@@ -221,7 +221,7 @@ def test_default_api_artifact_renderer_returns_warning_for_invalid_spec(
         out_dir=tmp_path,
     )
 
-    assert result.artifacts == ()
+    assert not result.artifacts
     assert len(result.warnings) == 1
     assert "invalid OpenAPI model" in result.warnings[0]
     assert not (tmp_path / "resource_api_openapi.json").exists()
