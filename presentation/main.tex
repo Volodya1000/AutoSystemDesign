@@ -1,0 +1,269 @@
+% !TEX program = lualatex
+\documentclass[aspectratio=169,10pt]{beamer}
+\usepackage{fontspec}
+\usepackage[russian]{babel}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc}
+\IfFontExistsTF{Arial}{\setmainfont{Arial}}{\IfFontExistsTF{Liberation Sans}{\setmainfont{Liberation Sans}}{\setmainfont{Latin Modern Sans}}}
+
+\definecolor{Accent}{HTML}{2457A7}
+\definecolor{AccentLight}{HTML}{EAF1FC}
+\definecolor{Ink}{HTML}{202733}
+\definecolor{Muted}{HTML}{667085}
+\definecolor{Line}{HTML}{D9DEE7}
+\definecolor{Good}{HTML}{21845A}
+\definecolor{GoodLight}{HTML}{E8F6EF}
+\definecolor{Bad}{HTML}{C93636}
+\definecolor{BadLight}{HTML}{FDECEC}
+\definecolor{Panel}{HTML}{F6F8FB}
+\setbeamercolor{normal text}{fg=Ink,bg=white}
+\setbeamercolor{frametitle}{fg=Ink,bg=white}
+\setbeamercolor{structure}{fg=Accent}
+\setbeamercolor{itemize item}{fg=Accent}
+\setbeamerfont{frametitle}{series=\bfseries,size=\Large}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\raise0.15ex\hbox{\color{Accent}\small$\blacktriangleright$}}
+\setbeamertemplate{itemize subitem}{\raise0.1ex\hbox{\color{Muted}\tiny$\bullet$}}
+\setbeamertemplate{footline}{\leavevmode\hbox{\begin{beamercolorbox}[wd=.82\paperwidth,ht=2.6ex,dp=1.1ex,leftskip=1.2em]{normal text}\color{Muted}\scriptsize AutoSystemDesign\end{beamercolorbox}\begin{beamercolorbox}[wd=.18\paperwidth,ht=2.6ex,dp=1.1ex,rightskip=1.2em plus 1fil]{normal text}\color{Muted}\scriptsize\insertframenumber/\inserttotalframenumber\end{beamercolorbox}}}
+\setbeamersize{text margin left=0.75cm,text margin right=0.75cm}
+
+\newcommand{\diagramimage}[3]{\begin{center}\IfFileExists{images/diagrams/#1}{\includegraphics[width=\linewidth,height=#3,keepaspectratio]{images/diagrams/#1}}{\begin{tikzpicture}\node[draw=Line,rounded corners=7pt,fill=Panel,minimum width=.91\linewidth,minimum height=#3,align=center,text=Muted,inner sep=8pt]{\begin{minipage}{.78\linewidth}\centering{\large\bfseries #2}\\[5pt]\scriptsize Добавьте файл \texttt{images/diagrams/#1}\end{minipage}};\end{tikzpicture}}\end{center}}
+\newcommand{\sectionlabel}[1]{{\color{Accent}\scriptsize\bfseries #1}\par\vspace{5pt}}
+\newcommand{\softbox}[2]{\begin{tikzpicture}\node[draw=Line,fill=#1,rounded corners=6pt,inner sep=8pt,text width=.88\linewidth,align=left]{#2};\end{tikzpicture}}
+
+\title{AutoSystemDesign}
+\subtitle{Автоматизация проектирования архитектуры микросервисных систем}
+\author{Лычковский Владимир}
+\date{}
+\begin{document}
+
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+\fill[Accent] (current page.north west) rectangle ([xshift=0.18cm]current page.south west);
+\fill[AccentLight] ([xshift=8.6cm]current page.north east) rectangle (current page.south east);
+\draw[Accent!30,line width=1pt] ([xshift=9.1cm,yshift=-1.5cm]current page.north west) circle (1.7cm);
+\draw[Accent!22,line width=1pt] ([xshift=10.2cm,yshift=-3.2cm]current page.north west) circle (2.5cm);
+\node[draw=Accent!35,fill=white,rounded corners=8pt,minimum width=2.2cm,minimum height=.72cm] at ([xshift=10.4cm,yshift=-2.1cm]current page.north west) {\small C4};
+\node[draw=Accent!35,fill=white,rounded corners=8pt,minimum width=2.2cm,minimum height=.72cm] at ([xshift=10.4cm,yshift=-3.2cm]current page.north west) {\small Sequence};
+\node[draw=Accent!35,fill=white,rounded corners=8pt,minimum width=2.2cm,minimum height=.72cm] at ([xshift=10.4cm,yshift=-4.3cm]current page.north west) {\small OpenAPI};
+\end{tikzpicture}
+\vspace{1.3cm}
+{\color{Accent}\large\bfseries AutoSystemDesign\par}
+\vspace{0.35cm}
+{\LARGE\bfseries Автоматизация проектирования\\[3pt]архитектуры микросервисных систем\par}
+\vspace{0.9cm}
+{\large Лычковский Владимир\par}
+\vfill
+{\color{Muted}\small Генерация структурированных архитектурных моделей и их проверка}
+\vspace{0.6cm}
+\end{frame}
+
+\begin{frame}{Цель системы}
+\vspace{0.2cm}
+\softbox{AccentLight}{\textbf{\large Автоматизировать проектирование архитектуры} по функциональным и нефункциональным требованиям и профилю нагрузки.}
+\vspace{0.3cm}
+\begin{columns}[T,onlytextwidth]
+\column{.48\textwidth}
+\sectionlabel{Система не просто рисует диаграмму}
+\begin{itemize}
+\item Формирует структурированную модель компонентов и связей.
+\item Проверяет её по формализованным логическим ограничениям.
+\item Выдаёт диагностические ошибки, если модель нарушает ограничения.
+\end{itemize}
+\column{.48\textwidth}
+\sectionlabel{Что означает валидация}
+\softbox{GoodLight}{Например: клиент может обращаться к балансировщику, но не должен соединяться напрямую с кэшем, если такая связь запрещена правилами архитектуры.}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Что передаётся на вход и что получается}
+\begin{columns}[T,onlytextwidth]
+\column{.47\textwidth}
+\sectionlabel{Входные данные}
+\begin{itemize}
+\item Функциональные требования.
+\item Нефункциональные требования: задержка, доступность, бюджет.
+\item Профиль нагрузки: RPS и доля чтения/записи.
+\item В перспективе: BRD (Business Requirements Document) и другие документы требований.
+\end{itemize}
+\vspace{2pt}
+{\color{Bad}\small\bfseries Сейчас: YAML-сценарий}
+\vspace{3pt}
+{\scriptsize\color{Muted}Загрузка произвольных документов и извлечение требований ещё предстоят.}
+\column{.53\textwidth}
+\sectionlabel{Результаты}
+\diagramimage{requirements_document.png}{Пример входного документа требований}{2.8cm}
+\begin{tikzpicture}[node distance=4pt]
+\node[draw=Line,fill=AccentLight,rounded corners=5pt,inner sep=5pt] (c4) {\scriptsize C4: компоненты и связи};
+\node[draw=Line,fill=AccentLight,rounded corners=5pt,inner sep=5pt,right=4pt of c4] (seq) {\scriptsize Sequence};
+\node[draw=Line,fill=AccentLight,rounded corners=5pt,inner sep=5pt,right=4pt of seq] (api) {\scriptsize OpenAPI + Swagger};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Генерация: модель возвращает данные, не диаграмму}
+\centering
+\begin{tikzpicture}[node distance=5mm,step/.style={draw=Line,rounded corners=7pt,fill=Panel,minimum height=1cm,text width=2.25cm,align=center,font=\small},arrow/.style={-{Stealth[length=2.2mm]},thick,color=Accent}]
+\node[step] (req) {Требования и профиль нагрузки};
+\node[step,right=of req] (llm) {LLM через LiteLLM};
+\node[step,right=of llm,fill=AccentLight] (out) {Структурированный output (JSON)};
+\node[step,right=of out] (val) {Типизированные модели и валидаторы};
+\node[step,right=of val] (render) {Генерация PlantUML};
+\draw[arrow] (req)--(llm);\draw[arrow] (llm)--(out);\draw[arrow] (out)--(val);\draw[arrow] (val)--(render);
+\end{tikzpicture}
+\vspace{0.5cm}
+\begin{columns}[T,onlytextwidth]
+\column{.49\textwidth}
+\softbox{AccentLight}{\textbf{Совместимость моделей}\\LiteLLM позволяет подключать модели, доступные через API, совместимый с OpenAI API.}
+\column{.49\textwidth}
+\softbox{GoodLight}{\textbf{Разделение ответственности}\\LLM формирует структурированный output. Код проекта проверяет данные и строит код диаграммы.}
+\end{columns}
+\vspace{0.2cm}
+{\small Благодаря отделению модели данных от визуализации можно добавить второй рендерер, например для Mermaid-диаграмм.}
+\end{frame}
+
+\begin{frame}{C4: какие элементы разрешено описывать}
+\begin{columns}[T,onlytextwidth]
+\column{.47\textwidth}
+\sectionlabel{Типы узлов модели}
+\begin{tikzpicture}[node distance=5mm and 4mm,n/.style={draw=Accent!45,fill=AccentLight,rounded corners=6pt,minimum width=2.05cm,minimum height=.62cm,align=center,font=\small}]
+\node[n] (client) {Клиент};
+\node[n,right=of client] (lb) {Балансировщик};
+\node[n,below=of client] (compute) {Вычислительный узел};
+\node[n,right=of compute] (db) {База данных};
+\node[n,below=of compute] (cache) {Кэш};
+\node[n,right=of cache] (broker) {Брокер сообщений};
+\end{tikzpicture}
+\vspace{0.25cm}
+{\small Это допустимые типы компонентов, из которых формируется output диаграммы C4.}
+\column{.53\textwidth}
+\sectionlabel{Связи и параметры}
+\begin{itemize}
+\item Связи разрешены не для любых пар типов: используется заданная онтология допустимых соединений.
+\item У связи задаётся протокол взаимодействия.
+\item У узлов задаются параметры мощности и стоимости: реплики, параллелизм, время обработки, очередь и другие характеристики.
+\item Профиль нагрузки задаёт RPS.
+\end{itemize}
+\diagramimage{c4_architecture.png}{Диаграмма компонентов C4}{1.8cm}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Валидаторы C4: структура графа}
+\begin{columns}[T,onlytextwidth]
+\column{.5\textwidth}
+\sectionlabel{Проверки}
+\begin{itemize}
+\item Идентификаторы узлов уникальны.
+\item Каждая связь ссылается на существующие узлы.
+\item Пара типов источника и назначения должна входить в список разрешённых.
+\item В графе не должно быть циклов и изолированных узлов, если граф содержит несколько компонентов.
+\end{itemize}
+\column{.5\textwidth}
+\sectionlabel{Пример правила}
+\begin{tikzpicture}[node distance=8mm,n/.style={draw=Line,rounded corners=7pt,fill=Panel,minimum width=2.1cm,minimum height=.7cm,align=center,font=\small},good/.style={-{Stealth[length=2mm]},thick,color=Good},bad/.style={-{Stealth[length=2mm]},thick,color=Bad,dashed}]
+\node[n] (client) {Клиент};
+\node[n,right=of client] (lb) {Балансировщик};
+\node[n,below=13mm of lb] (cache) {Кэш};
+\draw[good] (client)--node[above,font=\scriptsize,text=Good]{разрешено}(lb);
+\draw[bad] (client) to[bend right=22] node[below,sloped,font=\scriptsize,text=Bad]{запрещено} (cache);
+\node[draw=Good!45,fill=GoodLight,rounded corners=5pt,align=center,below=5mm of client,text width=2.3cm,font=\scriptsize] {Клиент $\rightarrow$ балансировщик};
+\node[draw=Bad!50,fill=BadLight,rounded corners=5pt,align=center,below=5mm of cache,text width=2.3cm,font=\scriptsize,text=Bad] {Клиент $\rightarrow$ кэш};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Валидаторы C4: смысл и расчётные ограничения}
+\begin{columns}[T,onlytextwidth]
+\column{.49\textwidth}
+\sectionlabel{Связность и назначение}
+\begin{itemize}
+\item У брокера сообщений есть производитель и потребитель.
+\item Кэш используется вычислительным узлом, а при промахе предусмотрен путь к источнику данных.
+\end{itemize}
+\column{.49\textwidth}
+\sectionlabel{Ограничения ресурсов}
+\begin{itemize}
+\item Оценка насыщения вычислительных узлов.
+\item Теоретическая задержка на критическом синхронном пути.
+\item Суммарная стоимость, если задан бюджет.
+\end{itemize}
+\end{columns}
+\vspace{0.35cm}
+\softbox{Panel}{\small Эти проверки анализируют модель и заданные параметры. Они не заменяют нагрузочные испытания и измерения работающей системы.}
+\end{frame}
+
+\begin{frame}{Что происходит, если модель не прошла проверку}
+\begin{tikzpicture}[node distance=5mm,b/.style={draw=Line,rounded corners=6pt,fill=Panel,text width=2.35cm,minimum height=.85cm,align=center,font=\small},arr/.style={-{Stealth[length=2mm]},thick,color=Accent}]
+\node[b] (gen) {LLM создаёт output};
+\node[b,right=of gen] (check) {Валидаторы накапливают ошибки};
+\node[b,right=of check] (fix) {LLM получает ошибки и предыдущий output};
+\node[b,right=of fix,fill=GoodLight,draw=Good!40] (ok) {Модель прошла проверки};
+\draw[arr] (gen)--(check);\draw[arr] (check)--node[above,font=\scriptsize]{есть ошибки}(fix);\draw[arr] (fix)--node[above,font=\scriptsize]{повторная проверка}(ok);
+\draw[arr] (fix.south) -- ++(0,-.45) -| (check.south);
+\end{tikzpicture}
+\vspace{0.45cm}
+\begin{columns}[T,onlytextwidth]
+\column{.56\textwidth}
+\begin{itemize}
+\item Ошибки проверки передаются модели вместе с результатом предыдущей попытки.
+\item Модель может исправить output, после чего проверки выполняются снова.
+\end{itemize}
+\column{.4\textwidth}
+\softbox{BadLight}{\textbf{Лимит попыток исчерпан}\\Если output всё ещё невалиден, генерация считается неуспешной. Лимит задаётся конфигурацией; типовое значение в проекте — 3 попытки.}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Sequence: доставка сообщения}
+\diagramimage{sequence_req_msg_01.png}{Сценарий функционального требования № 1}{5.2cm}
+\end{frame}
+
+\begin{frame}{Sequence: подтверждение прочтения}
+\diagramimage{sequence_req_msg_02.png}{Сценарий функционального требования № 2}{5.2cm}
+\end{frame}
+
+\begin{frame}{Валидаторы Sequence}
+\begin{columns}[T,onlytextwidth]
+\column{.49\textwidth}
+\sectionlabel{Согласованность модели}
+\begin{itemize}
+\item Бизнес-роли связаны с корректными участниками сценария.
+\item Технические участники ссылаются на существующие компоненты C4.
+\item Указан известный идентификатор функционального требования.
+\item Каждая линия жизни участвует хотя бы в одном сообщении.
+\end{itemize}
+\column{.49\textwidth}
+\sectionlabel{Смысл взаимодействия}
+\begin{itemize}
+\item Разные бизнес-роли не должны использовать один клиентский компонент.
+\item События и уведомления должны передаваться асинхронно.
+\item Структура сообщений проверяется до построения диаграммы.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{REST API: OpenAPI и Swagger UI}
+\begin{columns}[T,onlytextwidth]
+\column{.5\textwidth}
+\diagramimage{swagger_endpoints.png}{Swagger UI: операции и маршруты}{4.4cm}
+\column{.5\textwidth}
+\diagramimage{swagger_schemas.png}{Swagger UI: схемы запросов и ответов}{4.4cm}
+\end{columns}
+\vspace{-2pt}
+{\small Генерируется спецификация OpenAPI 3.1. Проверяются идентификаторы операций, конфликты маршрутов, параметры пути и ссылки на схемы, компоненты C4 и требования.}
+\end{frame}
+
+\begin{frame}{Дальнейшее развитие}
+\begin{tikzpicture}[node distance=7mm,item/.style={draw=Line,fill=Panel,rounded corners=7pt,text width=3.5cm,minimum height=1.1cm,align=center,inner sep=7pt,font=\small}]
+\node[item] (docs) {\textbf{Документы требований}\\BRD и другие неструктурированные форматы};
+\node[item,right=of docs] (valid) {\textbf{Валидация}\\Расширение предметных логических правил};
+\node[item,right=of valid] (sim) {\textbf{Моделирование нагрузки}\\SimPy и теория массового обслуживания};
+\draw[-{Stealth[length=2mm]},thick,color=Accent] (docs)--(valid);
+\draw[-{Stealth[length=2mm]},thick,color=Accent] (valid)--(sim);
+\end{tikzpicture}
+\vspace{0.6cm}
+\softbox{AccentLight}{Архитектурные модели и их проверки остаются независимыми от визуализации. При необходимости можно добавить отдельный рендерер для Mermaid.}
+\end{frame}
+
+\end{document}
