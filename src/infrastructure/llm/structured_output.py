@@ -3,8 +3,6 @@
 import json
 from typing import TypeVar
 
-from pydantic import BaseModel
-
 from config.root import AppSettings
 from infrastructure.llm.client import LiteLlmClient
 from infrastructure.llm.models import (
@@ -14,6 +12,7 @@ from infrastructure.llm.models import (
     MessageRole,
 )
 from infrastructure.llm.protocols import CompletionClient
+from pydantic import BaseModel
 
 
 class StructuredOutputError(ValueError):
