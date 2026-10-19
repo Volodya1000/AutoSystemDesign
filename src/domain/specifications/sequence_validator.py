@@ -3,6 +3,7 @@
 New code should import from :mod:`domain.specifications.sequence_validation`.
 """
 
+from domain.exceptions.sequence_errors import AsyncDeliveryModeError, SequenceIntegrityError
 from domain.specifications.sequence_validation import (
     ClientOwnershipValidator,
     DeliveryModeValidator,
@@ -10,11 +11,3 @@ from domain.specifications.sequence_validation import (
     SequenceIntegrityValidator,
     SequenceScenarioValidator,
 )
-
-__all__ = [
-    "ClientOwnershipValidator",
-    "DeliveryModeValidator",
-    "SequenceCatalogValidator",
-    "SequenceIntegrityValidator",
-    "SequenceScenarioValidator",
-]
