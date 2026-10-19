@@ -1,6 +1,6 @@
 """Pure transformations from evidence-bearing candidates into scenario models."""
 
-from typing import cast
+from typing import TypeAlias, cast
 
 from pydantic import ValidationError
 
@@ -9,12 +9,12 @@ from application.document_scenario_functions.naming import functional_name
 from application.document_scenario_functions.results import MappingOutcome
 from domain.document_requirements import RequirementIssue, RequirementIssueKind
 from domain.models.functional import FunctionalRequirement
-from domain.models.requirements import Requirement as ScenarioRequirement
 from domain.models.requirements import (
     AvailabilityRequirement,
     BudgetRequirement,
     LatencyRequirement,
     QueueSizePercentileRequirement,
+    Requirement,
     ResourceUtilizationRequirement,
 )
 from domain.models.scenarios import WorkloadProfile
@@ -25,6 +25,9 @@ from domain.scenario_extraction import (
     ExtractedWorkload,
     MetricType,
 )
+
+
+ScenarioRequirement: TypeAlias = Requirement
 
 
 _ALL_METRIC_FIELDS: tuple[str, ...] = (
