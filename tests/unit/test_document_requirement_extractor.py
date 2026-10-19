@@ -54,6 +54,37 @@ def test_extractor_sends_schema_and_returns_validated_output() -> None:
 
 
 @pytest.mark.unit
+def test_extractor_normalizes_single_source_evidence_object() -> None:
+    payload = {
+        "requirements": [
+            {
+                "statement": "The service supports login.",
+                "kind": "functional",
+                "source_evidence": {"source_excerpt": "The service supports login."},
+            }
+        ],
+        "is_relevant": True,
+        "ambiguity_notes": [
+            {
+                "description": "The service supports login.",
+                "source_evidence": {"source_excerpt": "The service supports login."},
+            }
+        ],
+        "conflict_notes": [],
+    }
+    client = FakeCompletionClient(make_response(json.dumps(payload), FinishReason.STOP))
+    extractor = LlmDocumentRequirementExtractor(make_settings(), client)
+
+    result = extractor.extract("The service supports login.", "spec.md")
+
+    assert len(result.requirements[0].source_evidence) == 1
+    assert result.requirements[0].source_evidence[0].source_excerpt == (
+        "The service supports login."
+    )
+    assert len(result.ambiguity_notes[0].source_evidence) == 1
+
+
+@pytest.mark.unit
 def test_extractor_accepts_json_wrapped_in_markdown_fence() -> None:
     payload = {
         "requirements": [],
