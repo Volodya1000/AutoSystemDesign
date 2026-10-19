@@ -202,9 +202,7 @@ def test_all_node_types_map_to_expected_keywords() -> None:
 def test_long_message_labels_are_wrapped_at_word_boundaries() -> None:
     lifelines = [_user(), _component("api", "orders_api", "Orders API")]
     scenario = _scenario(lifelines)
-    action_name = (
-        "Validate customer credentials and " + "retrieve account permissions"
-    )
+    action_name = "Validate customer credentials and " + "retrieve account permissions"
     scenario.steps = [
         MessageStep(
             kind="message",
