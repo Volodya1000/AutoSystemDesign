@@ -37,18 +37,21 @@ class ExtractedWorkload(BaseModel):
     read_ratio: EvidenceValue[float]
 
 
+MetricType = Literal[
+    "latency",
+    "queue_size_percentile",
+    "budget",
+    "availability",
+    "resource_utilization",
+]
+
+
 class ExtractedMetricRequirement(BaseModel):
     """Evidence-bearing candidate for one supported non-functional requirement."""
 
     model_config = ConfigDict(extra="forbid")
 
-    type_identifier: Literal[
-        "latency",
-        "queue_size_percentile",
-        "budget",
-        "availability",
-        "resource_utilization",
-    ]
+    type_identifier: EvidenceValue[MetricType]
     threshold_value: EvidenceValue[float]
     percentile: EvidenceValue[float]
     minimum_value: EvidenceValue[float]
