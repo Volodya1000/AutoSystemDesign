@@ -20,7 +20,7 @@ class TokenUsage(BaseModel):
 
     @classmethod
     def aggregate(cls, usages: Iterable["TokenUsage"]) -> "TokenUsage":
-        """Sums token counts over multiple completions."""
+        """Sum token counts over multiple completions."""
         usage_list: list[TokenUsage] = list(usages)
         return cls(
             prompt_tokens=sum(usage.prompt_tokens for usage in usage_list),
