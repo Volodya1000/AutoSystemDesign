@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 
+
 DESIGN_VALIDATOR_KIND = "design"
 CATALOG_VALIDATOR_KIND = "catalog"
 SCENARIO_VALIDATOR_KIND = "scenario"
