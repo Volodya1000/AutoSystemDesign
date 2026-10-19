@@ -8,7 +8,7 @@ pytestmark = pytest.mark.unit
 
 
 def test_altstep_requires_else_branch_to_be_last() -> None:
-    """Ensures that if condition=None (else) is present, it must be the very last branch."""
+    """Require the else branch to be last when condition=None."""
     msg = MessageStep(
         kind="message",
         from_lifeline="a",
