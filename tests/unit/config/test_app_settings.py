@@ -117,7 +117,7 @@ class TestAppSettings:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, "base_url: http://localhost:1234/v1\n" + _LLM_YAML)
         # The yaml loader refuses env-owned fields with a plain ValueError.
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="must not contain"):
             AppSettings()  # type: ignore[call-arg]
 
     def test_base_url_inside_llm_section_is_rejected(
