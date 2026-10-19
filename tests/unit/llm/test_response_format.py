@@ -60,7 +60,7 @@ def _fake_response(content: str = "{}") -> SimpleNamespace:
 
 
 def _captured_kwargs(mock_completion: Any) -> dict[str, Any]:
-    """Returns the kwargs of the single call made to ``litellm.completion``."""
+    """Return the kwargs of the single call made to ``litellm.completion``."""
     assert mock_completion.call_count == 1
     kwargs: dict[str, Any] = dict(mock_completion.call_args.kwargs)
     return kwargs
