@@ -17,6 +17,7 @@ from application.pipeline.context import StageContext, require_payload
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.ports import DiagramRenderer, GenerationReporter
+from application.pipeline.sequence_artifact_models import SequenceArtifactResult
 from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
 from application.pipeline.services import SequenceGenerator
 from application.pipeline.stages._naming import (
@@ -198,11 +199,13 @@ class SequenceStage:
             _logger.warning(warning)
             return [], [warning]
 
-        artifact_result = self._artifact_processor.persist_interaction(
+        artifact_result: SequenceArtifactResult = (
+            self._artifact_processor.persist_interaction(
             context,
             base_name=base_name,
             interaction=interaction,
-            graph=graph,
+                graph=graph,
+            )
         )
         return list(artifact_result.artifacts), list(artifact_result.warnings)
 
