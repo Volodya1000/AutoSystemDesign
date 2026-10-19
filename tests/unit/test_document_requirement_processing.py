@@ -26,7 +26,7 @@ def test_split_document_text_rejects_invalid_overlap() -> None:
 
 @pytest.mark.unit
 def test_split_document_text_returns_empty_list_for_empty_text() -> None:
-    assert split_document_text("", max_chars=10, overlap_chars=0) == []
+    assert not split_document_text("", max_chars=10, overlap_chars=0)
 
 
 @pytest.mark.unit
