@@ -186,8 +186,10 @@ class TestMultipleNodes:
     def test_only_overloaded_node_is_reported(self) -> None:
         """Manual: peak = 120_000 split equally across two clients → 60_000 each.
 
-        compute_1: c = 1_200, mean = 10 ms → max = 120_000, util = 60_000 / 120_000 = 0.5
-        compute_2: c = 500,  mean = 10 ms → max =  50_000, util = 60_000 /  50_000 = 1.2
+        compute_1: c = 1_200, mean = 10 ms → max = 120_000,
+        util = 60_000 / 120_000 = 0.5
+        compute_2: c = 500, mean = 10 ms → max = 50_000,
+        util = 60_000 / 50_000 = 1.2
 
         Only compute_2 crosses 98%; compute_1's error list must stay empty.
         """
@@ -256,7 +258,8 @@ class TestClientNodeExclusion:
     def test_client_not_present_in_utilization_dict(self) -> None:
         """Exclude client nodes from capacity utilization.
 
-        ClientNode has no capacity fields and must never be the target of a saturation error.
+        ClientNode has no capacity fields and must never be the target of a
+        saturation error.
         """
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
