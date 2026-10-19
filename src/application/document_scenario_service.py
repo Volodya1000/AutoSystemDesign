@@ -10,7 +10,6 @@ from typing import Protocol, TypeVar, cast
 from pydantic import ValidationError
 
 from application.document_processing import deduplicate_issues, is_evidence_supported
-from application.requirements_extraction import DocumentRequirementsService
 from domain.document_requirements import (
     DocumentRequirements,
     RequirementEvidence,
@@ -36,6 +35,13 @@ from domain.scenario_extraction import (
     ExtractedWorkload,
     MetricType,
 )
+
+
+class DocumentRequirementsProvider(Protocol):
+    """Port for obtaining requirements that have already passed evidence checks."""
+
+    def extract_file(self, path: Path) -> DocumentRequirements:
+        """Read a source document and return source-grounded requirements."""
 
 
 class DocumentScenarioMapper(Protocol):
@@ -208,7 +214,7 @@ class DocumentScenarioService:
 
     def __init__(
         self,
-        requirements_service: DocumentRequirementsService,
+        requirements_service: DocumentRequirementsProvider,
         mapper: DocumentScenarioMapper,
     ) -> None:
         self._requirements_service = requirements_service
