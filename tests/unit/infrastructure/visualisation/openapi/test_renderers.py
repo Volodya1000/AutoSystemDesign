@@ -206,12 +206,13 @@ def test_default_api_artifact_renderer_returns_warning_for_invalid_spec(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    renderer = DefaultApiArtifactRenderer()
+    openapi_renderer = OpenApiRenderer()
 
     def fail_to_render_spec(_api: ApiDesign) -> dict:
         raise InvalidOpenApiModelError
 
-    monkeypatch.setattr(renderer._openapi_renderer, "render_spec", fail_to_render_spec)
+    monkeypatch.setattr(openapi_renderer, "render_spec", fail_to_render_spec)
+    renderer = DefaultApiArtifactRenderer(openapi_renderer=openapi_renderer)
 
     result = renderer.render(
         _api_design(),
