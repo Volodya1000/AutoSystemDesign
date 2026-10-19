@@ -2,7 +2,7 @@
 
 Numeric cases are computed by hand and documented in each test so the
 saturation threshold (98%), the max_rps formula
-(replicas × concurrency × 1000 / mean_ms) and the fan-out flow split stay
+(replicas x concurrency × 1000 / mean_ms) and the fan-out flow split stay
 honest. No LLM, no I/O: pure domain logic.
 """
 
