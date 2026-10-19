@@ -73,8 +73,10 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
     python-urllib agent. The INFO log identifies which server actually
     rendered the image when several are configured.
     """
+    if not url.startswith(("http://", "https://")):
+        raise ValueError("Diagram server URL must be an absolute HTTP(S) URL")
     parsed_url = urllib.parse.urlsplit(url)
-    if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+    if not parsed_url.netloc:
         raise ValueError("Diagram server URL must be an absolute HTTP(S) URL")
 
     request = urllib.request.Request(
