@@ -18,6 +18,15 @@ class RequirementEvidence(BaseModel):
     source_excerpt: str = Field(min_length=1)
 
 
+class SourceBackedNote(BaseModel):
+    """Ambiguity or conflict explanation backed by one or more source excerpts."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    description: str = Field(min_length=1)
+    source_evidence: list[RequirementEvidence] = Field(min_length=1)
+
+
 class Requirement(BaseModel):
     """An atomic requirement claim with one or more source citations."""
 
