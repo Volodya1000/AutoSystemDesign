@@ -29,7 +29,7 @@ OUTPUT_HARD_RULES: Final[str] = (
     "3. The topology is a strict DAG: cycles are forbidden.\n"
     "4. Every edge matches one of the allowed source -> target transitions.\n"
     '5. Every node except "client" must provide all capacity fields '
-    'with valid values.\n'
+    "with valid values.\n"
     '6. Include a "client" node as the entry point of user traffic.\n'
     "7. Do not add fields that are not defined in the output format above.\n"
     "8. Every message_broker node is a routing bridge with DISTINCT ends:\n"
