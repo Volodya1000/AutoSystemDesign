@@ -14,7 +14,7 @@ _EMPTY_FEEDBACK_MESSAGE: str = "No problems reported; re-check the rules."
 
 
 def build_repair_messages(task: DesignTask) -> list[Message]:
-    """Builds the [SYSTEM, USER] message pair for a repair attempt.
+    """Build the [SYSTEM, USER] message pair for a repair attempt.
 
     The schema and the connection whitelist are repeated: small models
     forget them between turns.
