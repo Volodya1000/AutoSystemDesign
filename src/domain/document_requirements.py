@@ -43,6 +43,7 @@ class RequirementIssueKind(StrEnum):
     CONFLICTING = "conflicting"
     IRRELEVANT_DOCUMENT = "irrelevant_document"
     UNSUPPORTED_EVIDENCE = "unsupported_evidence"
+    INVALID_VALUE = "invalid_value"
 
 
 class RequirementIssue(BaseModel):
