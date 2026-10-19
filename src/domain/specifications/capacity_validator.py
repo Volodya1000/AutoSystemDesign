@@ -37,7 +37,7 @@ def compute_node_utilization(
     graph: ArchitectureGraph,
     scenario: DesignScenario,
 ) -> dict[str, float]:
-    """Returns utilization ratio per capacity node.
+    """Return utilization ratio per capacity node.
 
     Utilization = incoming_rps / max_rps, where
     max_rps = replicas_count * maximum_concurrency * 1000 / mean_processing_time_ms.
