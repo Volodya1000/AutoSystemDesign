@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 def _chat_spec() -> dict:
-    """A small but realistic OpenAPI document with $refs in several places."""
+    """Provide a small but realistic OpenAPI document with $refs in several places."""
     return {
         "openapi": "3.1.0",
         "info": {"title": "Chat", "version": "1.0.0"},
