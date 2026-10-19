@@ -125,12 +125,12 @@ uv run python scripts/generate_pipeline.py \
 
 ## Источники в репозитории
 
-- [README](../../README.md)
+- [README](../README.md)
 - [CLI и руководство по запуску](usage.md)
 - [Демо-сценарий в документации](examples/social_network_chat.yaml)
-- [Канонический сценарий](../../scenarios/social_network_chat.yaml)
-- [Модели графа](../../src/domain/models/topology.py) и [типы вершин](../../src/domain/models/nodes.py)
-- [Белый список связей](../../src/domain/specifications/rules.py) и [структурный валидатор](../../src/domain/specifications/structural_validator.py)
-- [Валидаторы Sequence](../../src/domain/specifications/sequence_validator.py) и [API](../../src/domain/specifications/api_validator.py)
-- [Сервис генерации архитектуры](../../src/application/services/design_generation_service.py)
-- [Настройка LLM](../../config.yaml) и [локального PlantUML Server](../../deploy/plantuml/README.md)
+- [Канонический сценарий](../scenarios/social_network_chat.yaml)
+- [Модели графа](../src/domain/models/topology.py) и [типы вершин](../src/domain/models/nodes.py)
+- [Белый список связей](../src/domain/specifications/rules.py) и [структурный валидатор](../src/domain/specifications/structural_validator.py)
+- [Валидаторы Sequence](../src/domain/specifications/sequence_validator.py) и [API](../src/domain/specifications/api_validator.py)
+- [Сервис генерации архитектуры](../src/application/services/design_generation_service.py)
+- [Настройка LLM](../config.yaml) и [локального PlantUML Server](../deploy/plantuml/README.md)
