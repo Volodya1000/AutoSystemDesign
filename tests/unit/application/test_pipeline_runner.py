@@ -133,7 +133,7 @@ def test_runner_passes_immutable_snapshot_of_prior_stage_outcomes() -> None:
     assert isinstance(upstream, MappingProxyType)
     assert upstream["c4"].payload == {"architecture": True}
     with pytest.raises(TypeError):
-        upstream["new"] = upstream["c4"]
+        cast(dict[str, StageOutcome[object]], upstream)["new"] = upstream["c4"]
     assert len(reporter.reports) == 1
     assert [outcome.name for outcome in reporter.reports[0]] == ["c4", "sequence"]
 
