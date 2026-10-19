@@ -78,8 +78,7 @@ class SequenceStage:
                 total_tokens=0,
                 payload={},
                 message=(
-                    "No functional requirements provided; "
-                    "skipping sequence generation."
+                    "No functional requirements provided; skipping sequence generation."
                 ),
             )
 
