@@ -4,7 +4,7 @@ import pytest
 
 from domain.exceptions.architecture_errors import BudgetExceededError
 from domain.models.nodes import ClientNode, ComputeNode, DatabaseNode
-from domain.models.requirements import BudgetRequirement, LatencyRequirement
+from domain.models.requirements import BudgetRequirement, LatencyRequirement, Requirement
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import AnyNode, ArchitectureGraph
 from domain.specifications.budget_validator import BudgetRequirementValidator
@@ -42,7 +42,7 @@ def _graph(*nodes: AnyNode) -> ArchitectureGraph:
     return ArchitectureGraph(nodes=list(nodes), edges=[])
 
 
-def _scenario(*requirements) -> DesignScenario:
+def _scenario(*requirements: Requirement) -> DesignScenario:
     return DesignScenario(
         identifier="budget_test",
         description="Budget validation scenario",
