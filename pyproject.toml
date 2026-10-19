@@ -68,6 +68,7 @@ extend-select = [
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
     "INP001", # Require explicit package markers for source, scripts, and tests.
+    # Keep semantic validator-kind identifiers named; avoid blanket rule suppressions.
 ]
 # All enabled rules must be fixed rather than suppressed.
 
