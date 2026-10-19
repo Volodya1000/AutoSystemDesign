@@ -1,4 +1,7 @@
-"""Application-level limits shared by generation services and configuration."""
+"""Generation policy constants shared by configuration and application code.
+
+This module intentionally has no imports from application layers.
+"""
 
 from typing import Final
 

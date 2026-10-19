@@ -4,6 +4,7 @@ root_packages =
     config
     domain
     infrastructure
+    shared
 include_external_packages = True
 
 [importlinter:contract:layer-dependencies]
@@ -12,7 +13,7 @@ type = layers
 layers =
     infrastructure
     config | application
-    domain
+    domain | shared
 
 [importlinter:contract:acyclic-infrastructure-siblings]
 name = Infrastructure modules and adapters must not form dependency cycles
