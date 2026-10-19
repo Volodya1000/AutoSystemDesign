@@ -4,7 +4,7 @@ import logging
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from shared.generation_limits import (
+from application.generation_limits import (
     DEFAULT_SEQUENCE_PARALLELISM,
     MAX_ATTEMPTS,
     MIN_ATTEMPTS,

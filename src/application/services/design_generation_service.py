@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
-from shared.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
+from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from application.protocols import ArchitectureDesigner
 from application.results import DesignGenerationResult, GenerationAttempt
 from application.tasks import (

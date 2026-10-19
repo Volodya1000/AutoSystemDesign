@@ -6,7 +6,7 @@ import logging
 from collections.abc import Mapping
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
-from shared.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
+from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
 from application.protocols import ApiDesigner, ApiDesignValidatorPort
 from application.results import ApiGenerationResult, GenerationAttempt
 from application.tasks import (
