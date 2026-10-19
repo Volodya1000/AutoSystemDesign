@@ -142,10 +142,9 @@ class TestParseArchitectureGraph:
         error_types: set[str] = {
             detail.error_type for detail in exc_info.value.failure_details
         }
-        # pydantic may insert the discriminated-union branch name into the
-        # location path: "$.nodes[1].compute.maximum_concurrency" in
-        # pydantic >= 2.14, "$.nodes[1].maximum_concurrency" in earlier
-        # versions. Both point at the same field.
+        # Pydantic 2.14 and later may include the discriminated-union branch
+        # name in the location path. Earlier versions omit it; both paths
+        # identify the same field.
         assert any(
             location.startswith("$.nodes[1]")
             and location.endswith(".maximum_concurrency")

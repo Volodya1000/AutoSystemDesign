@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class StageStatus(str, Enum):
+class StageStatus(StrEnum):
     """Overall status of one stage.
 
     SUCCEEDED: all required and optional artifacts were produced.

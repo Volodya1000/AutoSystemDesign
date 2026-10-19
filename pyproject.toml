@@ -70,6 +70,10 @@ extend-select = [
     "EM101", # Avoid raising exceptions directly from string literals.
     "PT018", # Keep each pytest assertion focused.
     "PT006", # Use explicit parameterization argument names.
+    "ANN001", # Require parameter type annotations.
+    "ANN002", # Require annotations for variadic positional arguments.
+    "UP042",  # Prefer StrEnum for string enums.
+    "ERA001", # Remove commented-out code.
     "D205", # Require a blank line between docstring summary and body.
     "D404", # Avoid starting docstrings with "This".
     "RUF002", # Avoid ambiguous Unicode in docstrings.
