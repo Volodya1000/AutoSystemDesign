@@ -63,7 +63,6 @@ extend-select = [
     "PLR1714", # Replace repeated equality checks with membership tests.
     "SLF",    # Enforce encapsulation by preventing private-member access.
     "S310",   # Review potentially unsafe URL-opening calls.
-    "S603",   # Review subprocess calls without shell=True.
     "S607",   # Review subprocess calls using partial executable paths.
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
