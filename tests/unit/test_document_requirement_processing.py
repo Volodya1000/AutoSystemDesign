@@ -74,3 +74,22 @@ def test_evidence_validation_ignores_whitespace_but_not_changed_words() -> None:
 
     assert is_evidence_supported(evidence, "The service supports\n\nlogin.")
     assert not is_evidence_supported(evidence, "The service might support login.")
+
+
+@pytest.mark.unit
+def test_deduplicate_issues_preserves_all_distinct_evidence() -> None:
+    first = RequirementIssue(
+        kind=RequirementIssueKind.AMBIGUOUS,
+        description="The statement is unclear.",
+        evidence=["Source excerpt A."],
+    )
+    duplicate = RequirementIssue(
+        kind=RequirementIssueKind.AMBIGUOUS,
+        description="  The statement is unclear. ",
+        evidence=["Source excerpt B."],
+    )
+
+    result = deduplicate_issues([first, duplicate])
+
+    assert len(result) == 1
+    assert result[0].evidence == ["Source excerpt A.", "Source excerpt B."]
