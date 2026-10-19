@@ -1,0 +1,89 @@
+"""Structured, evidence-bearing DTOs for mapping requirements to a scenario."""
+
+from typing import Generic, Literal, TypeVar
+
+from pydantic import BaseModel, ConfigDict, model_validator
+
+from domain.models.scenarios import DesignScenario
+from domain.document_requirements import RequirementIssue
+
+ValueT = TypeVar("ValueT")
+
+
+class EvidenceValue(BaseModel, Generic[ValueT]):
+    """A candidate field value paired with a source citation or two nulls."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    value: ValueT | None
+    source_excerpt: str | None
+
+    @model_validator(mode="after")
+    def _validate_evidence_pair(self) -> "EvidenceValue[ValueT]":
+        if (self.value is None) != (self.source_excerpt is None):
+            raise ValueError("value and source_excerpt must both be set or both be null")
+        if self.source_excerpt is not None and not self.source_excerpt.strip():
+            raise ValueError("source_excerpt must not be blank")
+        return self
+
+
+class ExtractedWorkload(BaseModel):
+    """Field-level candidates for the scenario's traffic profile."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    baseline_requests_per_second: EvidenceValue[float]
+    peak_requests_per_second: EvidenceValue[float]
+    read_ratio: EvidenceValue[float]
+
+
+class ExtractedMetricRequirement(BaseModel):
+    """Evidence-bearing candidate for one supported non-functional requirement."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type_identifier: Literal[
+        "latency",
+        "queue_size_percentile",
+        "budget",
+        "availability",
+        "resource_utilization",
+    ]
+    threshold_value: EvidenceValue[float]
+    percentile: EvidenceValue[float]
+    minimum_value: EvidenceValue[float]
+    maximum_value: EvidenceValue[float]
+
+
+class ExtractedFunctionalRequirement(BaseModel):
+    """A functional requirement's assertion with source evidence."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    text: EvidenceValue[str]
+
+
+class DocumentScenarioExtraction(BaseModel):
+    """LLM output DTO; all scenario fields must carry explicit evidence wrappers."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    description: EvidenceValue[str]
+    workload: ExtractedWorkload
+    requirements: list[ExtractedMetricRequirement]
+    functional_requirements: list[ExtractedFunctionalRequirement]
+    is_relevant: bool
+    ambiguity_notes: list[str]
+    conflict_notes: list[str]
+
+
+class DocumentScenarioResult(BaseModel):
+    """Validated scenario candidate and evidence manifest for human review."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    scenario: DesignScenario | None
+    field_evidence: dict[str, str]
+    issues: list[RequirementIssue]
+    is_relevant: bool
+    source_name: str
