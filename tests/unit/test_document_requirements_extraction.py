@@ -26,7 +26,12 @@ class FakeExtractor:
                 RequirementEvidence(source_excerpt="A requirement paragraph.")
             ],
         )
-        return ExtractionChunk(requirements=[requirement], is_relevant=True)
+        return ExtractionChunk(
+            requirements=[requirement],
+            is_relevant=True,
+            ambiguity_notes=[],
+            conflict_notes=[],
+        )
 
 
 @pytest.mark.unit
@@ -56,19 +61,20 @@ def test_discards_requirement_without_source_grounded_evidence(tmp_path: Path) -
 
     class HallucinatingExtractor:
         def extract(self, text: str, source_name: str) -> ExtractionChunk:
-            return ExtractionChunk(
-                requirements=[
-                    Requirement(
-                        statement="The system supports biometric login.",
-                        kind=RequirementKind.FUNCTIONAL,
-                        source_evidence=[
-                            RequirementEvidence(
-                                source_excerpt="The system supports biometric login."
-                            )
-                        ],
+            requirement = Requirement(
+                statement="The system supports biometric login.",
+                kind=RequirementKind.FUNCTIONAL,
+                source_evidence=[
+                    RequirementEvidence(
+                        source_excerpt="The system supports biometric login."
                     )
                 ],
+            )
+            return ExtractionChunk(
+                requirements=[requirement],
                 is_relevant=True,
+                ambiguity_notes=[],
+                conflict_notes=[],
             )
 
     result = DocumentRequirementsService(
