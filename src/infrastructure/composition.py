@@ -56,7 +56,7 @@ from infrastructure.visualisation.plantuml import DiagramImageFormat
 from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4ContainerDiagramBuilder,
 )
-from infrastructure.visualisation.plantuml.diagram_service import DiagramSourceBuilder
+from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 from infrastructure.visualisation.plantuml.renderers import PlantUmlDiagramRenderer
 from infrastructure.visualisation.plantuml.sequence_builder import (
     SequenceDiagramBuilder,
@@ -133,14 +133,14 @@ def build_api_generation_service(
     )
 
 
-def _diagram_renderer(
-    source_builder: DiagramSourceBuilder,
+def _diagram_renderer[SubjectT](
+    source_builder: DiagramSourceBuilder[SubjectT],
     *,
     server: str,
     image_format: DiagramImageFormat,
     enabled: bool,
-) -> PlantUmlDiagramRenderer[object] | None:
-    """Builds a PlantUML renderer for any diagram type, or None when disabled."""
+) -> PlantUmlDiagramRenderer[SubjectT] | None:
+    """Builds a renderer while preserving the source builder's subject type."""
     if not enabled:
         return None
     return PlantUmlDiagramRenderer(
@@ -205,17 +205,23 @@ def build_pipeline(
     resolved_settings: AppSettings = (
         settings if settings is not None else load_app_settings()
     )
-    c4_renderer = _diagram_renderer(
-        C4ContainerDiagramBuilder(),
+    c4_builder: DiagramSourceBuilder[ArchitectureGraph] = C4ContainerDiagramBuilder()
+    c4_renderer: PlantUmlDiagramRenderer[ArchitectureGraph] | None = _diagram_renderer(
+        c4_builder,
         server=diagram_server,
         image_format=image_format,
         enabled=render_diagrams,
     )
-    sequence_renderer = _diagram_renderer(
-        SequenceDiagramBuilder(),
-        server=diagram_server,
-        image_format=image_format,
-        enabled=render_diagrams,
+    sequence_builder: DiagramSourceBuilder[SequenceDiagramSubject] = (
+        SequenceDiagramBuilder()
+    )
+    sequence_renderer: PlantUmlDiagramRenderer[SequenceDiagramSubject] | None = (
+        _diagram_renderer(
+            sequence_builder,
+            server=diagram_server,
+            image_format=image_format,
+            enabled=render_diagrams,
+        )
     )
     generation_reporter = LoggingGenerationReporter()
 
