@@ -27,7 +27,10 @@ class UserLifeline(BaseModel):
         description="Unique lifeline ID within the scenario (e.g., 'buyer_1')"
     )
     business_role_id: str = Field(
-        description="Reference to global role_id from the business roles catalog (e.g., 'buyer')"
+        description=(
+            "Reference to global role_id from the business roles catalog "
+            "(e.g., 'buyer')"
+        )
     )
     scenario_role: str = Field(
         description="Role in the current process (e.g., 'initiator', 'recipient')"
