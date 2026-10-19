@@ -90,18 +90,6 @@ class DocumentRequirementsService:
                             source_evidence=verified,
                         )
                     )
-                elif not unsupported:
-                    # Defensive guard: the model schema requires evidence, but this
-                    # keeps the trust boundary safe if another adapter is introduced.
-                    issues.append(
-                        RequirementIssue(
-                            kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
-                            description=(
-                                "Requirement has no verifiable source evidence: "
-                                f"{requirement.statement}"
-                            ),
-                        )
-                    )
 
             issues.extend(
                 RequirementIssue(
