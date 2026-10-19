@@ -144,7 +144,8 @@ class SequenceIntegrityValidator:
             ):
                 errors.append(
                     SequenceIntegrityError(
-                        f"ComponentLifeline '{lifeline.lifeline_id}' references unknown "
+                        f"ComponentLifeline '{lifeline.lifeline_id}' "
+                        "references unknown "
                         f"architecture_node_id '{lifeline.architecture_node_id}'. "
                         "Must be a valid C4 node."
                     )
