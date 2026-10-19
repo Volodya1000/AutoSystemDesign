@@ -17,7 +17,7 @@ class DiagramSavingError(Exception):
 
 
 class DiagramFileWriter:
-    """Writes diagram artifacts as a .puml file plus the rendered image.
+    """Write diagram artifacts as a .puml file plus the rendered image.
 
     Keeping persistence out of the DTO keeps the model pure (SRP) and
     lets channels that never touch disk (HTTP APIs, UIs) skip it.
@@ -26,7 +26,7 @@ class DiagramFileWriter:
     def write(
         self, artifacts: DiagramArtifacts, output_dir: Path, base_name: str
     ) -> list[Path]:
-        """Writes the artifacts; returns the list of created file paths.
+        """Write the artifacts; returns the list of created file paths.
 
         `base_name` is sanitised into a file-name-safe form, so scenario
         identifiers containing path separators cannot escape the output
