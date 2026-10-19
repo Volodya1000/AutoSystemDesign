@@ -197,3 +197,51 @@ def test_all_node_types_map_to_expected_keywords() -> None:
         assert f'{expected_keyword} "Comp{index}" as c{index}' in source, (
             f"{node_type.value} should render as {expected_keyword}"
         )
+
+
+def test_long_message_labels_are_wrapped_at_word_boundaries() -> None:
+    lifelines = [_user(), _component("api", "orders_api", "Orders API")]
+    scenario = _scenario(lifelines)
+    scenario.steps = [
+        MessageStep(
+            kind="message",
+            from_lifeline="buyer_1",
+            to_lifeline="api",
+            action_name="Validate customer credentials and retrieve account permissions",
+            message_kind="request",
+            delivery_mode="sync",
+            description="Return the authorization result to the requesting client",
+        )
+    ]
+
+    source = SequenceDiagramBuilder().build(scenario)
+
+    assert r"\n" in source
+    message_label = next(
+        line.split(": ", maxsplit=1)[1]
+        for line in source.splitlines()
+        if "Validate customer" in line
+    )
+    assert all(len(line) <= 36 for line in message_label.split(r"\n"))
+
+
+def test_long_diagram_title_is_wrapped_at_word_boundaries() -> None:
+    scenario = _scenario([_user()])
+
+    source = SequenceDiagramBuilder().build(
+        scenario,
+        title="Customer submits order and waits for payment confirmation",
+    )
+
+    assert (
+        r"title Customer submits order and waits for\n"
+        r"payment confirmation"
+    ) in source
+
+
+def test_short_labels_are_not_wrapped() -> None:
+    source = SequenceDiagramBuilder().build(
+        _scenario([_user(), _component("api", "orders_api", "Orders API")])
+    )
+
+    assert r": POST /orders" in source
