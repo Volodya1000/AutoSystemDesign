@@ -10,7 +10,7 @@ class LlmConnectionError(Exception):
 
     def __init__(self, base_url: str, model: str, original_message: str) -> None:
         message: str = (
-            f"Cannot reach LLM endpoint '{base_url}' for model '{model}': "
+            f"LLM request to endpoint '{base_url}' for model '{model}': "
             f"{original_message}"
         )
         super().__init__(message)
