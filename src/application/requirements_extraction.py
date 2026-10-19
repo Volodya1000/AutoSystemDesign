@@ -86,12 +86,33 @@ class DocumentRequirementsService:
                             ],
                         )
                     )
-                if verified:
+                claim_evidence = [
+                    evidence
+                    for evidence in verified
+                    if is_evidence_supported(
+                        RequirementEvidence(source_excerpt=requirement.statement),
+                        evidence.source_excerpt,
+                    )
+                ]
+                if verified and not claim_evidence:
+                    issues.append(
+                        RequirementIssue(
+                            kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
+                            description=(
+                                "The requirement statement is not a verbatim substring "
+                                f"of its verified citations: {requirement.statement}"
+                            ),
+                            evidence=[
+                                evidence.source_excerpt for evidence in verified
+                            ],
+                        )
+                    )
+                if claim_evidence:
                     requirements.append(
                         Requirement(
                             statement=requirement.statement,
                             kind=requirement.kind,
-                            source_evidence=verified,
+                            source_evidence=claim_evidence,
                         )
                     )
 
