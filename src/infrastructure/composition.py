@@ -140,7 +140,7 @@ def _diagram_renderer[SubjectT](
     image_format: DiagramImageFormat,
     enabled: bool,
 ) -> PlantUmlDiagramRenderer[SubjectT] | None:
-    """Builds a renderer while preserving the source builder's subject type."""
+    """Build a renderer while preserving the source builder's subject type."""
     if not enabled:
         return None
     return PlantUmlDiagramRenderer(
@@ -201,7 +201,7 @@ def build_pipeline(
     render_diagrams: bool,
     settings: AppSettings | None = None,
 ) -> PipelineWiring:
-    """Builds the full C4 + Sequence + REST API design pipeline."""
+    """Build the full C4 + Sequence + REST API design pipeline."""
     resolved_settings: AppSettings = (
         settings if settings is not None else load_app_settings()
     )
