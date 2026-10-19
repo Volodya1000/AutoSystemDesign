@@ -14,6 +14,7 @@ from application.requirements_extraction import DocumentRequirementsService
 from config.root import load_app_settings
 from domain.scenario_extraction import DocumentScenarioResult
 from infrastructure.document_readers.markdown_reader import MarkdownReader
+from infrastructure.exceptions.llm_exceptions import LlmConnectionError
 from infrastructure.llm.document_requirement_extractor import (
     LlmDocumentRequirementExtractor,
 )
@@ -113,7 +114,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         result = service.extract_file(args.document)
         _write_evidence_manifest(evidence_output, result)
-    except (OSError, ValueError) as error:
+    except (LlmConnectionError, OSError, ValueError) as error:
         print(f"Document-to-scenario extraction failed: {error}", file=sys.stderr)
         return 2
 
