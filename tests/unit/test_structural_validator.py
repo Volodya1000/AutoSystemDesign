@@ -24,7 +24,7 @@ pytestmark = pytest.mark.unit
 
 
 class TestStructuralTopologyValidator:
-    """Tests the observable behavior and business rules of the StructuralTopologyValidator."""
+    """Test observable behavior and business rules of structural validation."""
 
     def test_should_pass_validation_when_topology_is_valid_dag(self) -> None:
         # Arrange
