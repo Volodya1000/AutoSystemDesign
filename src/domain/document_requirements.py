@@ -11,12 +11,11 @@ class RequirementKind(StrEnum):
 
 
 class RequirementEvidence(BaseModel):
-    """Verbatim source evidence supporting an extracted requirement."""
+    """Verbatim source excerpt supporting an extracted requirement."""
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     source_excerpt: str = Field(min_length=1)
-    source_location: str | None = None
 
 
 class Requirement(BaseModel):
