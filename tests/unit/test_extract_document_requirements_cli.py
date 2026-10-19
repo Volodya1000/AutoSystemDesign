@@ -43,7 +43,9 @@ def test_main_writes_serialized_extraction_result(
             return expected
 
     monkeypatch.setattr(cli, "load_app_settings", lambda: object())
-    monkeypatch.setattr(cli, "LlmDocumentRequirementExtractor", lambda settings: object())
+    monkeypatch.setattr(
+        cli, "LlmDocumentRequirementExtractor", lambda settings: object()
+    )
     monkeypatch.setattr(cli, "DocumentRequirementsService", FakeService)
 
     exit_code = cli.main(["--document", str(document), "--output", str(output)])
