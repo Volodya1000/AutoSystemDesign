@@ -2,16 +2,17 @@
 
 import argparse
 import json
+import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
 
 import yaml
 
 from application.document_scenario_service import DocumentScenarioService
 from application.requirements_extraction import DocumentRequirementsService
 from config.root import load_app_settings
+from domain.scenario_extraction import DocumentScenarioResult
 from infrastructure.document_readers.markdown_reader import MarkdownReader
 from infrastructure.llm.document_requirement_extractor import (
     LlmDocumentRequirementExtractor,
@@ -42,6 +43,22 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Path for the JSON evidence manifest (default: <output-stem>.evidence.json).",
     )
+    parser.add_argument(
+        "--run-pipeline",
+        action="store_true",
+        help="Run the existing design pipeline after writing YAML and the evidence manifest.",
+    )
+    parser.add_argument(
+        "--pipeline-out-dir",
+        type=Path,
+        default=None,
+        help="Optional output directory passed to generate_pipeline.py.",
+    )
+    parser.add_argument(
+        "--no-diagram",
+        action="store_true",
+        help="Skip diagram rendering when --run-pipeline is enabled.",
+    )
     return parser
 
 
@@ -59,6 +76,21 @@ def _write_evidence_manifest(path: Path, result: DocumentScenarioResult) -> None
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+
+
+def _run_pipeline(args: argparse.Namespace) -> int:
+    """Invoke the existing pipeline CLI so its orchestration remains the single source."""
+    script_path = Path(__file__).with_name("generate_pipeline.py")
+    command = [sys.executable, str(script_path), "--scenario", str(args.output)]
+    if args.pipeline_out_dir is not None:
+        command.extend(["--out-dir", str(args.pipeline_out_dir)])
+    if args.no_diagram:
+        command.append("--no-diagram")
+    try:
+        return subprocess.run(command, check=False).returncode
+    except OSError as error:
+        print(f"Could not start the design pipeline: {error}", file=sys.stderr)
+        return 2
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -106,6 +138,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"Functional requirements: {len(result.scenario.functional_requirements)}")
     print(f"Non-functional requirements: {len(result.scenario.requirements)}")
     print(f"Diagnostics: {len(result.issues)}")
+    if args.run_pipeline:
+        return _run_pipeline(args)
     return 0
 
 
