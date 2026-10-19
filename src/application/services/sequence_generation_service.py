@@ -4,7 +4,11 @@ import logging
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from application.exceptions.configuration_errors import GenerationConfigurationError
+from application.exceptions.configuration_errors import (
+    CATALOG_VALIDATOR_KIND,
+    SCENARIO_VALIDATOR_KIND,
+    GenerationConfigurationError,
+)
 from application.generation_limits import (
     DEFAULT_SEQUENCE_PARALLELISM,
     MAX_ATTEMPTS,
@@ -70,12 +74,16 @@ class SequenceGenerationService:
             catalog_validators
         )
         if not catalog_validator_tuple:
-            raise GenerationConfigurationError.required_validators_missing("catalog")
+            raise GenerationConfigurationError.required_validators_missing(
+                CATALOG_VALIDATOR_KIND
+            )
         scenario_validator_tuple: tuple[SequenceScenarioValidator, ...] = tuple(
             scenario_validators
         )
         if not scenario_validator_tuple:
-            raise GenerationConfigurationError.required_validators_missing("scenario")
+            raise GenerationConfigurationError.required_validators_missing(
+                SCENARIO_VALIDATOR_KIND
+            )
         self._roles_catalog_generator = RolesCatalogGenerator(
             designer=designer,
             validators=catalog_validator_tuple,
