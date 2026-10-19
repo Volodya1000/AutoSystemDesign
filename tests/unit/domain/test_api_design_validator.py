@@ -77,9 +77,7 @@ def _operation(**overrides: Unpack[_OperationOverrides]) -> ApiOperation:
     if not operation_data["parameters"]:
         operation_data["parameters"] = []
     if not operation_data["responses"]:
-        operation_data["responses"] = [
-            ApiResponse(status_code="200", description="OK")
-        ]
+        operation_data["responses"] = [ApiResponse(status_code="200", description="OK")]
     return ApiOperation.model_validate(operation_data)
 
 
