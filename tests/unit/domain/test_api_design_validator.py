@@ -59,18 +59,19 @@ class _OperationOverrides(TypedDict, total=False):
 
 
 def _operation(**overrides: Unpack[_OperationOverrides]) -> ApiOperation:
-    operation_data: dict[str, object] = {
-        "operation_id": "get_resource",
-        "method": HttpMethod.GET,
-        "path": "/v1/resources",
-        "summary": "Get resource",
-        "entrypoint_component_id": "api",
-        "handler_component_id": "api",
-        "requirement_ids": [],
-        "parameters": [],
-        "request_body": None,
-        "responses": [ApiResponse(status_code="200", description="OK")],
-    }
+    operation = ApiOperation(
+        operation_id="get_resource",
+        method=HttpMethod.GET,
+        path="/v1/resources",
+        summary="Get resource",
+        entrypoint_component_id="api",
+        handler_component_id="api",
+        requirement_ids=[],
+        parameters=[],
+        request_body=None,
+        responses=[ApiResponse(status_code="200", description="OK")],
+    )
+    operation_data = operation.model_dump(mode="python")
     operation_data.update(overrides)
     if not operation_data["requirement_ids"]:
         operation_data["requirement_ids"] = []
