@@ -75,7 +75,7 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
     """
     parsed_url = urllib.parse.urlsplit(url)
     if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
-        raise ValueError("Invalid diagram URL")
+        raise InvalidDiagramUrlError
 
     request = urllib.request.Request(
         url, headers={"User-Agent": _USER_AGENT}, method="GET"
@@ -148,6 +148,13 @@ class KrokiImageRenderer:
             f"Kroki server {self._server_url}",
             self._timeout_seconds,
         )
+
+
+class InvalidDiagramUrlError(ValueError):
+    """Raised when a renderer URL is not an absolute HTTP(S) URL."""
+
+    def __init__(self) -> None:
+        super().__init__("Invalid diagram URL")
 
 
 class RendererConfigurationError(ValueError):
