@@ -66,6 +66,9 @@ extend-select = [
     "S607",   # Review subprocess calls using partial executable paths.
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
+    "RUF001", # Avoid ambiguous Unicode in strings.
+    "RUF002", # Avoid ambiguous Unicode in docstrings.
+    "RUF005", # Prefer clearer sequence concatenation.
 ]
 # All enabled rules must be fixed rather than suppressed.
 
