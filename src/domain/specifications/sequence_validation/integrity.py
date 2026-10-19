@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from domain.exceptions.sequence_errors import SequenceIntegrityError
 from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
 from domain.specifications.interfaces import ValidationResult
 
 from .protocols import SequenceCatalogValidator, SequenceScenarioValidator
+
+if TYPE_CHECKING:
+    from domain.exceptions.architecture_errors import ArchitectureValidationError
+    from domain.models.roles import ProjectRolesCatalog
+    from domain.models.topology import ArchitectureGraph
 
 
 class SequenceIntegrityValidator(SequenceCatalogValidator, SequenceScenarioValidator):
@@ -59,11 +66,3 @@ class SequenceIntegrityValidator(SequenceCatalogValidator, SequenceScenarioValid
                     )
                 )
         return ValidationResult(errors=errors)
-
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from domain.exceptions.architecture_errors import ArchitectureValidationError
-    from domain.models.roles import ProjectRolesCatalog
-    from domain.models.topology import ArchitectureGraph
