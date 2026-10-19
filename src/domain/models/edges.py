@@ -11,7 +11,10 @@ class Edge(BaseModel):
     protocol: ConnectionProtocol
     description: str = Field(
         default="",
-        description="Semantic description: purpose, payload, request nature and expected response",
+        description=(
+            "Semantic description: purpose, payload, request nature "
+            "and expected response"
+        ),
     )
 
     network_latency_milliseconds: float = Field(default=2.0, ge=0.0)
