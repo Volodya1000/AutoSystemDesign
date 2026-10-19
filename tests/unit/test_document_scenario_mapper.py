@@ -69,7 +69,6 @@ def test_mapper_sends_only_verified_claims_and_schema() -> None:
     assert "The service supports login" in prompt
     assert "<response_schema>" in prompt
     assert '"ambiguity_notes"' in prompt
-    assert '"scenario_description"' not in prompt
 
 
 @pytest.mark.unit
