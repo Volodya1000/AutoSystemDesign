@@ -13,6 +13,7 @@ import litellm
 
 from config.root import AppSettings
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
+from infrastructure.llm.context_diagnostics import context_overflow_diagnostic
 from infrastructure.llm.models import (
     CompletionRequest,
     CompletionResult,
@@ -50,13 +51,22 @@ class LiteLlmClient:
         try:
             response: Any = litellm.completion(**call_kwargs)
         except Exception as error:
+            diagnostic = context_overflow_diagnostic(
+                error,
+                request,
+                model=self._settings.llm.model,
+                context_window_tokens=self._settings.llm.context_window_tokens,
+            )
+            original_message = (
+                f"{diagnostic} Provider error: {error}" if diagnostic else str(error)
+            )
             self.logger.error(
-                "LLM call to %s failed: %s", self._settings.base_url, error
+                "LLM call to %s failed: %s", self._settings.base_url, original_message
             )
             raise LlmConnectionError(
                 base_url=self._settings.base_url,
                 model=self._settings.llm.model,
-                original_message=str(error),
+                original_message=original_message,
             ) from error
         latency_seconds: float = time.perf_counter() - start_time
 
