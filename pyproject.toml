@@ -40,30 +40,27 @@ markers = [
 ]
 
 [tool.ruff.lint]
-# Add design-oriented checks while keeping Ruff's existing default rules.
-extend-select = [
-    "A",     # Prevent shadowing Python builtins.
-    "B",     # Bugbear: likely bugs and error-prone constructs.
-    "C90",   # McCabe: excessive cyclomatic complexity.
-    "FBT",   # Boolean traps in function interfaces and calls.
-    "PERF",  # Avoid common performance anti-patterns.
-    "PIE",   # Remove unnecessary code constructs.
-    "RET",   # Consistent, explicit return paths.
-    "SIM",   # Simplify unnecessarily complicated control flow.
-    "TC",    # Type-checking import and annotation rules.
-    "TID",   # Keep imports explicit and maintainable.
-    "TRY",   # Exception handling and error-design rules.
-    "PLR0911", # Keep functions from accumulating too many return paths.
-    "PLR0912", # Keep branching logic manageable.
-    "PLR0913", # Keep function interfaces small.
-    "PLR0914", # Keep functions from accumulating too many local variables.
-    "PLR0915", # Keep functions focused on one responsibility.
-    "PLR1702", # Keep control flow from becoming deeply nested.
-    "PLR0917", # Avoid APIs that require many positional arguments.
-    "PLR1714", # Replace repeated equality checks with membership tests.
-    "SLF",    # Enforce encapsulation by preventing private-member access.
+# Enable the complete Ruff rule set; resolve findings rather than suppressing them.
+select = ["ALL"]
+ignore = [
+    "D203",   # Conflicts with D211.
+    "D213",   # Conflicts with D212.
+    "COM812", # Conflicts with the formatter.
+    "COM819", # Conflicts with the formatter.
+    "ISC001", # Conflicts with the formatter.
+    "ISC002", # Conflicts with the formatter.
+    "CPY001", # Copyright headers are not required for this project.
+    "TD002",  # TODO author attribution is not required.
+    "TD003",  # TODO issue links are not required.
+    "FIX002", # TODO comments are permitted.
+    "D100",   # Public module docstrings are not required.
+    "D101",   # Public class docstrings are not required.
+    "D102",   # Public method docstrings are not required.
+    "D103",   # Public function docstrings are not required.
+    "D104",   # Public package docstrings are not required.
+    "D105",   # Public magic-method docstrings are not required.
+    "D107",   # Public __init__ docstrings are not required.
 ]
-# All enabled rules must be fixed rather than suppressed.
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
