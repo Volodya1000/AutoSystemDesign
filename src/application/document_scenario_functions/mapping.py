@@ -126,7 +126,7 @@ def build_metric_requirements(
     verified_excerpts: list[str],
 ) -> MappingOutcome[list[Requirement]]:
     """Build all valid metrics while preserving diagnostics for rejected candidates."""
-    output: list[ScenarioRequirement] = []
+    output: list[Requirement] = []
     issues: list[RequirementIssue] = []
     field_evidence: dict[str, str] = {}
     for candidate in candidates:
@@ -151,7 +151,7 @@ def _build_metric_requirement(
     candidate: ExtractedMetricRequirement,
     index: int,
     verified_excerpts: list[str],
-) -> MappingOutcome[ScenarioRequirement | None]:
+) -> MappingOutcome[Requirement | None]:
     """Build one typed metric and its evidence without changing shared state."""
     base_path = f"requirements[{index}]"
     type_result = resolve_candidate(
@@ -231,7 +231,7 @@ def _build_metric_requirement(
 def _create_metric(
     metric_type: MetricType,
     values: dict[str, float | None],
-) -> ScenarioRequirement:
+) -> Requirement:
     """Instantiate the canonical non-functional model after field validation."""
     match metric_type:
         case "latency":
