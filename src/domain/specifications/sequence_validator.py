@@ -120,8 +120,9 @@ class SequenceIntegrityValidator:
         if scenario.requirement_identifier != expected_requirement_id:
             errors.append(
                 SequenceIntegrityError(
-                    f"Scenario claims to implement '{scenario.requirement_identifier}', "
-                    f"but was requested for '{expected_requirement_id}'."
+                    f"Scenario claims to implement "
+                    f"'{scenario.requirement_identifier}', but was requested for "
+                    f"'{expected_requirement_id}'."
                 )
             )
 
