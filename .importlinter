@@ -1,0 +1,11 @@
+[importlinter]
+root_package = application
+include_external_packages = True
+
+[importlinter:contract:application-does-not-import-config]
+name = Application layer must not depend on configuration
+type = forbidden
+source_modules =
+    application
+forbidden_modules =
+    config
