@@ -54,6 +54,24 @@ def test_extractor_sends_schema_and_returns_validated_output() -> None:
 
 
 @pytest.mark.unit
+def test_extractor_accepts_json_wrapped_in_markdown_fence() -> None:
+    payload = {
+        "requirements": [],
+        "is_relevant": True,
+        "ambiguity_notes": [],
+        "conflict_notes": [],
+    }
+    content = f"```json\n{json.dumps(payload)}\n```"
+    client = FakeCompletionClient(make_response(content, FinishReason.STOP))
+    extractor = LlmDocumentRequirementExtractor(make_settings(), client)
+
+    result = extractor.extract("Some requirement.", "spec.md")
+
+    assert isinstance(result, ExtractionChunk)
+    assert result.is_relevant is True
+
+
+@pytest.mark.unit
 def test_extractor_rejects_truncated_responses() -> None:
     client = FakeCompletionClient(make_response("{}", FinishReason.LENGTH))
     extractor = LlmDocumentRequirementExtractor(make_settings(), client)
