@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
-from domain.specifications.interfaces import ValidationResult
-
 if TYPE_CHECKING:
     from domain.models.roles import ProjectRolesCatalog
     from domain.models.sequence import InteractionScenario
     from domain.models.topology import ArchitectureGraph
+    from domain.specifications.interfaces import ValidationResult
 
 
 class SequenceCatalogValidator(Protocol):
