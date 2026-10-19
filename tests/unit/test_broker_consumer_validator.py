@@ -103,6 +103,7 @@ class TestBrokerWithConsumer:
 class TestDanglingBroker:
     def test_broker_with_incoming_but_no_outgoing_is_rejected(self) -> None:
         """This is exactly the pattern the LLM produced on the
+
         social_network_chat run: processor -> broker (async), but the
         broker has no consumer. Messages accumulate in the queue forever."""
         graph = _graph(
@@ -178,6 +179,7 @@ class TestScopeBoundaries:
 
     def test_broker_with_only_outgoing_edges_is_flagged_as_phantom_source(self) -> None:
         """A broker with outgoing edges but no incoming edge is a phantom
+
         source: consumers receive messages that no one published. It must
         be reported as MessageBrokerWithoutProducerError, not accepted.
 
@@ -202,6 +204,7 @@ class TestScopeBoundaries:
 
     def test_broker_with_disallowed_outgoing_edge_is_not_flagged_here(self) -> None:
         """Broker -> non-consumer edge is a connection-whitelist error
+
         (DisallowedConnectionTypeError), not ours. The broker DOES have an
         outgoing edge, so we do not fire."""
         graph = _graph(
@@ -251,6 +254,7 @@ class TestCycleTolerance:
 class TestPhantomSourceBroker:
     def test_broker_with_outgoing_but_no_incoming_is_rejected(self) -> None:
         """The regression the second live run exposed: the model removed
+
         the producer edge and added a consumer edge, so the broker became
         a source of messages that no one published.
         """
@@ -302,6 +306,7 @@ class TestPhantomSourceBroker:
 class TestFullyIsolatedBroker:
     def test_isolated_broker_is_not_double_reported(self) -> None:
         """Fully isolated brokers belong to StructuralTopologyValidator
+
         (IsolatedNodeError). The linkage validator must skip them so the
         repair prompt is not crowded with duplicate diagnostics for one
         defect."""
@@ -321,6 +326,7 @@ class TestFullyIsolatedBroker:
 class TestSelfLoopBroker:
     def test_same_node_as_producer_and_consumer_is_rejected(self) -> None:
         """The exact pattern the third live run produced:
+
         processor -> broker -> processor. Structurally this is a cycle
         (caught by StructuralTopologyValidator), but a broker-specific
         error gives the model an actionable fix instead of a generic
