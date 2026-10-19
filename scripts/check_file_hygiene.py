@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
 
 def tracked_files() -> list[Path]:
     """Return paths tracked by Git, including staged additions."""
+    git_executable = shutil.which("git")
+    if git_executable is None:
+        raise RuntimeError
+
     result = subprocess.run(
-        ["git", "ls-files", "-z"],
+        [git_executable, "ls-files", "-z"],
         check=True,
         capture_output=True,
     )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -17,8 +18,12 @@ def main() -> int:
         path for path in (source_root, existing_pythonpath) if path
     )
 
+    uvx_executable = shutil.which("uvx")
+    if uvx_executable is None:
+        raise RuntimeError
+
     result = subprocess.run(
-        ["uvx", "--from", "import-linter==2.15", "lint-imports"],
+        [uvx_executable, "--from", "import-linter==2.15", "lint-imports"],
         cwd=root,
         env=env,
         check=False,

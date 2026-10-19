@@ -4,6 +4,7 @@ from collections.abc import Sequence
 
 import pytest
 
+from application.exceptions.configuration_errors import GenerationConfigurationError
 from application.exceptions.generation_exceptions import DesignProposalParsingError
 from application.results import DesignGenerationResult, GenerationStatus
 from application.services.design_generation_service import DesignGenerationService
@@ -218,7 +219,9 @@ class TestDesignGenerationService:
         assert len(isolated_errors) == 2  # one per validator
 
     def test_empty_validators_are_rejected(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            GenerationConfigurationError, match="At least one validator is required"
+        ):
             DesignGenerationService(
                 designer=FakeDesigner([]),  # type: ignore[arg-type]
                 validators=[],
@@ -226,13 +229,17 @@ class TestDesignGenerationService:
             )
 
     def test_max_attempts_bounds_are_enforced(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            GenerationConfigurationError, match="max_attempts must be between"
+        ):
             DesignGenerationService(
                 designer=FakeDesigner([]),  # type: ignore[arg-type]
                 validators=[StructuralTopologyValidator()],
                 max_attempts=0,
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            GenerationConfigurationError, match="max_attempts must be between"
+        ):
             DesignGenerationService(
                 designer=FakeDesigner([]),  # type: ignore[arg-type]
                 validators=[StructuralTopologyValidator()],
