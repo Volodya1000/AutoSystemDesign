@@ -93,7 +93,9 @@ class FakeMapper:
         self.result = result
         self.calls = 0
 
-    def map(self, requirements: req_doc.DocumentRequirements) -> DocumentScenarioExtraction:
+    def map(
+        self, requirements: req_doc.DocumentRequirements
+    ) -> DocumentScenarioExtraction:
         self.calls += 1
         return self.result
 

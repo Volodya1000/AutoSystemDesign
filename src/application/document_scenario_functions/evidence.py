@@ -85,7 +85,9 @@ def resolve_candidate[ValueT](
     if (
         verbatim_text
         and isinstance(value, str)
-        and not is_evidence_supported(RequirementEvidence(source_excerpt=value), excerpt)
+        and not is_evidence_supported(
+            RequirementEvidence(source_excerpt=value), excerpt
+        )
     ):
         issue = RequirementIssue(
             kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
@@ -134,7 +136,9 @@ def validate_source_backed_notes(
             if not matches_verified_excerpt(excerpt, verified_excerpts)
         ]
         description_supported = any(
-            is_evidence_supported(RequirementEvidence(source_excerpt=note.description), excerpt)
+            is_evidence_supported(
+                RequirementEvidence(source_excerpt=note.description), excerpt
+            )
             for excerpt in excerpts
         )
         if unsupported or not description_supported:

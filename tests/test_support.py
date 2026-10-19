@@ -15,10 +15,7 @@ def has_issue(
     """Return whether a matching diagnostic exists."""
     return any(
         issue.kind is kind
-        and (
-            description_contains is None
-            or description_contains in issue.description
-        )
+        and (description_contains is None or description_contains in issue.description)
         and (field is None or issue.field == field)
         for issue in issues
     )

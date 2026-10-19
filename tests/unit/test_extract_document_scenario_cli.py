@@ -53,7 +53,9 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
             assert path == document
             return expected
 
-    def fake_run(command: list[str], *, check: bool) -> subprocess.CompletedProcess[bytes]:
+    def fake_run(
+        command: list[str], *, check: bool
+    ) -> subprocess.CompletedProcess[bytes]:
         assert not check
         pipeline_calls.append(command)
         return subprocess.CompletedProcess(command, 0)
