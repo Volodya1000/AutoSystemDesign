@@ -1,8 +1,8 @@
 """Validated output model for one document-fragment extraction."""
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
-from domain.document_requirements import Requirement
+from domain.document_requirements import Requirement, SourceBackedNote
 
 
 class ExtractionChunk(BaseModel):
@@ -12,5 +12,5 @@ class ExtractionChunk(BaseModel):
 
     requirements: list[Requirement]
     is_relevant: bool
-    ambiguity_notes: list[str]
-    conflict_notes: list[str]
+    ambiguity_notes: list[SourceBackedNote]
+    conflict_notes: list[SourceBackedNote]
