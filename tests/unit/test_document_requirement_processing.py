@@ -2,9 +2,14 @@ import pytest
 
 from application.document_processing import (
     deduplicate_requirements,
+    is_evidence_supported,
     split_document_text,
 )
-from domain.document_requirements import Requirement, RequirementKind
+from domain.document_requirements import (
+    Requirement,
+    RequirementEvidence,
+    RequirementKind,
+)
 
 
 @pytest.mark.unit
@@ -30,23 +35,42 @@ def test_split_document_text_returns_empty_list_for_empty_text() -> None:
 
 
 @pytest.mark.unit
-def test_deduplicate_requirements_uses_kind_and_normalized_statement() -> None:
+def test_deduplicate_requirements_preserves_distinct_source_evidence() -> None:
     first = Requirement(
-        statement="  The service MUST support login. ",
+        statement="The service MUST support login.",
         kind=RequirementKind.FUNCTIONAL,
-        source_excerpt="The service MUST support login.",
+        source_evidence=[
+            RequirementEvidence(source_excerpt="The service MUST support login.")
+        ],
     )
     duplicate = Requirement(
         statement="the service must support login.",
         kind=RequirementKind.FUNCTIONAL,
-        source_excerpt="Login must be supported.",
+        source_evidence=[
+            RequirementEvidence(source_excerpt="Customers can log in to the service.")
+        ],
     )
     different_kind = Requirement(
         statement="the service must support login.",
         kind=RequirementKind.NON_FUNCTIONAL,
-        source_excerpt="Login must be supported.",
+        source_evidence=[
+            RequirementEvidence(source_excerpt="Customers can log in to the service.")
+        ],
     )
 
     result = deduplicate_requirements([first, duplicate, different_kind])
 
-    assert result == [first, different_kind]
+    assert len(result) == 2
+    assert result[0].source_evidence == [
+        RequirementEvidence(source_excerpt="The service MUST support login."),
+        RequirementEvidence(source_excerpt="Customers can log in to the service."),
+    ]
+    assert result[1].kind is RequirementKind.NON_FUNCTIONAL
+
+
+@pytest.mark.unit
+def test_evidence_validation_ignores_whitespace_but_not_changed_words() -> None:
+    evidence = RequirementEvidence(source_excerpt="The service\n supports login.")
+
+    assert is_evidence_supported(evidence, "The service supports\n\nlogin.")
+    assert not is_evidence_supported(evidence, "The service might support login.")
