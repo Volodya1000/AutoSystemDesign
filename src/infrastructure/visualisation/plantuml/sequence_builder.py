@@ -81,7 +81,7 @@ class SequenceDiagramBuilder:
         keyword = participant_keyword(lifeline, node_type_by_id)
         if isinstance(lifeline, UserLifeline):
             return (
-                f'{keyword} "{lifeline.scenario_role}\\\\n'
+                f'{keyword} "{lifeline.scenario_role}\\n'
                 f'({lifeline.business_role_id})" '
                 f"as {lifeline.lifeline_id}"
             )
