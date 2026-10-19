@@ -4,6 +4,11 @@ import logging
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from application.generation_limits import (
+    DEFAULT_SEQUENCE_PARALLELISM,
+    MAX_ATTEMPTS,
+    MIN_ATTEMPTS,
+)
 from application.protocols import SequenceDesigner
 from application.results import (
     GenerationAttempt,
@@ -15,11 +20,6 @@ from application.services.sequence_generation.interaction_scenario_generator imp
 )
 from application.services.sequence_generation.roles_catalog_generator import (
     RolesCatalogGenerator,
-)
-from application.generation_limits import (
-    DEFAULT_SEQUENCE_PARALLELISM,
-    MAX_ATTEMPTS,
-    MIN_ATTEMPTS,
 )
 from domain.models.functional import FunctionalRequirement
 from domain.models.roles import ProjectRolesCatalog
