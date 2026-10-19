@@ -38,8 +38,11 @@ OUTPUT_HARD_RULES: Final[str] = (
     "broker cannot route a message back to its own producer: that forms a "
     "cycle, which is forbidden by rule 3. To add asynchronous decoupling, "
     "introduce a dedicated worker compute node behind the broker "
-    "(producer -> broker -> worker), not a loop back to the producer. If "
-    "you do not need async decoupling, do not add a broker at all.\n"
+    "(producer -> broker -> worker), not a loop back to the producer. For "
+    "example, message_processor -> message_broker -> notification_worker "
+    "is valid; message_processor -> message_broker -> message_processor "
+    "and message_broker -> message_broker are invalid. If you do not need "
+    "async decoupling, do not add a broker at all.\n"
     "9. Every cache node MUST be on a real read path:\n"
     "   - at least one SYNCHRONOUS incoming edge from a compute node "
     "(the read attempt);\n"
@@ -53,7 +56,10 @@ OUTPUT_HARD_RULES: Final[str] = (
     "receives data but nobody reads it, and cache_hit_rate is dead. "
     "Either use the canonical read + fallback pattern, or remove the cache.\n"
     "10. Before returning JSON, check every edge against the whitelist and "
-    "re-check cache directionality: cache -> database is forbidden."
+    "re-check cache directionality: cache -> database is forbidden.\n"
+    "11. Before returning JSON, trace every path through each message_broker. "
+    "Confirm that its producer and consumer are different compute nodes, "
+    "and that no edge creates a cycle or a self-loop."
 )
 
 FEW_SHOT_GRAPH_JSON: Final[str] = """{
