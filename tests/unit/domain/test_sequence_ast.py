@@ -18,7 +18,7 @@ def test_altstep_requires_else_branch_to_be_last() -> None:
     )
 
     with pytest.raises(
-        ValidationError, match="The default branch .* must be the last one"
+        ValidationError, match=r"The default branch .* must be the last one"
     ):
         AltStep(
             kind="alt",
