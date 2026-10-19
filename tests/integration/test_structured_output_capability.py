@@ -28,11 +28,11 @@ _logger: logging.Logger = logging.getLogger(__name__)
 MINIMUM_NODE_COUNT: int = 3
 
 
+@pytest.mark.usefixtures("require_lm_studio")
 def test_single_shot_structured_output_capability(
     designer: ArchitectureDesignerAgent,
     structural_validator: StructuralTopologyValidator,
     initial_task: DesignTask,
-    require_lm_studio: None,
     integration_test_settings: IntegrationSettings,
 ) -> None:
     """Every single-shot run must parse and pass structural validation."""
@@ -80,10 +80,10 @@ def test_single_shot_structured_output_capability(
     )
 
 
+@pytest.mark.usefixtures("require_lm_studio")
 def test_json_schema_mode_probe(
     app_settings: AppSettings,
     scenario: DesignScenario,
-    require_lm_studio: None,
 ) -> None:
     """Non-strict probe: documents JSON_SCHEMA parse support of this endpoint.
 
