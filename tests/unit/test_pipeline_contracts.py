@@ -234,7 +234,8 @@ def test_render_and_write_captures_source_generation_error() -> None:
         base_name="b",
         out_dir=Path("."),
     )
-    assert result.warnings and "server down" in result.warnings[0]
+    assert result.warnings
+    assert "server down" in result.warnings[0]
     assert not result.artifacts
     assert result.image_rendered is False
 
@@ -260,7 +261,8 @@ def test_render_and_write_image_failure_keeps_source(
         out_dir=tmp_path,
     )
     assert result.artifacts == tuple(written_paths)
-    assert result.warnings and "no server" in result.warnings[0]
+    assert result.warnings
+    assert "no server" in result.warnings[0]
     assert result.image_rendered is False
 
 
@@ -284,7 +286,8 @@ def test_render_and_write_saving_failure_returns_warning(
         out_dir=tmp_path,
     )
     assert not result.artifacts
-    assert result.warnings and "disk full" in result.warnings[0]
+    assert result.warnings
+    assert "disk full" in result.warnings[0]
     assert result.image_rendered is True
 
 
