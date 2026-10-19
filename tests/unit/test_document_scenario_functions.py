@@ -3,6 +3,7 @@
 import pytest
 
 from application.document_scenario_functions import build_workload, resolve_candidate
+from application.document_scenario_functions.evidence import CandidateValidationOptions
 from domain.scenario_extraction import EvidenceValue, ExtractedWorkload
 
 
@@ -16,8 +17,7 @@ def test_resolve_candidate_returns_evidence_without_mutating_inputs() -> None:
         candidate,
         "description",
         verified_excerpts,
-        required=True,
-        verbatim_text=True,
+        options=CandidateValidationOptions(required=True, verbatim_text=True),
     )
 
     assert result.value == excerpt

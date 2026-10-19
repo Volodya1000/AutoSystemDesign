@@ -55,7 +55,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             encoding="utf-8",
         )
     except (LlmConnectionError, OSError, ValueError) as error:
-        logger.exception("Document requirement extraction failed: %s", error)
+        logger.exception("Document requirement extraction failed")
         return 2
 
     logger.info("Extracted %d requirements.", len(result.requirements))
