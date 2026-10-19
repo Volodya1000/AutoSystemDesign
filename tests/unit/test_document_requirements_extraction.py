@@ -87,3 +87,40 @@ def test_discards_requirement_without_source_grounded_evidence(tmp_path: Path) -
         for issue in result.issues
     )
     assert result.is_relevant
+
+
+@pytest.mark.unit
+def test_rejects_paraphrased_claim_even_when_its_citation_exists(
+    tmp_path: Path,
+) -> None:
+    source_excerpt = "The service may process orders."
+    path = tmp_path / "spec.md"
+    path.write_text(source_excerpt, encoding="utf-8")
+
+    class ParaphrasingExtractor:
+        def extract(self, text: str, source_name: str) -> ExtractionChunk:
+            return ExtractionChunk(
+                requirements=[
+                    Requirement(
+                        statement="The service guarantees exactly-once payment processing.",
+                        kind=RequirementKind.FUNCTIONAL,
+                        source_evidence=[
+                            RequirementEvidence(source_excerpt=source_excerpt)
+                        ],
+                    )
+                ],
+                is_relevant=True,
+                ambiguity_notes=[],
+                conflict_notes=[],
+            )
+
+    result = DocumentRequirementsService(
+        MarkdownReader(), ParaphrasingExtractor()
+    ).extract_file(path)
+
+    assert not result.requirements
+    assert any(
+        issue.kind is RequirementIssueKind.UNSUPPORTED_EVIDENCE
+        and "verbatim substring" in issue.description
+        for issue in result.issues
+    )
