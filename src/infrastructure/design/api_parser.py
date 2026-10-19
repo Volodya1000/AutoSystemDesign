@@ -12,5 +12,5 @@ if TYPE_CHECKING:
 
 
 def parse_api_design(payload: str, usage: TokenUsage) -> ApiDesign:
-    """Parses a raw LLM completion into an ApiDesign."""
+    """Parse a raw LLM completion into an ApiDesign."""
     return parse_payload(payload, ApiDesign, usage)
