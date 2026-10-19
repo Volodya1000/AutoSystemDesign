@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from domain.exceptions.sequence_errors import SharedClientLifelineError
 from domain.models.enums import NodeType
 from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
@@ -12,8 +14,6 @@ from .helpers import iter_message_steps
 if TYPE_CHECKING:
     from domain.models.roles import ProjectRolesCatalog
     from domain.models.topology import ArchitectureGraph
-
-from typing import TYPE_CHECKING
 
 
 class ClientOwnershipValidator:
