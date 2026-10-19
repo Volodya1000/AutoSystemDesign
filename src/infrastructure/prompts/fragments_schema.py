@@ -43,12 +43,17 @@ OUTPUT_HARD_RULES: Final[str] = (
     "9. Every cache node MUST be on a real read path:\n"
     "   - at least one SYNCHRONOUS incoming edge from a compute node "
     "(the read attempt);\n"
-    "   - that compute node MUST also have at least one other outgoing "
-    "edge (the miss fallback, e.g. to a database), so cache misses can "
-    "be resolved.\n"
+    "   - that SAME compute node MUST also have another outgoing edge "
+    "to the database (the cache-miss fallback).\n"
+    "   Canonical pattern: compute -> cache (synchronous read) AND "
+    "compute -> database (synchronous fallback). Both edges originate "
+    "from the compute node. NEVER connect cache -> database: cache is "
+    "not a caller and must not own the fallback path.\n"
     "   An async-only edge into a cache is a write-only sink: the cache "
     "receives data but nobody reads it, and cache_hit_rate is dead. "
-    "Either wire a synchronous read + miss fallback, or remove the cache."
+    "Either use the canonical read + fallback pattern, or remove the cache.\n"
+    "10. Before returning JSON, check every edge against the whitelist and "
+    "re-check cache directionality: cache -> database is forbidden."
 )
 
 FEW_SHOT_GRAPH_JSON: Final[str] = """{
