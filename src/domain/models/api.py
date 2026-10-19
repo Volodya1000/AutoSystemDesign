@@ -58,10 +58,7 @@ class ApiParameter(ApiModel):
     data_type: DataType
     item_type: DataType | None = Field(
         default=None,
-        description=(
-            "Required if data_type == 'array'. "
-            "Defines the type of array items."
-        ),
+        description=("Required if data_type == 'array'. Defines the type of array items."),
     )
     format: str | None = Field(default=None, description="e.g. 'uuid', 'date-time'")
     description: str | None = None
@@ -89,10 +86,7 @@ class ApiRequestBody(ApiModel):
     required: bool = True
     content_type: str = Field(default="application/json")
     schema_ref: str = Field(
-        description=(
-            "Name of the schema in the central registry "
-            "(e.g., 'CreateOrderRequest')"
-        )
+        description=("Name of the schema in the central registry (e.g., 'CreateOrderRequest')")
     )
 
 
