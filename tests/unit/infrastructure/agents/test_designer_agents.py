@@ -88,12 +88,12 @@ def _install_prompt_builders(
     monkeypatch.setattr(
         module,
         initial_name,
-        lambda task: _messages("initial prompt"),
+        lambda _task: _messages("initial prompt"),
     )
     monkeypatch.setattr(
         module,
         repair_name,
-        lambda task: _messages("repair prompt"),
+        lambda _task: _messages("repair prompt"),
     )
 
 
@@ -202,7 +202,7 @@ def test_architecture_designer_builds_typed_request_and_parses_result(
     monkeypatch.setattr(
         architecture_designer_module,
         "parse_architecture_graph",
-        lambda content, *, usage: graph,
+        lambda _content, **_kwargs: graph,
     )
 
     task = DesignTask(scenario=_scenario(), mode=mode)
@@ -241,7 +241,7 @@ def test_api_designer_builds_typed_request_and_parses_result(
     monkeypatch.setattr(
         api_designer_module,
         "parse_api_design",
-        lambda content, *, usage: api_design,
+        lambda _content, **_kwargs: api_design,
     )
 
     task = ApiDesignTask(
@@ -283,7 +283,7 @@ def test_sequence_designer_builds_roles_request_and_parses_result(
     monkeypatch.setattr(
         sequence_designer_module,
         "parse_roles_catalog",
-        lambda content, *, usage: catalog,
+        lambda _content, **_kwargs: catalog,
     )
 
     proposal = sequence_designer_module.SequenceDesignerAgent(
@@ -318,7 +318,7 @@ def test_sequence_designer_builds_interaction_request_and_parses_result(
     monkeypatch.setattr(
         sequence_designer_module,
         "parse_interaction_scenario",
-        lambda content, *, usage: interaction,
+        lambda _content, **_kwargs: interaction,
     )
 
     task = SequenceInteractionTask(
