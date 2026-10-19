@@ -17,14 +17,9 @@ from application.pipeline.ports import ArtifactWriter
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stage import PipelineStage
 from domain.models import DesignScenario
+from tests.unit.in_memory_writer import InMemoryWriter
 
 pytestmark = pytest.mark.unit
-
-
-class InMemoryWriter:
-    def write_text(self, path: Path, content: str) -> Path:
-        del content
-        return path
 
 
 class RecordingReporter:
