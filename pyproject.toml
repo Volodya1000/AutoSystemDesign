@@ -78,6 +78,7 @@ extend-select = [
     "D404", # Avoid starting docstrings with "This".
     "RUF002", # Avoid ambiguous Unicode in docstrings.
     "RUF005", # Prefer clearer sequence concatenation.
+    "D401", # Use imperative verbs for docstring summaries.
 ]
 # All enabled rules must be fixed rather than suppressed.
 
