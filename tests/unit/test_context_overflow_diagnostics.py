@@ -3,7 +3,9 @@
 import litellm
 import pytest
 
-from infrastructure.llm.context_diagnostics import context_overflow_diagnostic
+from infrastructure.llm.context_diagnostics import (
+    context_overflow_diagnostic,
+)
 from infrastructure.llm.models import CompletionRequest, Message
 
 
@@ -42,7 +44,7 @@ def test_explains_when_endpoint_context_limit_is_unknown(
     monkeypatch: pytest.MonkeyPatch,
     completion_request: CompletionRequest,
 ) -> None:
-    monkeypatch.setattr(litellm, "token_counter", lambda **kwargs: 20_000)
+    monkeypatch.setattr(litellm, "token_counter", lambda **_: 20_000)
 
     diagnostic = context_overflow_diagnostic(
         Exception("maximum context length exceeded"),
