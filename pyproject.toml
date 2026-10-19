@@ -67,6 +67,7 @@ extend-select = [
     "S607",   # Review subprocess calls using partial executable paths.
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
+    "EM101", # Avoid raising exceptions directly from string literals.
     "PT018", # Keep each pytest assertion focused.
     "PT006", # Use explicit parameterization argument names.
     "D205", # Require a blank line between docstring summary and body.
