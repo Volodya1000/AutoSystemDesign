@@ -1,8 +1,16 @@
 """Domain models for source-grounded requirement extraction."""
 
 from enum import StrEnum
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+def _normalize_source_evidence(value: Any) -> Any:
+    """Accept a single evidence object while keeping the domain type a list."""
+    if isinstance(value, dict):
+        return [value]
+    return value
 
 
 class RequirementKind(StrEnum):
@@ -26,6 +34,12 @@ class SourceBackedNote(BaseModel):
     description: str = Field(min_length=1)
     source_evidence: list[RequirementEvidence] = Field(min_length=1)
 
+    @field_validator("source_evidence", mode="before")
+    @classmethod
+    def normalize_single_source_evidence(cls, value: Any) -> Any:
+        """Normalize a singleton object to the canonical list representation."""
+        return _normalize_source_evidence(value)
+
 
 class Requirement(BaseModel):
     """An atomic requirement claim with one or more source citations."""
@@ -35,6 +49,12 @@ class Requirement(BaseModel):
     statement: str = Field(min_length=1)
     kind: RequirementKind
     source_evidence: list[RequirementEvidence] = Field(min_length=1)
+
+    @field_validator("source_evidence", mode="before")
+    @classmethod
+    def normalize_single_source_evidence(cls, value: Any) -> Any:
+        """Normalize a singleton object to the canonical list representation."""
+        return _normalize_source_evidence(value)
 
 
 class RequirementIssueKind(StrEnum):
