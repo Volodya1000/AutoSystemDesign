@@ -10,7 +10,7 @@ from config.root import CONFIG_FILE_ENV_VAR
 
 @pytest.fixture(autouse=True)
 def isolated_unit_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """Runs every unit test without ASD_* env vars and outside the repo cwd.
+    """Run every unit test without ASD_* env vars and outside the repo cwd.
 
     The chdir guarantees that neither .env nor config.yaml /
     config.test.yaml from the repository is picked up by settings sources.
