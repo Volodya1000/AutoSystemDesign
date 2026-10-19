@@ -20,7 +20,7 @@ def main() -> int:
 
     uvx_executable = shutil.which("uvx")
     if uvx_executable is None:
-        raise RuntimeError("uvx executable is required to run Import Linter")
+        raise RuntimeError("uvx is required")
 
     result = subprocess.run(
         [uvx_executable, "--from", "import-linter==2.15", "lint-imports"],
