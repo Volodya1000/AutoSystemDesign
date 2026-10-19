@@ -84,7 +84,6 @@ def test_single_shot_structured_output_capability(
 def test_json_schema_mode_probe(
     app_settings: AppSettings,
     scenario: DesignScenario,
-    require_lm_studio: None,
 ) -> None:
     """Non-strict probe: documents JSON_SCHEMA parse support of this endpoint.
 
