@@ -155,7 +155,7 @@ def test_http_renderer_rejects_non_http_url_before_opening(
         request: urllib.request.Request, timeout: float
     ) -> FakeResponse:
         del request, timeout
-        raise AssertionError("urlopen must not be called for an unsafe URL")
+        raise AssertionError
 
     monkeypatch.setattr(renderer_module.urllib.request, "urlopen", unexpected_urlopen)
     renderer = PlantumlServerImageRenderer(server_url="file://localhost/tmp")
