@@ -13,8 +13,10 @@ def render_scenario_summary(scenario: DesignScenario) -> str:
         lines.extend(
             [
                 "Workload:",
-                f"- Baseline load: {scenario.workload.baseline_requests_per_second} "
-                    "RPS",
+                (
+                    f"- Baseline load: {scenario.workload.baseline_requests_per_second} "
+                    "RPS"
+                ),
                 f"- Peak load: {scenario.workload.peak_requests_per_second} RPS",
                 (
                     f"- Read ratio: {scenario.workload.read_ratio:.2f}, "
