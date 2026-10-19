@@ -13,6 +13,7 @@ from domain.specifications.rules import DEFAULT_ALLOWED_CONNECTION_TYPES
 from domain.specifications.structural_validator import StructuralTopologyValidator
 from infrastructure.prompts.fragments_schema import (
     FEW_SHOT_GRAPH_JSON,
+    OUTPUT_HARD_RULES,
     render_allowed_connections,
     render_output_schema,
 )
@@ -25,6 +26,12 @@ class TestFragments:
         rendered: str = render_allowed_connections()
         for connection in DEFAULT_ALLOWED_CONNECTION_TYPES:
             assert f"{connection.source.value} -> {connection.target.value}" in rendered
+
+    def test_cache_rules_explain_directional_miss_fallback(self) -> None:
+        assert "compute -> cache" in OUTPUT_HARD_RULES
+        assert "compute -> database" in OUTPUT_HARD_RULES
+        assert "NEVER connect cache -> database" in OUTPUT_HARD_RULES
+        assert "Both edges originate from the compute node" in OUTPUT_HARD_RULES
 
     def test_schema_lists_all_domain_protocol_singletons(self) -> None:
         schema_text: str = render_output_schema()
