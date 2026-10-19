@@ -26,7 +26,8 @@ def _strip_provider_prefix(model: str) -> str:
     return model
 
 
-def test_model_is_listed(gate_settings: AppSettings, require_lm_studio: None) -> None:
+@pytest.mark.usefixtures("require_lm_studio")
+def test_model_is_listed(gate_settings: AppSettings) -> None:
     response: httpx.Response = httpx.get(
         f"{gate_settings.base_url}/models", timeout=5.0
     )
@@ -40,8 +41,9 @@ def test_model_is_listed(gate_settings: AppSettings, require_lm_studio: None) ->
     _logger.info("Model '%s' is served by LM Studio", expected_id)
 
 
+@pytest.mark.usefixtures("require_lm_studio")
 def test_completion_returns_content_and_usage(
-    gate_settings: AppSettings, require_lm_studio: None
+    gate_settings: AppSettings,
 ) -> None:
     client: LiteLlmClient = LiteLlmClient(settings=gate_settings)
     result = client.complete(
