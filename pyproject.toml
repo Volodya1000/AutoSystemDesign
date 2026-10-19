@@ -43,6 +43,7 @@ markers = [
 # Add design-oriented checks while keeping Ruff's existing default rules.
 extend-select = [
     "A",     # Prevent shadowing Python builtins.
+    "ANN202", # Require return annotations on private functions.
     "B",     # Bugbear: likely bugs and error-prone constructs.
     "C90",   # McCabe: excessive cyclomatic complexity.
     "FBT",   # Boolean traps in function interfaces and calls.
