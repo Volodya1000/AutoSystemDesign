@@ -31,5 +31,5 @@ class DiagramArtifacts(BaseModel):
     image_bytes: bytes | None = None
 
     def with_image(self, image_bytes: bytes) -> "DiagramArtifacts":
-        """Returns a copy of the artifacts with the rendered image attached."""
+        """Return a copy of the artifacts with the rendered image attached."""
         return self.model_copy(update={"image_bytes": image_bytes})
