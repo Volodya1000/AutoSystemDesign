@@ -40,6 +40,7 @@ markers = [
 ]
 
 [tool.ruff.lint]
+ignore = ["TRY003", "EM101"]  # Avoid forcing one-off exception classes for every validation message.
 # Add design-oriented checks while keeping Ruff's existing default rules.
 extend-select = [
     "A",     # Prevent shadowing Python builtins.

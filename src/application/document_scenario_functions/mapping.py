@@ -260,21 +260,21 @@ def _create_metric(
             )
         case "queue_size_percentile":
             return QueueSizePercentileRequirement(
-                threshold_value=cast(float, values["threshold_value"]),
-                percentile=cast(float, values["percentile"]),
+                threshold_value=cast("float", values["threshold_value"]),
+                percentile=cast("float", values["percentile"]),
             )
         case "budget":
             return BudgetRequirement(
-                threshold_value=cast(float, values["threshold_value"]),
+                threshold_value=cast("float", values["threshold_value"]),
             )
         case "availability":
             return AvailabilityRequirement(
-                threshold_value=cast(float, values["threshold_value"]),
+                threshold_value=cast("float", values["threshold_value"]),
             )
         case "resource_utilization":
             return ResourceUtilizationRequirement(
-                minimum_value=cast(float, values["minimum_value"]),
-                maximum_value=cast(float, values["maximum_value"]),
+                minimum_value=cast("float", values["minimum_value"]),
+                maximum_value=cast("float", values["maximum_value"]),
             )
         case _:
             raise UnsupportedMetricTypeError(f"Unsupported metric type: {metric_type}")

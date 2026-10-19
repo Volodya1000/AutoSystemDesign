@@ -4,6 +4,7 @@ import pytest
 
 from application.document_scenario_functions import build_workload, resolve_candidate
 from application.document_scenario_functions.evidence import CandidateValidationOptions
+from application.document_scenario_functions.evidence import CandidateValidationOptions
 from domain.scenario_extraction import EvidenceValue, ExtractedWorkload
 
 

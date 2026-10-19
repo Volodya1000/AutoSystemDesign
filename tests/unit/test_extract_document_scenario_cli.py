@@ -122,7 +122,7 @@ def test_main_does_not_write_scenario_without_validated_result(
         def __init__(self, requirements_service: Any, mapper: Any) -> None:
             pass
 
-        def extract_file(self, path: Path) -> DocumentScenarioResult:
+        def extract_file(self, _path: Path) -> DocumentScenarioResult:
             return result
 
     monkeypatch.setattr(cli, "load_app_settings", object)

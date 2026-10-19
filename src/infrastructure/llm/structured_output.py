@@ -15,6 +15,7 @@ from infrastructure.llm.models import (
 )
 from infrastructure.llm.protocols import CompletionClient
 
+
 class StructuredOutputError(ValueError):
     """The LLM response cannot be used as structured output."""
 

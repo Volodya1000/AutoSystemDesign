@@ -19,7 +19,7 @@ class FakeExtractor:
     def __init__(self) -> None:
         self.inputs: list[str] = []
 
-    def extract(self, text: str, source_name: str) -> ExtractionChunk:
+    def extract(self, _text: str, _source_name: str) -> ExtractionChunk:
         self.inputs.append(text)
         requirement = Requirement(
             statement="A requirement paragraph.",

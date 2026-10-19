@@ -84,7 +84,7 @@ class FakeRequirementsService:
     def __init__(self, result: req_doc.DocumentRequirements) -> None:
         self.result = result
 
-    def extract_file(self, path: Path) -> req_doc.DocumentRequirements:
+    def extract_file(self, _path: Path) -> req_doc.DocumentRequirements:
         return self.result
 
 
@@ -94,7 +94,7 @@ class FakeMapper:
         self.calls = 0
 
     def map(
-        self, requirements: req_doc.DocumentRequirements
+        self, _requirements: req_doc.DocumentRequirements
     ) -> DocumentScenarioExtraction:
         self.calls += 1
         return self.result
