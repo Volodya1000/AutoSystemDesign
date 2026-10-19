@@ -1,16 +1,22 @@
 """Generate and validate the project-wide business roles catalog."""
 
-from collections.abc import Sequence
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
-from application.protocols import SequenceDesigner
 from application.results import GenerationAttempt
 from application.tasks import DesignTaskMode, SequenceRoleTask, ValidationErrorFeedback
-from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.models.roles import ProjectRolesCatalog
-from domain.models.scenarios import DesignScenario
 from domain.specifications.interfaces import ValidationResult
-from domain.specifications.sequence_validator import SequenceCatalogValidator
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from application.protocols import SequenceDesigner
+    from domain.exceptions.architecture_errors import ArchitectureValidationError
+    from domain.models.scenarios import DesignScenario
+    from domain.specifications.sequence_validator import SequenceCatalogValidator
 
 
 class RolesCatalogGenerator:

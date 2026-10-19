@@ -8,9 +8,13 @@ external callers. New code should import it from
 
 from __future__ import annotations
 
-from application.usage import TokenUsage
+from typing import TYPE_CHECKING
+
 from domain.models.topology import ArchitectureGraph
 from infrastructure.design._parsing import extract_json_payload, parse_payload
+
+if TYPE_CHECKING:
+    from application.usage import TokenUsage
 
 __all__ = ["extract_json_payload", "parse_architecture_graph"]
 

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -14,15 +14,9 @@ from application.pipeline.context import (
     StageContext,
     require_payload,
 )
-from application.pipeline.outcome import (
-    DiagramRenderResult,
-    StageOutcome,
-    StageStatus,
-)
+from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stages._naming import plan_base_names
-from application.results import GenerationAttempt
-from application.usage import TokenUsage
 from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml import (
     DiagramRenderingError,
@@ -31,7 +25,18 @@ from infrastructure.visualisation.plantuml import (
 from infrastructure.visualisation.plantuml import renderers as renderers_mod
 from tests.unit.in_memory_writer import InMemoryWriter
 
-# --- fakes ------------------------------------------------------------------
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from application.results import GenerationAttempt
+    from application.usage import TokenUsage
+
+
+class ProgrammingError(ValueError):
+    """Unexpected programming error used to test propagation."""
+
+    def __init__(self) -> None:
+        super().__init__("programming error")
 
 
 class NullGenerationReporter:
@@ -268,7 +273,7 @@ def test_render_and_write_saving_failure_returns_warning(
     service.render_image.return_value = b"img"
 
     fake_writer = MagicMock()
-    fake_writer.write.side_effect = DiagramSavingError("disk full")
+    fake_writer.write.side_effect = DiagramSavingError(tmp_path, OSError("disk full"))
     monkeypatch.setattr(renderers_mod, "DiagramFileWriter", lambda: fake_writer)
 
     result = renderers_mod.render_and_write(
@@ -287,7 +292,7 @@ def test_render_and_write_propagates_unexpected_error() -> None:
     """Programming errors (e.g. ValueError) are not swallowed."""
 
     def bad_factory() -> object:
-        raise ValueError("programming error")
+        raise ProgrammingError
 
     with pytest.raises(ValueError, match="programming error"):
         renderers_mod.render_and_write(

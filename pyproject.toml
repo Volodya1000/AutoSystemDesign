@@ -47,7 +47,10 @@ extend-select = [
     "FBT",  # Boolean traps in function interfaces and calls.
     "RET",  # Consistent, explicit return paths.
     "SIM",  # Simplify unnecessarily complicated control flow.
+    "TC",   # Type-checking import and annotation rules.
+    "TRY",  # Exception handling and error-design rules.
 ]
+# All enabled TC and TRY rules must be fixed rather than suppressed.
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10

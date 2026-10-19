@@ -2,6 +2,10 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
 from domain.models.enums import DatabaseRole, NodeType
 
 
@@ -17,9 +21,7 @@ class BaseNode(BaseModel):
     @model_validator(mode="after")
     def _reject_direct_base_instantiation(self) -> "BaseNode":
         if self.__class__ is BaseNode:  # pylint: disable=unidiomatic-typecheck
-            raise ValueError(
-                "BaseNode is abstract: instantiate a concrete node subclass"
-            )
+            raise ModelValidationError(ModelValidationCode.ABSTRACT_BASE_NODE)
         return self
 
 
@@ -37,9 +39,7 @@ class CapacityNode(BaseNode):
     @model_validator(mode="after")
     def _reject_direct_capacity_instantiation(self) -> "CapacityNode":
         if self.__class__ is CapacityNode:  # pylint: disable=unidiomatic-typecheck
-            raise ValueError(
-                "CapacityNode is abstract: instantiate a concrete node subclass"
-            )
+            raise ModelValidationError(ModelValidationCode.ABSTRACT_CAPACITY_NODE)
         return self
 
 

@@ -1,15 +1,21 @@
 """Persistence and rendering of generated sequence artifacts."""
 
-from pathlib import Path
+from __future__ import annotations
 
-from application.pipeline.context import StageContext
+from typing import TYPE_CHECKING
+
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
-from application.pipeline.outcome import DiagramRenderResult
-from application.pipeline.ports import DiagramRenderer
 from application.pipeline.sequence_artifact_models import SequenceArtifactResult
-from domain.models.roles import ProjectRolesCatalog
-from domain.models.sequence import InteractionScenario
-from domain.models.topology import ArchitectureGraph
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from application.pipeline.context import StageContext
+    from application.pipeline.outcome import DiagramRenderResult
+    from application.pipeline.ports import DiagramRenderer
+    from domain.models.roles import ProjectRolesCatalog
+    from domain.models.sequence import InteractionScenario
+    from domain.models.topology import ArchitectureGraph
 
 
 class SequenceArtifactProcessor:

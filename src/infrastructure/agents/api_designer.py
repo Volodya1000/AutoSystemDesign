@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from application.tasks import ApiDesignProposal, ApiDesignTask, DesignTaskMode
-from config.root import AppSettings
 from domain.models.api import ApiDesign
 from infrastructure.design.api_parser import parse_api_design
 from infrastructure.llm.models import CompletionRequest, CompletionResult
-from infrastructure.llm.protocols import CompletionClient
 from infrastructure.prompts.api_generation import (
     build_api_initial_messages,
     build_api_repair_messages,
 )
+
+if TYPE_CHECKING:
+    from config.root import AppSettings
+    from infrastructure.llm.protocols import CompletionClient
 
 
 class ApiDesignerAgent:

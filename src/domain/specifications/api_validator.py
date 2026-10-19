@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Set as AbstractSet
+from typing import TYPE_CHECKING
 
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
@@ -16,8 +16,12 @@ from domain.exceptions.architecture_errors import (
     UnresolvedSchemaReferenceError,
 )
 from domain.models.api import ApiDesign, ApiOperation, ParameterLocation
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
+
+if TYPE_CHECKING:
+    from collections.abc import Set as AbstractSet
+
+    from domain.models.topology import ArchitectureGraph
 
 _PATH_VARIABLE_PATTERN: re.Pattern[str] = re.compile(r"\{([^}]+)\}")
 

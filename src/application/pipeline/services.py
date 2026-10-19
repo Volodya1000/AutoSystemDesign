@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from application.results import (
-    ApiGenerationResult,
-    DesignGenerationResult,
-    SequenceGenerationResult,
-)
-from domain.models import DesignScenario
-from domain.models.sequence import InteractionScenario
-from domain.models.topology import ArchitectureGraph
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from application.results import (
+        ApiGenerationResult,
+        DesignGenerationResult,
+        SequenceGenerationResult,
+    )
+    from domain.models import DesignScenario
+    from domain.models.sequence import InteractionScenario
+    from domain.models.topology import ArchitectureGraph
 
 
 class DesignGenerator(Protocol):

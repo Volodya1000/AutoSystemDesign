@@ -21,6 +21,8 @@ irrelevant to this rule -- cycle detection belongs to
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
     MessageBrokerSelfLoopError,
@@ -28,8 +30,10 @@ from domain.exceptions.architecture_errors import (
     MessageBrokerWithoutProducerError,
 )
 from domain.models.nodes import MessageBrokerNode
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import BaseValidator, ValidationResult
+
+if TYPE_CHECKING:
+    from domain.models.topology import ArchitectureGraph
 
 
 def check_message_broker_linkage(

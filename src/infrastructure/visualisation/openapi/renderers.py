@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import DiagramRenderResult
-from domain.models.api import ApiDesign
 from infrastructure.visualisation.openapi.openapi_renderer import OpenApiRenderer
-from infrastructure.visualisation.openapi.swagger_ui_renderer import (
-    SwaggerUiRenderer,
-)
+from infrastructure.visualisation.openapi.swagger_ui_renderer import SwaggerUiRenderer
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from domain.models.api import ApiDesign
 
 
 class DefaultApiArtifactRenderer:

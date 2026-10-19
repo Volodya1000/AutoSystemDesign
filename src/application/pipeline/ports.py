@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from application.pipeline.outcome import DiagramRenderResult, StageOutcome
-from application.results import GenerationAttempt
-from application.usage import TokenUsage
-from domain.models.api import ApiDesign
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+
+    from application.pipeline.outcome import DiagramRenderResult, StageOutcome
+    from application.results import GenerationAttempt
+    from application.usage import TokenUsage
+    from domain.models.api import ApiDesign
 
 
 class ArtifactWriter(Protocol):

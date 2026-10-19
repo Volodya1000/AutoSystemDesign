@@ -21,10 +21,8 @@ wiring line in ``infrastructure.composition``.
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.exceptions.sequence_errors import (
     AsyncDeliveryModeError,
     SequenceIntegrityError,
@@ -38,14 +36,15 @@ from domain.models.ast_steps import (
     ScenarioStep,
 )
 from domain.models.enums import NodeType
-from domain.models.roles import ProjectRolesCatalog
-from domain.models.sequence import (
-    ComponentLifeline,
-    InteractionScenario,
-    UserLifeline,
-)
-from domain.models.topology import ArchitectureGraph
+from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
 from domain.specifications.interfaces import ValidationResult
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
+
+    from domain.exceptions.architecture_errors import ArchitectureValidationError
+    from domain.models.roles import ProjectRolesCatalog
+    from domain.models.topology import ArchitectureGraph
 
 _ASYNC_MESSAGE_KINDS: frozenset[str] = frozenset({"event", "notification"})
 

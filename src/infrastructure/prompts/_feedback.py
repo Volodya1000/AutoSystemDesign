@@ -8,9 +8,12 @@ the caller supplies the fallback text used when no problems were reported.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-from application.tasks import ProposalFailureDetail, ValidationErrorFeedback
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from application.tasks import ProposalFailureDetail, ValidationErrorFeedback
 
 
 def render_feedback(

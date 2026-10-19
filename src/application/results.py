@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -125,3 +126,21 @@ class ApiGenerationResult(BaseModel):
     @property
     def total_usage(self) -> TokenUsage:
         return TokenUsage.aggregate(a.usage for a in self.attempts)
+
+
+# Pydantic resolves these annotations at runtime. Keep the namespace explicit
+# so generic specializations can validate their payload and validation fields.
+_PYDANTIC_TYPES_NAMESPACE: dict[str, Any] = {
+    "ProposalFailureDetail": ProposalFailureDetail,
+    "ApiDesign": ApiDesign,
+    "ProjectRolesCatalog": ProjectRolesCatalog,
+    "InteractionScenario": InteractionScenario,
+    "ArchitectureGraph": ArchitectureGraph,
+    "ValidationResult": ValidationResult,
+}
+
+GenerationAttempt.model_rebuild(_types_namespace=_PYDANTIC_TYPES_NAMESPACE)
+DesignGenerationResult.model_rebuild(_types_namespace=_PYDANTIC_TYPES_NAMESPACE)
+SequenceScenarioResult.model_rebuild(_types_namespace=_PYDANTIC_TYPES_NAMESPACE)
+SequenceGenerationResult.model_rebuild(_types_namespace=_PYDANTIC_TYPES_NAMESPACE)
+ApiGenerationResult.model_rebuild(_types_namespace=_PYDANTIC_TYPES_NAMESPACE)

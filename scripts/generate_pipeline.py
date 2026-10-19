@@ -44,14 +44,14 @@ def main() -> int:
 
     try:
         settings: AppSettings = load_app_settings()
-    except (ValidationError, ValueError) as error:
-        _logger.error("Settings error: %s", error)
+    except (ValidationError, ValueError):
+        _logger.exception("Settings error")
         return 2
 
     try:
         scenario: DesignScenario = _load_scenario(args.scenario)
-    except (OSError, yaml.YAMLError, ValidationError) as error:
-        _logger.error("Scenario error: %s", error)
+    except (OSError, yaml.YAMLError, ValidationError):
+        _logger.exception("Scenario error")
         return 2
 
     out_dir, server, image_format = _resolve_visualisation(args, settings)
@@ -67,8 +67,8 @@ def main() -> int:
             render_diagrams=not args.no_diagram,
         )
         return wiring.runner.run(scenario, out_dir, wiring.writer)
-    except LlmConnectionError as error:
-        _logger.error("LLM endpoint failure: %s", error)
+    except LlmConnectionError:
+        _logger.exception("LLM endpoint failure")
         return 2
 
 

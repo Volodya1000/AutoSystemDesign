@@ -5,8 +5,7 @@ from __future__ import annotations
 import http.client
 import urllib.error
 import urllib.request
-from types import TracebackType
-from typing import Literal, Self
+from typing import TYPE_CHECKING, Literal, Self
 
 import pytest
 
@@ -20,7 +19,17 @@ from infrastructure.visualisation.plantuml.renderer import (
     resolve_image_renderer,
 )
 
+if TYPE_CHECKING:
+    from types import TracebackType
+
 pytestmark = pytest.mark.unit
+
+
+class SimulatedNetworkDownError(OSError):
+    """Test-only network failure."""
+
+    def __init__(self) -> None:
+        super().__init__("network down")
 
 
 class StubRenderer:
@@ -182,7 +191,7 @@ def test_http_renderer_maps_connection_errors_to_domain_error(
 ) -> None:
     def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
         del request, timeout
-        raise OSError("network down")
+        raise SimulatedNetworkDownError
 
     monkeypatch.setattr(renderer_module.urllib.request, "urlopen", fake_urlopen)
     renderer = KrokiImageRenderer(server_url="https://kroki.example")

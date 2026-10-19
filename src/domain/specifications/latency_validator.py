@@ -11,18 +11,25 @@ from __future__ import annotations
 import math
 from collections import deque
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
     TheoreticalLatencyViolationError,
 )
-from domain.models.edges import Edge
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
 from domain.models.nodes import CapacityNode, ClientNode
 from domain.models.requirements import LatencyRequirement
-from domain.models.scenarios import DesignScenario, WorkloadProfile
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ScenarioValidator, ValidationResult
 from domain.specifications.traffic_flow import compute_node_incoming_rps
+
+if TYPE_CHECKING:
+    from domain.models.edges import Edge
+    from domain.models.scenarios import DesignScenario, WorkloadProfile
+    from domain.models.topology import ArchitectureGraph
 
 
 @dataclass(frozen=True)
@@ -126,7 +133,7 @@ def _topological_order(node_ids: list[str], edges: list[Edge]) -> list[str]:
                 queue.append(target)
 
     if len(order) != len(node_ids):
-        raise ValueError("Graph contains a cycle; topology must be a DAG")
+        raise ModelValidationError(ModelValidationCode.TOPOLOGY_CYCLE)
     return order
 
 

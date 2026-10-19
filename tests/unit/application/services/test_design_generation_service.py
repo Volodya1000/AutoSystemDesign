@@ -78,6 +78,13 @@ def _parsing_failure(prompt_tokens: int) -> DesignProposalParsingError:
     )
 
 
+class UnexpectedExtraProposalError(AssertionError):
+    """The service requested more proposals than the test scripted."""
+
+    def __init__(self) -> None:
+        super().__init__("Unexpected extra propose() call")
+
+
 class FakeDesigner:
     """Scripted designer recording every task it receives."""
 
@@ -90,7 +97,7 @@ class FakeDesigner:
     def propose(self, task: DesignTask) -> DesignProposal:
         self.received_tasks.append(task)
         if not self._script:
-            raise AssertionError("Unexpected extra propose() call")
+            raise UnexpectedExtraProposalError
         item: DesignProposal | DesignProposalParsingError = self._script.pop(0)
         if isinstance(item, DesignProposalParsingError):
             raise item

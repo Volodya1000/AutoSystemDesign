@@ -9,28 +9,29 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Mapping, Sequence
-from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from application.pipeline.context import StageContext, require_payload
-from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.ports import DiagramRenderer, GenerationReporter
-from application.pipeline.sequence_artifact_models import SequenceArtifactResult
 from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
-from application.pipeline.services import SequenceGenerator
 from application.pipeline.stages._naming import (
     functional_requirement_ids,
     plan_base_names,
 )
-from application.results import GenerationAttempt, SequenceGenerationResult
-from domain.models import DesignScenario
-from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 
-# ``plan_base_names`` historically lived in this module; keep it importable
-# from here so existing callers (e.g. contract tests) are unaffected.
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from pathlib import Path
+
+    from application.pipeline.diagram_subjects import SequenceDiagramSubject
+    from application.pipeline.ports import DiagramRenderer, GenerationReporter
+    from application.pipeline.sequence_artifact_models import SequenceArtifactResult
+    from application.pipeline.services import SequenceGenerator
+    from application.results import GenerationAttempt, SequenceGenerationResult
+    from domain.models import DesignScenario
+    from domain.models.sequence import InteractionScenario
+
 __all__ = ["SequenceStage", "plan_base_names"]
 
 _logger = logging.getLogger("pipeline.sequence")
@@ -104,7 +105,7 @@ class SequenceStage:
                 scenario.identifier, list(result.scenarios_results)
             )
         except ValueError as error:
-            _logger.error("Identifier collision: %s", error)
+            _logger.exception("Identifier collision")
             return self._failed(
                 time.perf_counter() - stage_start,
                 result.total_usage.total_tokens,

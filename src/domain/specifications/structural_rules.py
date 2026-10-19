@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
     CyclicDependencyError,
@@ -6,9 +10,11 @@ from domain.exceptions.architecture_errors import (
     IsolatedNodeError,
     NonExistentEdgeEndpointError,
 )
-from domain.models.nodes import BaseNode
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.rules import ConnectionType
+
+if TYPE_CHECKING:
+    from domain.models.nodes import BaseNode
+    from domain.models.topology import ArchitectureGraph
 
 
 def check_node_identifiers_uniqueness(

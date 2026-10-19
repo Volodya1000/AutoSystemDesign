@@ -9,12 +9,14 @@ content, and the configured model name for token counting).
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import litellm
 
 from application.usage import TokenUsage
-from infrastructure.llm.models import CompletionRequest
+
+if TYPE_CHECKING:
+    from infrastructure.llm.models import CompletionRequest
 
 
 def extract_usage(

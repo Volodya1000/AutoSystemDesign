@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from pathlib import Path
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 import pytest
 import yaml
@@ -24,10 +23,15 @@ from application.results import (
 from application.usage import TokenUsage
 from domain.models import DesignScenario
 from domain.models.functional import FunctionalRequirement
-from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 from tests.unit.in_memory_writer import InMemoryWriter
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from pathlib import Path
+
+    from domain.models.sequence import InteractionScenario
 
 pytestmark = pytest.mark.unit
 

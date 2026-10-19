@@ -9,17 +9,45 @@ Exit-code contract:
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
-from pathlib import Path
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.ports import ArtifactWriter, PipelineReporter
-from application.pipeline.stage import PipelineStage
-from domain.models import DesignScenario
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+
+    from application.pipeline.ports import ArtifactWriter, PipelineReporter
+    from application.pipeline.stage import PipelineStage
+    from domain.models import DesignScenario
 
 _logger = logging.getLogger("pipeline.runner")
+
+
+class PipelineConfigurationError(ValueError):
+    """Invalid stage configuration for the pipeline runner."""
+
+    @classmethod
+    def no_stages(cls) -> PipelineConfigurationError:
+        return cls("PipelineRunner requires at least one stage")
+
+    @classmethod
+    def duplicate_stage_name(cls, stage_name: str) -> PipelineConfigurationError:
+        return cls(
+            f"Duplicate stage name '{stage_name}'; stage names must "
+            "be unique because outcomes are keyed by name"
+        )
+
+    @classmethod
+    def dependency_not_scheduled(
+        cls, stage_name: str, dependency: str
+    ) -> PipelineConfigurationError:
+        return cls(
+            f"Stage '{stage_name}' depends on '{dependency}', "
+            "which is not scheduled before it"
+        )
 
 
 class PipelineRunner:
@@ -30,7 +58,7 @@ class PipelineRunner:
     ) -> None:
         stages_tuple: tuple[PipelineStage, ...] = tuple(stages)
         if not stages_tuple:
-            raise ValueError("PipelineRunner requires at least one stage")
+            raise PipelineConfigurationError.no_stages()
         self._validate_stages(stages_tuple)
         self._stages: tuple[PipelineStage, ...] = stages_tuple
         self._reporter: PipelineReporter = reporter
@@ -79,14 +107,10 @@ class PipelineRunner:
         seen: set[str] = set()
         for stage in stages:
             if stage.name in seen:
-                raise ValueError(
-                    f"Duplicate stage name '{stage.name}'; stage names must "
-                    f"be unique because outcomes are keyed by name"
-                )
+                raise PipelineConfigurationError.duplicate_stage_name(stage.name)
             for dependency in stage.depends_on:
                 if dependency not in seen:
-                    raise ValueError(
-                        f"Stage '{stage.name}' depends on '{dependency}', "
-                        f"which is not scheduled before it"
+                    raise PipelineConfigurationError.dependency_not_scheduled(
+                        stage.name, dependency
                     )
             seen.add(stage.name)

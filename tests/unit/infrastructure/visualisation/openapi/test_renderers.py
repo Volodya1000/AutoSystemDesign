@@ -94,6 +94,13 @@ def _api_design() -> ApiDesign:
     )
 
 
+class InvalidOpenApiModelError(ValueError):
+    """Test double error representing invalid OpenAPI model data."""
+
+    def __init__(self) -> None:
+        super().__init__("invalid OpenAPI model")
+
+
 def test_openapi_renderer_maps_operations_parameters_and_components() -> None:
     api = _api_design()
 
@@ -202,7 +209,7 @@ def test_default_api_artifact_renderer_returns_warning_for_invalid_spec(
     renderer = DefaultApiArtifactRenderer()
 
     def fail_to_render_spec(_api: ApiDesign) -> dict:
-        raise ValueError("invalid OpenAPI model")
+        raise InvalidOpenApiModelError
 
     monkeypatch.setattr(renderer._openapi_renderer, "render_spec", fail_to_render_spec)
 

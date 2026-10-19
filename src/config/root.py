@@ -14,6 +14,8 @@ APP_CONFIG_FILE environment variable (integration tests point it at
 config.test.yaml).
 """
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Any, Final
@@ -36,6 +38,23 @@ _DEFAULT_CONFIG_FILE: Final[Path] = Path("config.yaml")
 _ENV_OWNED_FIELDS: Final[frozenset[str]] = frozenset({"base_url", "api_key"})
 
 
+class ConfigFileValidationError(ValueError):
+    """Invalid root structure or environment-owned fields in YAML config."""
+
+    @classmethod
+    def invalid_root(cls, config_file: Path) -> ConfigFileValidationError:
+        return cls(f"Config file {config_file} must contain a yaml mapping")
+
+    @classmethod
+    def misplaced_environment_fields(
+        cls, config_file: Path, fields: list[str]
+    ) -> ConfigFileValidationError:
+        return cls(
+            f"Config file {config_file} must not contain {fields}: "
+            "these fields are environment-only (ASD_BASE_URL / ASD_API_KEY)"
+        )
+
+
 def _load_yaml_config(config_file: Path) -> dict[str, Any]:
     """Parses the yaml config and refuses env-owned top-level fields.
 
@@ -45,17 +64,11 @@ def _load_yaml_config(config_file: Path) -> dict[str, Any]:
     with config_file.open("r", encoding="utf-8") as stream:
         data: Any = yaml.safe_load(stream) or {}
     if not isinstance(data, dict):
-        # A malformed config file is a user configuration problem, not a
-        # programming type error: ValueError is intentional here so the
-        # caller's except (ValidationError, ValueError) keeps working.
-        raise ValueError(  # noqa: TRY004
-            f"Config file {config_file} must contain a yaml mapping"
-        )
+        raise ConfigFileValidationError.invalid_root(config_file)
     misplaced: frozenset[str] = _ENV_OWNED_FIELDS & frozenset(data)
     if misplaced:
-        raise ValueError(
-            f"Config file {config_file} must not contain {sorted(misplaced)}: "
-            "these fields are environment-only (ASD_BASE_URL / ASD_API_KEY)"
+        raise ConfigFileValidationError.misplaced_environment_fields(
+            config_file, sorted(misplaced)
         )
     return data
 
@@ -103,6 +116,10 @@ class AppSettings(BaseSettings):
             )
         sources.append(file_secret_settings)
         return tuple(sources)
+
+
+# Keep the nested Pydantic model resolvable in the runtime namespace.
+AppSettings.model_rebuild(_types_namespace={"LlmSettings": LlmSettings})
 
 
 def load_app_settings() -> AppSettings:

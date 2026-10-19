@@ -25,6 +25,16 @@ litellm.suppress_debug_info = True
 _DEFAULT_SCHEMA_NAME: Final[str] = "response"
 
 
+class ResponseSchemaRequiredError(ValueError):
+    """JSON Schema mode was requested without a schema."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "structured_output_mode='json_schema' requires request.response_schema; "
+            "pass the target model's JSON Schema at the call site."
+        )
+
+
 class LiteLlmClient:
     def __init__(self, settings: AppSettings) -> None:
         self._settings = settings
@@ -50,9 +60,7 @@ class LiteLlmClient:
         try:
             response: Any = litellm.completion(**call_kwargs)
         except Exception as error:
-            self.logger.error(
-                "LLM call to %s failed: %s", self._settings.base_url, error
-            )
+            self.logger.exception("LLM call to %s failed", self._settings.base_url)
             raise LlmConnectionError(
                 base_url=self._settings.base_url,
                 model=self._settings.llm.model,
@@ -82,11 +90,7 @@ class LiteLlmClient:
             return {"type": mode.value}
 
         if request.response_schema is None:
-            raise ValueError(
-                "structured_output_mode='json_schema' requires "
-                "request.response_schema; pass the target model's JSON "
-                "Schema at the call site."
-            )
+            raise ResponseSchemaRequiredError
         name = request.response_schema_name or _DEFAULT_SCHEMA_NAME
         return {
             "type": mode.value,

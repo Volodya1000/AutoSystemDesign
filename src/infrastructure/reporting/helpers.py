@@ -8,13 +8,17 @@ scripts or notebooks without constructing an adapter.
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from application.formatting.scenario_summary import render_scenario_summary
-from application.results import GenerationAttempt
-from application.usage import TokenUsage
-from config.root import AppSettings
-from domain.models import DesignScenario
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from application.results import GenerationAttempt
+    from application.usage import TokenUsage
+    from config.root import AppSettings
+    from domain.models import DesignScenario
 
 _logger = logging.getLogger("pipeline.report")
 

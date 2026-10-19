@@ -7,17 +7,23 @@ endpoint), which accept programmatic clients without bot protection
 and therefore serve as the automatic fallback in "auto" mode.
 """
 
+from __future__ import annotations
+
 import logging
 import urllib.error
 import urllib.request
-from collections.abc import Sequence
-from typing import Final, Protocol
+from typing import TYPE_CHECKING, Final, Protocol
 
 from infrastructure.visualisation.plantuml.encoding import (
     build_kroki_url,
     build_plantuml_url,
 )
-from infrastructure.visualisation.plantuml.models import DiagramImageFormat
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from infrastructure.visualisation.plantuml.models import DiagramImageFormat
+
 
 PLANTUML_PUBLIC_SERVER_URL: Final[str] = "https://www.plantuml.com/plantuml"
 KROKI_PUBLIC_SERVER_URL: Final[str] = "https://kroki.io"
@@ -31,6 +37,18 @@ _logger: logging.Logger = logging.getLogger(__name__)
 
 class DiagramRenderingError(Exception):
     """Raised when a diagram server cannot render the diagram source."""
+
+    @classmethod
+    def rejected(cls, server_label: str, status_code: int) -> DiagramRenderingError:
+        return cls(f"{server_label} rejected the diagram: HTTP {status_code}")
+
+    @classmethod
+    def unreachable(cls, server_label: str, cause: OSError) -> DiagramRenderingError:
+        return cls(f"Cannot reach {server_label}: {cause}")
+
+    @classmethod
+    def all_servers_failed(cls, failures: Sequence[str]) -> DiagramRenderingError:
+        return cls("All diagram servers failed: " + "; ".join(failures))
 
 
 class PlantumlImageRenderer(Protocol):
@@ -61,11 +79,9 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
         with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
             content: bytes = response.read()
     except urllib.error.HTTPError as error:
-        raise DiagramRenderingError(
-            f"{server_label} rejected the diagram: HTTP {error.code}"
-        ) from error
+        raise DiagramRenderingError.rejected(server_label, error.code) from error
     except OSError as error:
-        raise DiagramRenderingError(f"Cannot reach {server_label}: {error}") from error
+        raise DiagramRenderingError.unreachable(server_label, error) from error
     _logger.info("Diagram image rendered by %s", server_label)
     return content
 
@@ -129,6 +145,23 @@ class KrokiImageRenderer:
         )
 
 
+class RendererConfigurationError(ValueError):
+    """Invalid renderer configuration."""
+
+    def __init__(self) -> None:
+        super().__init__("At least one renderer is required")
+
+
+class UnknownDiagramServerError(ValueError):
+    """Unsupported diagram server selection."""
+
+    def __init__(self, selection: str) -> None:
+        super().__init__(
+            f"Unknown diagram server selection {selection!r}: expected 'auto', "
+            "'plantuml', 'kroki' or an http(s) plantuml-server URL"
+        )
+
+
 class FallbackImageRenderer:
     """Tries several renderers in order; the first success wins.
 
@@ -138,7 +171,7 @@ class FallbackImageRenderer:
 
     def __init__(self, renderers: Sequence[PlantumlImageRenderer]) -> None:
         if not renderers:
-            raise ValueError("At least one renderer is required")
+            raise RendererConfigurationError
         self._renderers: tuple[PlantumlImageRenderer, ...] = tuple(renderers)
 
     def build_image_url(self, source: str, image_format: DiagramImageFormat) -> str:
@@ -157,9 +190,7 @@ class FallbackImageRenderer:
                 _logger.warning("Diagram server failed, trying the next one: %s", error)
                 continue
             return image_bytes
-        raise DiagramRenderingError(
-            "All diagram servers failed: " + "; ".join(failures)
-        )
+        raise DiagramRenderingError.all_servers_failed(failures)
 
 
 def resolve_image_renderer(server: str) -> PlantumlImageRenderer:
@@ -187,7 +218,4 @@ def resolve_image_renderer(server: str) -> PlantumlImageRenderer:
         return KrokiImageRenderer()
     if selection.startswith(("http://", "https://")):
         return PlantumlServerImageRenderer(server_url=server.strip())
-    raise ValueError(
-        f"Unknown diagram server selection {server!r}: expected 'auto', "
-        "'plantuml', 'kroki' or an http(s) plantuml-server URL"
-    )
+    raise UnknownDiagramServerError(server)

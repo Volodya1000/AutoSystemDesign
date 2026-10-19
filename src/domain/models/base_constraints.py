@@ -2,6 +2,10 @@ import math
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
 from domain.models.enums import Operator
 
 
@@ -40,9 +44,7 @@ class IntervalRequirement(BaseRequirement):
     @model_validator(mode="after")
     def _validate_interval_bounds(self) -> "IntervalRequirement":
         if self.minimum_value > self.maximum_value:
-            raise ValueError(
-                "minimum_value must be less than or equal to maximum_value"
-            )
+            raise ModelValidationError(ModelValidationCode.INVALID_INTERVAL_BOUNDS)
         return self
 
     def is_met_requirement(self, actual_value: float) -> bool:

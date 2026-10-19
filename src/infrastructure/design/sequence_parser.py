@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from application.usage import TokenUsage
+from typing import TYPE_CHECKING
+
 from domain.models.roles import ProjectRolesCatalog
 from domain.models.sequence import InteractionScenario
 from infrastructure.design._parsing import parse_payload
+
+if TYPE_CHECKING:
+    from application.usage import TokenUsage
 
 
 def parse_roles_catalog(payload: str, usage: TokenUsage) -> ProjectRolesCatalog:

@@ -6,15 +6,19 @@ or above it has an infinite queue and will collapse at peak load.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
     CapacitySaturationError,
 )
 from domain.models.nodes import CapacityNode
-from domain.models.scenarios import DesignScenario
-from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ScenarioValidator, ValidationResult
 from domain.specifications.traffic_flow import compute_node_incoming_rps
+
+if TYPE_CHECKING:
+    from domain.models.scenarios import DesignScenario
+    from domain.models.topology import ArchitectureGraph
 
 SATURATION_THRESHOLD: float = 0.98
 

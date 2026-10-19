@@ -13,9 +13,11 @@ single place that knows where the auxiliary data comes from.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from domain.models.sequence import InteractionScenario
-from domain.models.topology import ArchitectureGraph
+if TYPE_CHECKING:
+    from domain.models.sequence import InteractionScenario
+    from domain.models.topology import ArchitectureGraph
 
 
 @dataclass(frozen=True)

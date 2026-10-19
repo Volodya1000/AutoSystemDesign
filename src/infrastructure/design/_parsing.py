@@ -11,14 +11,16 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ValidationError
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
 from application.tasks import JSON_DECODE_ERROR_TYPE, ProposalFailureDetail
-from application.usage import TokenUsage
 from infrastructure.design._error_location import format_error_location
+
+if TYPE_CHECKING:
+    from application.usage import TokenUsage
 
 _THINK_BLOCK_PATTERN: re.Pattern[str] = re.compile(
     r"<think>.*?</think>", re.DOTALL | re.IGNORECASE

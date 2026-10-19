@@ -6,6 +6,10 @@ from pydantic import (
     model_validator,
 )
 
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
 from domain.models.enums import NodeType
 from domain.models.functional import FunctionalRequirement
 from domain.models.requirements import Requirement
@@ -19,10 +23,7 @@ class WorkloadProfile(BaseModel):
     @model_validator(mode="after")
     def _validate_peak_covers_baseline(self) -> "WorkloadProfile":
         if self.peak_requests_per_second < self.baseline_requests_per_second:
-            raise ValueError(
-                "peak_requests_per_second must be greater than or equal to "
-                "baseline_requests_per_second"
-            )
+            raise ModelValidationError(ModelValidationCode.WORKLOAD_PEAK_BELOW_BASELINE)
         return self
 
     @property

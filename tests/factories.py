@@ -28,6 +28,13 @@ def _capacity_fields(replicas_count: int) -> dict[str, Any]:
     }
 
 
+class UnsupportedTestNodeTypeError(ValueError):
+    """Unsupported node type requested by a test factory."""
+
+    def __init__(self, node_type: object) -> None:
+        super().__init__(f"Unsupported node type in tests: {node_type}")
+
+
 def create_test_node(
     identifier: str,
     node_type: NodeType,
@@ -56,7 +63,7 @@ def create_test_node(
                 identifier=identifier, **_capacity_fields(replicas_count)
             )
         case _:
-            raise ValueError(f"Unsupported node type in tests: {node_type}")
+            raise UnsupportedTestNodeTypeError(node_type)
 
 
 def create_test_edge(

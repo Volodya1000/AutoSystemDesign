@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import overload
+from typing import TYPE_CHECKING, overload
 
 from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml.c4_container_builder import (
@@ -13,12 +12,26 @@ from infrastructure.visualisation.plantuml.models import (
     DiagramArtifacts,
     DiagramImageFormat,
 )
-from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
 from infrastructure.visualisation.plantuml.renderer import (
     AUTO_SERVER_SELECTION,
     PlantumlImageRenderer,
     resolve_image_renderer,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
+
+
+class UnsupportedDiagramSubjectError(TypeError):
+    """The default C4 builder received a subject of another domain type."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "The default DiagramService builder accepts ArchitectureGraph; "
+            "inject a matching source_builder for other subject types."
+        )
 
 
 class DiagramService[SubjectT = ArchitectureGraph]:
@@ -56,11 +69,7 @@ class DiagramService[SubjectT = ArchitectureGraph]:
             def build_default_source(subject: SubjectT, title: str | None) -> str:
                 # Keep runtime safety even if callers bypass static type checking.
                 if not isinstance(subject, ArchitectureGraph):
-                    raise TypeError(
-                        "The default DiagramService builder accepts "
-                        "ArchitectureGraph; inject a matching source_builder "
-                        "for other subject types."
-                    )
+                    raise UnsupportedDiagramSubjectError
                 return C4ContainerDiagramBuilder().build(subject, title)
 
             self._build_source = build_default_source

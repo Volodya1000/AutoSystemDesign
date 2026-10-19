@@ -11,9 +11,24 @@ are deterministic and side-effect free.
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
-from domain.models import DesignScenario
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from domain.models import DesignScenario
+
+
+class RequirementIdentifierCollisionError(ValueError):
+    """Raised when distinct requirement IDs collapse to the same safe ID."""
+
+    def __init__(self, previous: str, current: str, normalized: str) -> None:
+        super().__init__(
+            f"Requirement identifier collision: '{previous}' and "
+            f"'{current}' both normalize to '{normalized}'. Rename one of "
+            "them in the scenario so artifacts stay distinct."
+        )
+
 
 _SAFE_ID_PATTERN: re.Pattern[str] = re.compile(r"[^A-Za-z0-9_]")
 
@@ -33,11 +48,7 @@ def plan_base_names(
         safe_id: str = _SAFE_ID_PATTERN.sub("_", req_id).lower()
         previous: str | None = seen.get(safe_id)
         if previous is not None:
-            raise ValueError(
-                f"Requirement identifier collision: '{previous}' and "
-                f"'{req_id}' both normalize to '{safe_id}'. Rename one of "
-                f"them in the scenario so artifacts stay distinct."
-            )
+            raise RequirementIdentifierCollisionError(previous, req_id, safe_id)
         seen[safe_id] = req_id
         base_names[req_id] = f"{scenario_id}_seq_{safe_id}"
     return base_names
