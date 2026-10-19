@@ -374,5 +374,5 @@ def test_aborts_interactions_when_roles_catalog_never_parses() -> None:
     assert result.roles_catalog is None
     assert len(result.roles_attempts) == 2
     assert result.scenarios_results == {}
-    assert designer.interaction_tasks == []
+    assert not designer.interaction_tasks
     assert result.total_usage == TokenUsage(prompt_tokens=8, completion_tokens=2)
