@@ -28,7 +28,7 @@ from domain.specifications.cache_usage_validator import CacheUsageValidator
 from domain.specifications.capacity_validator import CapacitySaturationValidator
 from domain.specifications.latency_validator import LatencySloValidator
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
-from domain.specifications.sequence_validator import (
+from domain.specifications.sequence_validation import (
     ClientOwnershipValidator,
     DeliveryModeValidator,
     SequenceIntegrityValidator,
