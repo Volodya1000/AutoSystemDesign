@@ -15,8 +15,10 @@ Rules:
   attributes, constraints, capacity, latency, availability, security, or similar
   properties.
 - Every requirement must include a non-empty source_evidence list.
-- Each source_evidence item contains source_excerpt copied verbatim from the
-  supplied document fragment, except whitespace may be normalized.
+- Every statement must be a contiguous verbatim substring of at least one cited
+  source_excerpt. Do not paraphrase, strengthen, weaken, or add implications.
+- Each source_evidence source_excerpt must be copied verbatim from the source
+  fragment, except whitespace may be normalized, and must contain the whole statement.
 - Do not return a requirement if you cannot cite supporting source text.
 - Report unclear statements in ambiguity_notes and incompatible statements in
   conflict_notes. Each note must include a description and all relevant source
