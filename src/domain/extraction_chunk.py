@@ -10,7 +10,7 @@ class ExtractionChunk(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    requirements: list[Requirement] = Field(default_factory=list)
+    requirements: list[Requirement]
     is_relevant: bool
-    ambiguity_notes: list[str] = Field(default_factory=list)
-    conflict_notes: list[str] = Field(default_factory=list)
+    ambiguity_notes: list[str]
+    conflict_notes: list[str]
