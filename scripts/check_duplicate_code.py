@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -17,6 +18,14 @@ from pathlib import Path
 
 DUPLICATE_HEADING = "R0801: Similar lines in"
 MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
+
+
+def git_executable() -> str:
+    """Return the absolute path to Git or fail with an actionable error."""
+    executable = shutil.which("git")
+    if executable is None:
+        raise RuntimeError("Git executable is required for duplicate-code checks")
+    return executable
 
 
 class EventPayloadReadError(RuntimeError):
@@ -57,8 +66,8 @@ def changed_files_from_git() -> set[str] | None:
     """Return files changed in the current CI event, or None locally."""
     base_ref = os.environ.get("GITHUB_BASE_REF")
     if base_ref:
-        base = git_output(["git", "merge-base", f"origin/{base_ref}", "HEAD"])
-        changed = git_output(["git", "diff", "--name-only", base, "HEAD"])
+        base = git_output([git_executable(), "merge-base", f"origin/{base_ref}", "HEAD"])
+        changed = git_output([git_executable(), "diff", "--name-only", base, "HEAD"])
         return {Path(path).as_posix() for path in changed.splitlines() if path}
 
     event_path = os.environ.get("GITHUB_EVENT_PATH")
@@ -74,15 +83,15 @@ def changed_files_from_git() -> set[str] | None:
         before = event_payload.get("before")
         if isinstance(before, str) and before:
             if set(before) == {"0"}:
-                changed = git_output(["git", "ls-tree", "-r", "--name-only", "HEAD"])
+                changed = git_output([git_executable(), "ls-tree", "-r", "--name-only", "HEAD"])
             else:
-                changed = git_output(["git", "diff", "--name-only", before, "HEAD"])
+                changed = git_output([git_executable(), "diff", "--name-only", before, "HEAD"])
             return {Path(path).as_posix() for path in changed.splitlines() if path}
 
     # Compatibility fallback for custom CI environments that export this value.
     before = os.environ.get("GITHUB_EVENT_BEFORE")
     if before and set(before) != {"0"}:
-        changed = git_output(["git", "diff", "--name-only", before, "HEAD"])
+        changed = git_output([git_executable(), "diff", "--name-only", before, "HEAD"])
         return {Path(path).as_posix() for path in changed.splitlines() if path}
 
     return None
@@ -181,7 +190,7 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
     with tempfile.TemporaryDirectory(prefix="asd-duplicate-baseline-") as directory:
         baseline = Path(directory) / "baseline"
         subprocess.run(
-            ["git", "worktree", "add", "--detach", "--quiet", str(baseline), base],
+            [git_executable(), "worktree", "add", "--detach", "--quiet", str(baseline), base],
             check=True,
             capture_output=True,
             text=True,
@@ -194,7 +203,7 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
             return {pair_key(pair) for pair in duplicate_pairs(output)}
         finally:
             subprocess.run(
-                ["git", "worktree", "remove", "--force", str(baseline)],
+                [git_executable(), "worktree", "remove", "--force", str(baseline)],
                 check=False,
                 capture_output=True,
                 text=True,
@@ -224,7 +233,7 @@ def main() -> int:
     current_pairs = duplicate_pairs(output)
     baseline_pairs: set[tuple[str, str]] = set()
     if base_ref:
-        base = git_output(["git", "merge-base", f"origin/{base_ref}", "HEAD"])
+        base = git_output([git_executable(), "merge-base", f"origin/{base_ref}", "HEAD"])
         baseline_pairs = baseline_duplicate_pairs(base)
 
     failures: list[str] = []
