@@ -1,4 +1,5 @@
 import json
+import logging
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -19,8 +20,9 @@ def _dummy_factory(*_args: object, **_kwargs: object) -> object:
 
 @pytest.mark.unit
 def test_main_writes_pipeline_yaml_and_evidence_manifest(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
+    caplog.set_level(logging.INFO)
     document = tmp_path / "spec.md"
     document.write_text("The service supports login.", encoding="utf-8")
     output = tmp_path / "nested" / "scenario.yaml"
@@ -79,6 +81,8 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
     )
 
     assert exit_code == 0
+    assert "Generated scenario:" in caplog.text
+    assert "Evidence manifest:" in caplog.text
     scenario_payload = yaml.safe_load(output.read_text(encoding="utf-8"))
     assert scenario_payload["identifier"] == "spec"
     assert scenario_payload["description"] == "The service supports login."
@@ -97,8 +101,9 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
 
 @pytest.mark.unit
 def test_main_does_not_write_scenario_without_validated_result(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
+    caplog.set_level(logging.INFO)
     document = tmp_path / "spec.md"
     document.write_text("Nothing testable.", encoding="utf-8")
     output = tmp_path / "scenario.yaml"
@@ -136,5 +141,6 @@ def test_main_does_not_write_scenario_without_validated_result(
     )
 
     assert exit_code == 1
+    assert "No pipeline scenario was written" in caplog.text
     assert not output.exists()
     assert evidence_output.exists()

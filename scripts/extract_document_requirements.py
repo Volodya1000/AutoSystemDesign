@@ -2,17 +2,21 @@
 
 import argparse
 import json
-import sys
+import logging
 from collections.abc import Sequence
 from pathlib import Path
 
 from application.requirements_extraction import DocumentRequirementsService
+from config.logging import configure_logging
 from config.root import load_app_settings
 from infrastructure.document_readers.markdown_reader import MarkdownReader
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
 from infrastructure.llm.document_requirement_extractor import (
     LlmDocumentRequirementExtractor,
 )
+
+
+_logger: logging.Logger = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -37,6 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Extract claims, validate their citations, and write JSON diagnostics."""
+    configure_logging(verbose=False)
     args = build_parser().parse_args(argv)
     try:
         settings = load_app_settings()
@@ -52,12 +57,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             encoding="utf-8",
         )
     except (LlmConnectionError, OSError, ValueError) as error:
-        print(f"Document requirement extraction failed: {error}", file=sys.stderr)
+        _logger.error("Document requirement extraction failed: %s", error)
         return 2
 
-    print(f"Extracted {len(result.requirements)} requirements.")
-    print(f"Reported {len(result.issues)} diagnostic issues.")
-    print(f"JSON result: {args.output}")
+    _logger.info("Extracted %d requirements.", len(result.requirements))
+    _logger.info("Reported %d diagnostic issues.", len(result.issues))
+    _logger.info("JSON result: %s", args.output)
     return 0
 
 

@@ -14,7 +14,7 @@ from domain.models.requirements import (
     BudgetRequirement,
     LatencyRequirement,
     QueueSizePercentileRequirement,
-    Requirement,
+    Requirement as ScenarioRequirement,
     ResourceUtilizationRequirement,
 )
 from domain.models.scenarios import WorkloadProfile
@@ -25,9 +25,6 @@ from domain.scenario_extraction import (
     ExtractedWorkload,
     MetricType,
 )
-
-
-type ScenarioRequirement = Requirement
 
 
 _ALL_METRIC_FIELDS: tuple[str, ...] = (
