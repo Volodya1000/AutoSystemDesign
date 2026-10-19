@@ -1,10 +1,21 @@
-"""Application-level limits shared by generation services and configuration."""
+"""Application-level import path for shared generation policy constants.
 
-from typing import Final
+The constants are defined in `shared.generation_limits` so configuration and
+application code can use the same limits without depending on one another.
+"""
 
-MIN_ATTEMPTS: Final[int] = 1
-MAX_ATTEMPTS: Final[int] = 10
+from shared.generation_limits import (
+    DEFAULT_SEQUENCE_PARALLELISM,
+    MAX_ATTEMPTS,
+    MAX_SEQUENCE_PARALLELISM,
+    MIN_ATTEMPTS,
+    MIN_SEQUENCE_PARALLELISM,
+)
 
-MIN_SEQUENCE_PARALLELISM: Final[int] = 1
-MAX_SEQUENCE_PARALLELISM: Final[int] = 16
-DEFAULT_SEQUENCE_PARALLELISM: Final[int] = 4
+__all__ = [
+    "DEFAULT_SEQUENCE_PARALLELISM",
+    "MAX_ATTEMPTS",
+    "MAX_SEQUENCE_PARALLELISM",
+    "MIN_ATTEMPTS",
+    "MIN_SEQUENCE_PARALLELISM",
+]
