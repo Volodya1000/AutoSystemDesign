@@ -15,7 +15,7 @@ from domain.exceptions.model_validation_errors import (
 
 
 class ApiModel(BaseModel):
-    """Base model enforcing strictness and dual name/alias population across API entities."""
+    """Base model enforcing strictness and name/alias population for API entities."""
 
     model_config = ConfigDict(
         extra="forbid",
@@ -58,7 +58,9 @@ class ApiParameter(ApiModel):
     data_type: DataType
     item_type: DataType | None = Field(
         default=None,
-        description="Required if data_type == 'array'. Defines the type of array items.",
+        description=(
+            "Required if data_type == 'array'. " + "Defines the type of array items."
+        ),
     )
     format: str | None = Field(default=None, description="e.g. 'uuid', 'date-time'")
     description: str | None = None
@@ -86,7 +88,10 @@ class ApiRequestBody(ApiModel):
     required: bool = True
     content_type: str = Field(default="application/json")
     schema_ref: str = Field(
-        description="Name of the schema in the central registry (e.g., 'CreateOrderRequest')"
+        description=(
+            "Name of the schema in the central registry "
+            + "(e.g., 'CreateOrderRequest')"
+        )
     )
 
 
@@ -95,13 +100,18 @@ _STATUS_CODE_PATTERN = re.compile(r"^[1-5][0-9]{2}$")
 
 class ApiResponse(ApiModel):
     status_code: str = Field(
-        description="HTTP status code (3 digits: '200', '201', '404') or 'default'"
+        description=(
+            "HTTP status code (3 digits: '200', '201', '404') " + "or 'default'"
+        )
     )
     description: str
     content_type: str | None = Field(default="application/json")
     schema_ref: str | None = Field(
         default=None,
-        description="Name of the schema in the central registry (e.g., 'OrderResponse')",
+        description=(
+            "Name of the schema in the central registry "
+            + "(e.g., 'OrderResponse')"
+        ),
     )
 
     @model_validator(mode="after")
@@ -127,7 +137,10 @@ class ApiOperation(ApiModel):
     description: str | None = None
 
     entrypoint_component_id: str = Field(
-        description="C4 Node ID accepting external traffic (e.g. 'edge_lb', 'api_gateway')"
+        description=(
+            "C4 Node ID accepting external traffic "
+            + "(e.g. 'edge_lb', 'api_gateway')"
+        )
     )
     handler_component_id: str = Field(
         description="C4 Node ID executing the operation (e.g. 'orders_api')"
