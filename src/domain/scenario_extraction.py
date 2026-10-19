@@ -4,8 +4,8 @@ from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
+from domain.document_requirements import RequirementIssue, SourceBackedNote
 from domain.models.scenarios import DesignScenario
-from domain.document_requirements import RequirementIssue
 
 ValueT = TypeVar("ValueT")
 
@@ -73,8 +73,8 @@ class DocumentScenarioExtraction(BaseModel):
     requirements: list[ExtractedMetricRequirement]
     functional_requirements: list[ExtractedFunctionalRequirement]
     is_relevant: bool
-    ambiguity_notes: list[str]
-    conflict_notes: list[str]
+    ambiguity_notes: list[SourceBackedNote]
+    conflict_notes: list[SourceBackedNote]
 
 
 class DocumentScenarioResult(BaseModel):
