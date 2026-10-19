@@ -67,8 +67,12 @@ def changed_files_from_git() -> set[str] | None:
 
 
 def module_to_path(module_name: str) -> str:
-    """Map a Pylint module name to its repository-relative Python path."""
-    parts = module_name.split(".")
+    """Map a Pylint module name or file path to a repository-relative path."""
+    normalized_name = module_name.replace("\\", "/")
+    if normalized_name.endswith(".py"):
+        return Path(normalized_name).as_posix()
+
+    parts = normalized_name.split(".")
 
     for root in ("tests", "scripts", "src"):
         relative_parts = parts[1:] if parts[0] == root else parts
@@ -84,7 +88,7 @@ def module_to_path(module_name: str) -> str:
         if package_file.is_file():
             return package_file.as_posix()
 
-    # Retain a deterministic fallback for paths absent from the working tree.
+    # Retain a deterministic fallback for module names absent from the tree.
     root = parts.pop(0) if parts[0] in {"tests", "scripts"} else "src"
     if parts and parts[-1] == "__init__":
         parts.pop()
