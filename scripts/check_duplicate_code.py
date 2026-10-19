@@ -7,6 +7,7 @@ pre-existing duplication elsewhere in the codebase.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
@@ -36,6 +37,27 @@ def changed_files_from_git() -> set[str] | None:
         changed = git_output(["git", "diff", "--name-only", base, "HEAD"])
         return {Path(path).as_posix() for path in changed.splitlines() if path}
 
+    event_path = os.environ.get("GITHUB_EVENT_PATH")
+    if event_path:
+        try:
+            event_payload = json.loads(Path(event_path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise RuntimeError(
+                "Unable to read the GitHub event payload for duplicate-code check"
+            ) from error
+
+        if not isinstance(event_payload, dict):
+            raise RuntimeError("GitHub event payload must be a JSON object")
+
+        before = event_payload.get("before")
+        if isinstance(before, str) and before:
+            if set(before) == {"0"}:
+                changed = git_output(["git", "ls-tree", "-r", "--name-only", "HEAD"])
+            else:
+                changed = git_output(["git", "diff", "--name-only", before, "HEAD"])
+            return {Path(path).as_posix() for path in changed.splitlines() if path}
+
+    # Compatibility fallback for custom CI environments that export this value.
     before = os.environ.get("GITHUB_EVENT_BEFORE")
     if before and set(before) != {"0"}:
         changed = git_output(["git", "diff", "--name-only", before, "HEAD"])
@@ -47,10 +69,23 @@ def changed_files_from_git() -> set[str] | None:
 def module_to_path(module_name: str) -> str:
     """Map a Pylint module name to its repository-relative Python path."""
     parts = module_name.split(".")
-    root = "tests" if parts[0] == "tests" else "src"
-    if parts[0] == "tests":
-        parts = parts[1:]
 
+    for root in ("tests", "scripts", "src"):
+        relative_parts = parts[1:] if parts[0] == root else parts
+        if not relative_parts:
+            continue
+
+        module_path = Path(root, *relative_parts)
+        module_file = module_path.with_suffix(".py")
+        if module_file.is_file():
+            return module_file.as_posix()
+
+        package_file = module_path / "__init__.py"
+        if package_file.is_file():
+            return package_file.as_posix()
+
+    # Retain a deterministic fallback for paths absent from the working tree.
+    root = parts.pop(0) if parts[0] in {"tests", "scripts"} else "src"
     if parts and parts[-1] == "__init__":
         parts.pop()
         filename = "__init__.py"
@@ -115,8 +150,13 @@ def main() -> int:
         text=True,
     )
     output = result.stdout + result.stderr
-    failures: list[str] = []
+    # R0801 is a refactor message (exit-code bit 8) and is handled below.
+    # Other exit-code bits indicate a failed/invalid lint run and must fail CI.
+    if result.returncode & ~8:
+        print(output)
+        return 1
 
+    failures: list[str] = []
     for heading, first_module, second_module in duplicate_pairs(output):
         first_path = module_to_path(first_module)
         second_path = module_to_path(second_module)
