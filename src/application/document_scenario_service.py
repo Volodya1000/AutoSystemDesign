@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import re
 from pathlib import Path
-from typing import Protocol, TypeVar
+from typing import Protocol, TypeVar, cast
 
 from pydantic import ValidationError
 
@@ -34,6 +34,7 @@ from domain.scenario_extraction import (
     EvidenceValue,
     ExtractedMetricRequirement,
     ExtractedWorkload,
+    MetricType,
 )
 
 
@@ -45,6 +46,19 @@ class DocumentScenarioMapper(Protocol):
 
 
 ValueT = TypeVar("ValueT")
+_ALL_METRIC_FIELDS = (
+    "threshold_value",
+    "percentile",
+    "minimum_value",
+    "maximum_value",
+)
+_REQUIRED_METRIC_FIELDS: dict[MetricType, set[str]] = {
+    "latency": {"threshold_value", "percentile"},
+    "queue_size_percentile": {"threshold_value", "percentile"},
+    "budget": {"threshold_value"},
+    "availability": {"threshold_value"},
+    "resource_utilization": {"minimum_value", "maximum_value"},
+}
 _NUMERIC_TOKEN = re.compile(
     r"(?<![\w.])(?P<number>[-+]?(?:\d+(?:[.,]\d+)?|[.,]\d+))"
     r"(?:st|nd|rd|th)?(?!\w)",
@@ -455,21 +469,9 @@ class DocumentScenarioService:
             if metric_type is None:
                 continue
 
-            if metric_type in {"latency", "queue_size_percentile"}:
-                required_fields = {"threshold_value", "percentile"}
-            elif metric_type in {"budget", "availability"}:
-                required_fields = {"threshold_value"}
-            else:
-                required_fields = {"minimum_value", "maximum_value"}
-
+            required_fields = _REQUIRED_METRIC_FIELDS[metric_type]
             values: dict[str, float | None] = {}
-            all_fields = (
-                "threshold_value",
-                "percentile",
-                "minimum_value",
-                "maximum_value",
-            )
-            for field_name in all_fields:
+            for field_name in _ALL_METRIC_FIELDS:
                 values[field_name] = _resolve_candidate(
                     getattr(candidate, field_name),
                     f"{base_path}.{field_name}",
@@ -481,7 +483,7 @@ class DocumentScenarioService:
                 )
 
             invalid_unused = False
-            for field_name in all_fields:
+            for field_name in _ALL_METRIC_FIELDS:
                 if field_name not in required_fields:
                     rejected = _reject_unexpected_value(
                         getattr(candidate, field_name),
@@ -493,48 +495,7 @@ class DocumentScenarioService:
                 continue
 
             try:
-                match metric_type:
-                    case "latency":
-                        threshold = values["threshold_value"]
-                        percentile = values["percentile"]
-                        if threshold is None or percentile is None:
-                            continue
-                        metric = LatencyRequirement(
-                            threshold_value=threshold,
-                            percentile=percentile,
-                        )
-                    case "queue_size_percentile":
-                        threshold = values["threshold_value"]
-                        percentile = values["percentile"]
-                        if threshold is None or percentile is None:
-                            continue
-                        metric = QueueSizePercentileRequirement(
-                            threshold_value=threshold,
-                            percentile=percentile,
-                        )
-                    case "budget":
-                        threshold = values["threshold_value"]
-                        if threshold is None:
-                            continue
-                        metric = BudgetRequirement(threshold_value=threshold)
-                    case "availability":
-                        threshold = values["threshold_value"]
-                        if threshold is None:
-                            continue
-                        metric = AvailabilityRequirement(threshold_value=threshold)
-                    case "resource_utilization":
-                        minimum = values["minimum_value"]
-                        maximum = values["maximum_value"]
-                        if minimum is None or maximum is None:
-                            continue
-                        metric = ResourceUtilizationRequirement(
-                            minimum_value=minimum,
-                            maximum_value=maximum,
-                        )
-                    case _:
-                        continue
-                output.append(metric)
-                field_evidence.update(local_evidence)
+                metric = _create_metric(metric_type, values)
             except ValidationError as error:
                 issues.append(
                     RequirementIssue(
@@ -544,8 +505,41 @@ class DocumentScenarioService:
                         evidence=list(local_evidence.values()),
                     )
                 )
+                continue
+            output.append(metric)
+            field_evidence.update(local_evidence)
         return output
 
+
+def _create_metric(
+    metric_type: MetricType,
+    values: dict[str, float | None],
+) -> ScenarioRequirement:
+    """Instantiate the canonical non-functional model after field validation."""
+    match metric_type:
+        case "latency":
+            return LatencyRequirement(
+                threshold_value=cast(float, values["threshold_value"]),
+                percentile=cast(float, values["percentile"]),
+            )
+        case "queue_size_percentile":
+            return QueueSizePercentileRequirement(
+                threshold_value=cast(float, values["threshold_value"]),
+                percentile=cast(float, values["percentile"]),
+            )
+        case "budget":
+            return BudgetRequirement(
+                threshold_value=cast(float, values["threshold_value"]),
+            )
+        case "availability":
+            return AvailabilityRequirement(
+                threshold_value=cast(float, values["threshold_value"]),
+            )
+        case "resource_utilization":
+            return ResourceUtilizationRequirement(
+                minimum_value=cast(float, values["minimum_value"]),
+                maximum_value=cast(float, values["maximum_value"]),
+            )
     @staticmethod
     def _build_functional_requirements(
         extraction: DocumentScenarioExtraction,
