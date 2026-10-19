@@ -119,6 +119,7 @@ class _RecordingRequirementValidator(RequirementValidator[BudgetRequirement]):
     def validate(
         self, graph: ArchitectureGraph, requirement: BudgetRequirement
     ) -> list:
+        del graph
         self.received.append(requirement)
         return []
 
