@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING
 
-from domain.models.ast_steps import AltStep, LoopStep, MessageStep, OptStep, ScenarioStep
+from domain.models.ast_steps import (
+    AltStep,
+    LoopStep,
+    MessageStep,
+    OptStep,
+    ScenarioStep,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
 
 
 def iter_message_steps(steps: Sequence[ScenarioStep]) -> Iterator[MessageStep]:
