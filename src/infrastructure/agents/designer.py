@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
 
 from application.tasks import DesignProposal, DesignTask, DesignTaskMode
 from config.root import AppSettings
 from domain.models.topology import ArchitectureGraph
 from infrastructure.design.parser import parse_architecture_graph
 from infrastructure.llm.models import CompletionRequest, CompletionResult, Message
+from infrastructure.llm.protocols import CompletionClient
 from infrastructure.prompts.design_generation import build_initial_messages
 from infrastructure.prompts.design_repair import build_repair_messages
-
-if TYPE_CHECKING:
-    from infrastructure.llm.client import LiteLlmClient
 
 
 class ArchitectureDesignerAgent:
@@ -25,8 +22,8 @@ class ArchitectureDesignerAgent:
     Infrastructure errors are not caught here.
     """
 
-    def __init__(self, client: LiteLlmClient, settings: AppSettings) -> None:
-        self._client = client
+    def __init__(self, client: CompletionClient, settings: AppSettings) -> None:
+        self._client: CompletionClient = client
         self._settings = settings
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 

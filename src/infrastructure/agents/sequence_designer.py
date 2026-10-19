@@ -14,7 +14,8 @@ from infrastructure.design.sequence_parser import (
     parse_interaction_scenario,
     parse_roles_catalog,
 )
-from infrastructure.llm.models import CompletionRequest
+from infrastructure.llm.models import CompletionRequest, CompletionResult
+from infrastructure.llm.protocols import CompletionClient
 from infrastructure.prompts.sequence_generation import (
     build_interaction_initial_messages,
     build_interaction_repair_messages,
@@ -24,10 +25,10 @@ from infrastructure.prompts.sequence_generation import (
 
 
 class SequenceDesignerAgent:
-    def __init__(self, client, settings: AppSettings) -> None:
-        self._client = client
-        self._settings = settings
-        self.logger = logging.getLogger(self.__class__.__name__)
+    def __init__(self, client: CompletionClient, settings: AppSettings) -> None:
+        self._client: CompletionClient = client
+        self._settings: AppSettings = settings
+        self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 
     def propose_roles(self, task: SequenceRoleTask) -> SequenceRoleProposal:
         if task.mode is DesignTaskMode.INITIAL:
@@ -44,10 +45,12 @@ class SequenceDesignerAgent:
             response_schema_name="project_roles_catalog",
         )
 
-        completion = self._client.complete(request)
+        completion: CompletionResult = self._client.complete(request)
         self.logger.debug("Raw Roles LLM output:\n%s", completion.content)
 
-        catalog = parse_roles_catalog(completion.content, usage=completion.usage)
+        catalog: ProjectRolesCatalog = parse_roles_catalog(
+            completion.content, usage=completion.usage
+        )
         return SequenceRoleProposal(
             payload=catalog,
             raw_content=completion.content,
