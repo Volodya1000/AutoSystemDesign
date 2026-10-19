@@ -23,7 +23,6 @@ from infrastructure.llm.document_requirement_extractor import (
 from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMapper
 
 
-
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line interface for document-to-scenario generation."""
     parser = argparse.ArgumentParser(
