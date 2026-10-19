@@ -66,9 +66,7 @@ def _custom_compute(
         "replicas": "replicas_count",
         "cost": "monthly_cost_usd",
     }
-    node_data.update(
-        {field_names[name]: value for name, value in overrides.items()}
-    )
+    node_data.update({field_names[name]: value for name, value in overrides.items()})
     return ComputeNode.model_validate(node_data)
 
 
