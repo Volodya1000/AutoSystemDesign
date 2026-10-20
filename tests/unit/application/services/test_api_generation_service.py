@@ -162,8 +162,12 @@ def test_api_parsing_failure_builds_repair_task() -> None:
     repair_task = designer.received_tasks[1]
     assert repair_task.mode is DesignTaskMode.REPAIR
     assert repair_task.previous_payload == parsing_error.raw_content
-    assert repair_task.parsing_failures == parsing_error.failure_details
-    assert result.total_usage.total_tokens == EXPECTED_ASSERT_RESULT_TOTAL_USAGE_TOTAL_TOKENS
+    assert (
+        repair_task.parsing_failures == parsing_error.failure_details
+    )
+    assert (
+        result.total_usage.total_tokens == EXPECTED_TOTAL_TOKENS
+    )
 
 
 def test_api_generation_returns_failure_after_max_attempts() -> None:
@@ -180,4 +184,4 @@ def test_api_generation_returns_failure_after_max_attempts() -> None:
     assert designer.received_tasks[-1].mode is DesignTaskMode.REPAIR
 
 EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 2
-EXPECTED_ASSERT_RESULT_TOTAL_USAGE_TOTAL_TOKENS = 40
+EXPECTED_TOTAL_TOKENS = 40
