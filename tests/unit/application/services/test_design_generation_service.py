@@ -25,6 +25,11 @@ from tests.factories import create_test_edge, create_test_node
 
 from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
 
+EXPECTED_ISOLATED_ERROR_COUNT = 2
+EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 3
+EXPECTED_PROMPT_TOKENS = 90
+EXPECTED_LATENCY_SECONDS = 5.0
+
 pytestmark = pytest.mark.unit
 
 
@@ -252,8 +257,4 @@ class TestDesignGenerationService:
                 max_attempts=11,
             )
 
-EXPECTED_ISOLATED_ERROR_COUNT = 2
-EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 3
-EXPECTED_PROMPT_TOKENS = 90
 EXPECTED_RESULT_ATTEMPTS_COUNT = 2
-EXPECTED_LATENCY_SECONDS = 5.0
