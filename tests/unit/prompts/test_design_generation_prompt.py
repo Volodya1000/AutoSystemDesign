@@ -5,7 +5,6 @@ from domain.models import DesignScenario
 from infrastructure.llm.models import MessageRole
 from infrastructure.prompts.design_generation import build_initial_messages
 
-
 pytestmark = pytest.mark.unit
 
 
