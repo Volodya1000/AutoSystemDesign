@@ -18,8 +18,6 @@ from infrastructure.llm.models import (
 )
 from infrastructure.prompts.fragments_schema import FEW_SHOT_GRAPH_JSON
 
-EXPECTED_TOTAL_TOKENS = 18
-
 pytestmark = pytest.mark.unit
 
 
@@ -85,7 +83,7 @@ class TestArchitectureDesignerAgent:
         assert len(proposal.graph.nodes) == 4
         assert len(proposal.graph.edges) == 3
         assert proposal.raw_content == _FENCED_CONTENT
-        assert proposal.usage.total_tokens == EXPECTED_TOTAL_TOKENS
+        assert proposal.usage.total_tokens == 18
 
     def test_propose_raises_parsing_error_on_garbage(
         self, scenario: DesignScenario, settings: AppSettings
@@ -97,7 +95,7 @@ class TestArchitectureDesignerAgent:
         )
         with pytest.raises(DesignProposalParsingError) as exc_info:
             designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
-        assert exc_info.value.usage.total_tokens == EXPECTED_TOTAL_TOKENS
+        assert exc_info.value.usage.total_tokens == 18
         assert exc_info.value.failure_details
 
     def test_propose_propagates_connection_errors(
