@@ -28,7 +28,6 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
 from domain.specifications.interfaces import ValidationResult
 
-
 pytestmark = pytest.mark.unit
 
 
