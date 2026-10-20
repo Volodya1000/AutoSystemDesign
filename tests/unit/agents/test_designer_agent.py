@@ -19,11 +19,9 @@ from infrastructure.llm.models import (
 from infrastructure.prompts.fragments_schema import FEW_SHOT_GRAPH_JSON
 from tests.unit.constants import EXPECTED_REQUEST_MAX_TOKENS
 
-EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS = 12.5
-EXPECTED_ASSERT_REQUEST_TEMPERATURE = 0.7
+
 EXPECTED_TOTAL_TOKENS = 18
-EXPECTED_EDGE_COUNT = 3
-EXPECTED_NODE_COUNT = 4
+
 
 pytestmark = pytest.mark.unit
 
@@ -87,8 +85,8 @@ class TestArchitectureDesignerAgent:
         proposal: DesignProposal = designer.propose(
             DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
         )
-        assert len(proposal.graph.nodes) == EXPECTED_NODE_COUNT
-        assert len(proposal.graph.edges) == EXPECTED_EDGE_COUNT
+        assert len(proposal.graph.nodes) == 4
+        assert len(proposal.graph.edges) == 3
         assert proposal.raw_content == _FENCED_CONTENT
         assert proposal.usage.total_tokens == EXPECTED_TOTAL_TOKENS
 
@@ -136,8 +134,8 @@ class TestArchitectureDesignerAgent:
                 DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
             )
         request: CompletionRequest = client.received_requests[0]
-        assert request.temperature == EXPECTED_ASSERT_REQUEST_TEMPERATURE
+        assert request.temperature == 0.7
         assert request.max_tokens == EXPECTED_ASSERT_REQUEST_MAX_TOKENS
-        assert request.timeout_seconds == EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS
+        assert request.timeout_seconds == 12.5
         assert request.messages
 
