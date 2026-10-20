@@ -13,7 +13,8 @@ def tracked_files() -> list[Path]:
     if git_executable is None:
         raise RuntimeError
 
-    result = subprocess.run(
+    # Absolute Git path and fixed argv; shell execution is disabled.
+    result = subprocess.run(  # noqa: S603
         [git_executable, "ls-files", "-z"],
         check=True,
         capture_output=True,
