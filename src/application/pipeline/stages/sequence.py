@@ -13,9 +13,9 @@ from typing import TYPE_CHECKING, Protocol
 
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.stage import StageId
 from application.pipeline.stage_execution import begin_stage_execution
 from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
+from application.pipeline.stage import StageId
 from application.pipeline.stages._naming import (
     functional_requirement_ids,
     plan_base_names,
