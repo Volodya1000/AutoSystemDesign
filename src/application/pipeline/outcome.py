@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+from application.pipeline.stage import StageId
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -45,7 +47,7 @@ class DiagramRenderResult:
 class StageOutcome[PayloadT]:
     """Everything downstream stages, reporters, and tests inspect."""
 
-    name: str
+    name: StageId
     status: StageStatus
     # Full wall-clock time of the stage, including artifact writes and any
     # best-effort diagram rendering.
