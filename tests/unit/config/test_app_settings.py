@@ -173,4 +173,3 @@ class TestAppSettings:
         )
         assert settings.generation == GenerationSettings()
         assert settings.testing == IntegrationSettings()
-
