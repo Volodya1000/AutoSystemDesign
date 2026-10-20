@@ -101,7 +101,7 @@ def test_budget_violation_triggers_repair_attempt() -> None:
     result: DesignGenerationResult = service.generate(_scenario())
 
     assert result.status is GenerationStatus.SUCCEEDED
-    assert len(result.attempts) == 2
+    assert len(result.attempts) == EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT
 
     first_validation = result.attempts[0].validation
     assert first_validation is not None
@@ -139,3 +139,6 @@ def test_budget_failure_after_max_attempts_is_validation_failed() -> None:
     last_validation = result.attempts[-1].validation
     assert last_validation is not None
     assert last_validation.has_error(BudgetExceededError)
+
+EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 2
+
