@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from application.pipeline.context import StageContext
     from application.pipeline.ports import DiagramRenderer, GenerationReporter
     from application.pipeline.services import DesignGenerator
-    from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph
 
 _logger = logging.getLogger("pipeline.c4")
