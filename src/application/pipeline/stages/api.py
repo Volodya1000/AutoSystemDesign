@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from application.pipeline.ports import ApiArtifactRenderer, GenerationReporter
     from application.pipeline.services import ApiGenerator
     from domain.models.api import ApiDesign
-    from domain.models.scenarios import DesignScenario
     from domain.models.sequence import InteractionScenario
 
 _logger: logging.Logger = logging.getLogger("pipeline.api")
