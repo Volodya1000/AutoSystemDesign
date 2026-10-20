@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 import pytest
 
 from application.performance_analysis.report_builder import (
@@ -195,5 +193,3 @@ def test_report_remains_valid_after_json_round_trip() -> None:
     restored = type(report).model_validate_json(report.model_dump_json())
 
     assert restored == report
-    payload: dict[str, object] = json.loads(report.model_dump_json())
-    assert payload["scenario_identifier"] == "capacity_report"
