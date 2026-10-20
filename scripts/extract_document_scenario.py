@@ -1,5 +1,4 @@
-"""Extract source-grounded requirements and write a pipeline-compatible
-YAML scenario."""
+"""Extract verified requirements into a pipeline-compatible YAML scenario."""
 
 import argparse
 import json
