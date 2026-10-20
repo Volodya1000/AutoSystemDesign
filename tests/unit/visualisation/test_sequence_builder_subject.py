@@ -248,4 +248,3 @@ def test_short_labels_are_not_wrapped() -> None:
     assert r": POST /orders" in source
 
 MAX_ASSERT_ALL_LINE_COUNT = 36
-
