@@ -119,7 +119,7 @@ def test_main_does_not_write_scenario_without_validated_result(
     )
 
     class FakeService:
-        def __init__(self, requirements_service: Any, mapper: Any) -> None:
+        def __init__(self, requirements_service: object, mapper: object) -> None:
             pass
 
         def extract_file(self, _path: Path) -> DocumentScenarioResult:
