@@ -10,6 +10,7 @@ from application.pipeline.context import StageContext
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome
 from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
+from application.pipeline.stage import StageId
 from domain.models.ast_steps import MessageStep
 from domain.models.roles import BusinessRole, ProjectRolesCatalog
 from domain.models.scenarios import DesignScenario
@@ -47,7 +48,7 @@ class FakeRenderer:
 
 
 def _context(tmp_path: Path, writer: InMemoryWriter) -> StageContext:
-    upstream: Mapping[str, StageOutcome[object]] = {}
+    upstream: Mapping[StageId, StageOutcome[object]] = {}
     return StageContext(
         scenario=DesignScenario(identifier="demo", description="Test scenario"),
         out_dir=tmp_path / "output",
