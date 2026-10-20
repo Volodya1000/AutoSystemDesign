@@ -104,9 +104,7 @@ def test_saturation_finding_respects_existing_threshold(
     ]
 
     assert service_metrics.utilization_ratio == pytest.approx(expected_utilization)
-    assert len(saturation_findings) == (
-        0 if expected_finding_code is None else 1
-    )
+    assert len(saturation_findings) == (0 if expected_finding_code is None else 1)
     if expected_finding_code is not None:
         finding = saturation_findings[0]
         assert finding.finding_code is expected_finding_code
