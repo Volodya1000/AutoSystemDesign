@@ -1,4 +1,4 @@
-""""Define the structured result contract for performance analysis."""
+"""Define the structured result contract for performance analysis."""
 
 from enum import StrEnum
 
@@ -126,4 +126,3 @@ class PerformanceAnalysisReport(BaseModel):
     status: PerformanceAnalysisStatus
     nodes: list[NodePerformanceMetrics] = Field(default_factory=list)
     findings: list[PerformanceFinding] = Field(default_factory=list)
-"
