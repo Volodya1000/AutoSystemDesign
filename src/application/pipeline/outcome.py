@@ -6,11 +6,10 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+from application.pipeline.stage import StageId
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from application.pipeline.stage import StageId
 
 
 class StageStatus(StrEnum):
