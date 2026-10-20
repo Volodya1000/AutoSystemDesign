@@ -34,4 +34,3 @@ def test_scenario_payload_round_trips_discriminated_requirements() -> None:
 
 EXPECTED_ASSERT_RESTORED_REQUIREMENTS_1_THRESHOLD = 99.9
 EXPECTED_ASSERT_RESTORED_REQUIREMENTS_0_THRESHOLD = 300.0
-
