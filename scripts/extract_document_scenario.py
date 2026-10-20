@@ -1,6 +1,7 @@
 """Extract verified requirements into a pipeline-compatible YAML scenario."""
 
 import argparse
+import asyncio
 import json
 import logging
 import subprocess
@@ -98,10 +99,11 @@ def _run_pipeline(args: argparse.Namespace) -> int:
     if args.no_diagram:
         command.append("--no-diagram")
     try:
-        # Invoke this Python process with argv, not a shell command string.
-        return subprocess.run(  # noqa: S603
-            command, check=False
-        ).returncode
+        async def run_pipeline() -> int:
+            process = await asyncio.create_subprocess_exec(*command)
+            return await process.wait()
+
+        return asyncio.run(run_pipeline())
     except OSError:
         logger.exception("Could not start the design pipeline")
         return 2
