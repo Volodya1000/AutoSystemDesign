@@ -255,9 +255,7 @@ def test_sequence_generation_failure_still_fails_for_functional_scenarios(
         scenario=scenario,
         out_dir=tmp_path,
         writer=InMemoryWriter(),
-        upstream=MappingProxyType(
-            {StageId.C4: _upstream(graph)[StageId.C4]}
-        ),
+        upstream=MappingProxyType({StageId.C4: _upstream(graph)[StageId.C4]}),
     )
 
     outcome = stage.run(context)
