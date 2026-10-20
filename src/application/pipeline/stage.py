@@ -24,4 +24,3 @@ class PipelineStage(Protocol):
     depends_on: tuple[StageId, ...]
 
     def run(self, context: StageContext) -> StageOutcome[object]: ...
-
