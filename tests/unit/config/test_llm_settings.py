@@ -7,6 +7,8 @@ from pydantic import ValidationError
 
 from config.llm import LlmSettings, StructuredOutputMode
 
+EXPECTED_ASSERT_SETTINGS_TEMPERATURE = 0.2
+
 pytestmark = pytest.mark.unit
 
 _VALID_KWARGS: dict[str, Any] = {
@@ -37,4 +39,3 @@ class TestLlmSettings:
         with pytest.raises(ValidationError):
             LlmSettings(**{**_VALID_KWARGS, "max_tokens": 0})
 
-EXPECTED_ASSERT_SETTINGS_TEMPERATURE = 0.2
