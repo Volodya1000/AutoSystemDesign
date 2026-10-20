@@ -5,6 +5,7 @@ from domain.performance_analysis.report import (
     PerformanceAnalysisReport,
     PerformanceAnalysisStatus,
     PerformanceFinding,
+    PerformanceFindingCode,
     PerformanceFindingSeverity,
 )
 
@@ -13,5 +14,6 @@ __all__ = [
     "PerformanceAnalysisReport",
     "PerformanceAnalysisStatus",
     "PerformanceFinding",
+    "PerformanceFindingCode",
     "PerformanceFindingSeverity",
 ]
