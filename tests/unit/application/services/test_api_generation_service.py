@@ -23,7 +23,6 @@ from domain.specifications.api_validator import ApiDesignValidator
 
 from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
 
-EXPECTED_TOTAL_TOKENS = 40
 
 pytestmark = pytest.mark.unit
 
@@ -170,7 +169,7 @@ def test_api_parsing_failure_builds_repair_task() -> None:
         repair_task.parsing_failures == parsing_error.failure_details
     )
     assert (
-        result.total_usage.total_tokens == EXPECTED_TOTAL_TOKENS
+        result.total_usage.total_tokens == 40
     )
 
 
