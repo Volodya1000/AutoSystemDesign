@@ -24,9 +24,7 @@ class PerformanceAnalysisStage:
     name: str = "performance_analysis"
     depends_on: tuple[str, ...] = ("c4",)
 
-    def run(
-        self, context: StageContext
-    ) -> StageOutcome[PerformanceAnalysisReport]:
+    def run(self, context: StageContext) -> StageOutcome[PerformanceAnalysisReport]:
         stage_start: float = time.perf_counter()
         graph: ArchitectureGraph = require_payload(
             context, self.depends_on[0], ArchitectureGraph
