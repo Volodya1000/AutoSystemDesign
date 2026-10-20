@@ -10,6 +10,7 @@ from domain.specifications.interfaces import ValidationResult
 from .helpers import iter_message_steps
 
 if TYPE_CHECKING:
+    from domain.exceptions.architecture_errors import ArchitectureValidationError
     from domain.models.roles import ProjectRolesCatalog
     from domain.models.sequence import InteractionScenario
     from domain.models.topology import ArchitectureGraph
@@ -28,7 +29,7 @@ class DeliveryModeValidator:
         expected_requirement_id: str,
     ) -> ValidationResult:
         _ = catalog, graph, expected_requirement_id
-        errors = [
+        errors: list[ArchitectureValidationError] = [
             AsyncDeliveryModeError(
                 action_name=message.action_name,
                 message_kind=message.message_kind,
