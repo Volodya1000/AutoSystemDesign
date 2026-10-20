@@ -37,19 +37,20 @@ def _run_stage(
         edges=[create_test_edge("client", "service")],
     )
     writer = InMemoryWriter()
+    upstream: dict[str, StageOutcome[object]] = {
+        "c4": StageOutcome[object](
+            name="c4",
+            status=StageStatus.PARTIAL,
+            duration_seconds=0.0,
+            total_tokens=0,
+            payload=graph,
+        )
+    }
     context = StageContext(
         scenario=scenario,
         out_dir=out_dir,
         writer=writer,
-        upstream={
-            "c4": StageOutcome(
-                name="c4",
-                status=StageStatus.PARTIAL,
-                duration_seconds=0.0,
-                total_tokens=0,
-                payload=graph,
-            )
-        },
+        upstream=upstream,
     )
 
     outcome = PerformanceAnalysisStage().run(context)
