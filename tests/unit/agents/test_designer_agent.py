@@ -96,9 +96,7 @@ class TestArchitectureDesignerAgent:
             settings=settings,
         )
         with pytest.raises(DesignProposalParsingError) as exc_info:
-            designer.propose(
-            DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
-        )
+            designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
         assert exc_info.value.usage.total_tokens == EXPECTED_TOTAL_TOKENS
         assert exc_info.value.failure_details
 
@@ -115,9 +113,7 @@ class TestArchitectureDesignerAgent:
             settings=settings,
         )
         with pytest.raises(LlmConnectionError):
-            designer.propose(
-                DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
-            )
+            designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
 
     def test_completion_request_carries_settings(
         self, scenario: DesignScenario, settings: AppSettings
