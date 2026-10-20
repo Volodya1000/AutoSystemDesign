@@ -33,5 +33,3 @@ class TestTokenUsage:
         assert TokenUsage.aggregate([]) == TokenUsage(
             prompt_tokens=0, completion_tokens=0
         )
-
-
