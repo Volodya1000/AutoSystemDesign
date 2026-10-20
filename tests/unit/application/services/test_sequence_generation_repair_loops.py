@@ -36,6 +36,9 @@ if TYPE_CHECKING:
 
     from application.results import SequenceGenerationResult
 
+EXPECTED_ASSERT_RESULT_ROLES_ATTEMPTS_COUNT = 2
+EXPECTED_ATTEMPT_COUNT = 2
+
 pytestmark = pytest.mark.unit
 
 
@@ -395,6 +398,3 @@ def test_aborts_interactions_when_roles_catalog_never_parses() -> None:
     assert not designer.interaction_tasks
     assert result.total_usage == TokenUsage(prompt_tokens=8, completion_tokens=2)
 
-EXPECTED_ASSERT_RESULT_ROLES_ATTEMPTS_COUNT = 2
-EXPECTED_ATTEMPT_COUNT = 2
-EXPECTED_ATTEMPT_COUNT = 2
