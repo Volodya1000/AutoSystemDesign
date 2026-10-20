@@ -35,4 +35,3 @@ class TestTokenUsage:
         )
 
 EXPECTED_ASSERT_USAGE_TOTAL_TOKENS = 15
-
