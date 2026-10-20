@@ -1,10 +1,3 @@
-"""Unit tests of the stage builders in the composition root.
-
-These exercise the wiring without any LLM: ``_build_*_stage`` accepts an
-explicit ``AppSettings``, so no environment variables or real endpoint
-are required.
-"""
-
 import pytest
 from pydantic import SecretStr
 
@@ -18,9 +11,6 @@ from application.tasks import DesignProposal, DesignTask
 from application.usage import TokenUsage
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
-from domain.models import DesignScenario, LatencyRequirement, WorkloadProfile
-from domain.models.enums import NodeType
-from domain.models.topology import ArchitectureGraph
 from infrastructure.composition import (
     _build_api_stage,
     _build_c4_stage,
@@ -31,7 +21,8 @@ from infrastructure.composition import (
 )
 from infrastructure.reporting import LoggingGenerationReporter
 from infrastructure.visualisation.plantuml import DiagramImageFormat
-from tests.factories import create_test_compute_node, create_test_edge, create_test_node
+from tests.factories import create_test_latency_graph, create_test_latency_scenario
+
 
 pytestmark = pytest.mark.unit
 
@@ -122,27 +113,8 @@ class _FixedArchitectureDesigner:
 def test_unmodelled_percentile_target_does_not_trigger_repair_attempts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    graph = ArchitectureGraph(
-        nodes=[
-            create_test_node("client", NodeType.CLIENT),
-            create_test_compute_node(
-                "service",
-                concurrency=1,
-                mean_ms=10.0,
-                std_ms=10.0,
-            ),
-        ],
-        edges=[create_test_edge("client", "service")],
-    )
-    scenario = DesignScenario(
-        identifier="latency_slo_test",
-        description="A percentile target that the current model cannot evaluate",
-        workload=WorkloadProfile(
-            baseline_requests_per_second=10.0,
-            peak_requests_per_second=20.0,
-        ),
-        requirements=[LatencyRequirement(threshold_value=1.0, percentile=99.0)],
-    )
+    graph = create_test_latency_graph()
+    scenario = create_test_latency_scenario()
     designer = _FixedArchitectureDesigner(
         DesignProposal(graph=graph, raw_content="{}", usage=TokenUsage())
     )
