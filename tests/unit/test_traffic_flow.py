@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pytest
 
+from domain.exceptions.model_validation_errors import ModelValidationError
 from domain.models.enums import NodeType
 from domain.models.scenarios import WorkloadProfile
 from domain.models.topology import ArchitectureGraph
@@ -143,5 +144,5 @@ def test_cycle_is_rejected_even_when_no_client_exists() -> None:
         ],
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ModelValidationError):
         compute_node_incoming_rps(graph, _workload())
