@@ -23,7 +23,6 @@ from infrastructure.reporting import LoggingGenerationReporter
 from infrastructure.visualisation.plantuml import DiagramImageFormat
 from tests.factories import create_test_latency_graph, create_test_latency_scenario
 
-
 pytestmark = pytest.mark.unit
 
 
