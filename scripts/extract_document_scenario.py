@@ -27,10 +27,7 @@ from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMappe
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line interface for document-to-scenario generation."""
     parser = argparse.ArgumentParser(
-        description=(
-            "Extract verified requirements and create a "
-            "pipeline-ready scenario."
-        )
+        description="Extract verified requirements and create a pipeline-ready scenario."
     )
     parser.add_argument(
         "--document",
@@ -109,9 +106,7 @@ def _run_pipeline(args: argparse.Namespace) -> int:
 
 def _scenario_payload(scenario: DesignScenario) -> dict[str, object]:
     """Serialize a scenario while preserving required union discriminators."""
-    payload = scenario.model_dump(
-        mode="json", exclude_unset=True, exclude_none=True
-    )
+    payload = scenario.model_dump(mode="json", exclude_unset=True, exclude_none=True)
     payload["requirements"] = [
         requirement.model_dump(mode="json", exclude_unset=True, exclude_none=True)
         | {"type_identifier": requirement.type_identifier}
