@@ -5,6 +5,7 @@ from math import isfinite
 from domain.performance_analysis.queueing import (
     QueueingMetrics,
     QueueingStatus,
+    create_stable_queueing_metrics,
     validate_queueing_rates,
 )
 
@@ -46,14 +47,7 @@ def compute_mm1_metrics(
         MILLISECONDS_PER_SECOND * utilization_ratio / rate_difference
     )
     mean_response_time_milliseconds = MILLISECONDS_PER_SECOND / rate_difference
-    if not isfinite(mean_queue_wait_milliseconds) or not isfinite(
-        mean_response_time_milliseconds
-    ):
-        message = "Calculated queueing metrics exceed the finite float range."
-        raise ValueError(message)
-
-    return QueueingMetrics(
-        status=QueueingStatus.STABLE,
+    return create_stable_queueing_metrics(
         utilization_ratio=utilization_ratio,
         mean_queue_wait_milliseconds=mean_queue_wait_milliseconds,
         mean_response_time_milliseconds=mean_response_time_milliseconds,

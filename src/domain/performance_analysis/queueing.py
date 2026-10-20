@@ -69,3 +69,23 @@ def validate_queueing_rates(
     ):
         message = "Service rate must be finite and positive."
         raise ValueError(message)
+
+
+
+def create_stable_queueing_metrics(
+    utilization_ratio: float,
+    mean_queue_wait_milliseconds: float,
+    mean_response_time_milliseconds: float,
+) -> QueueingMetrics:
+    """Validate finite estimates and build a stable queueing result."""
+    if not isfinite(mean_queue_wait_milliseconds) or not isfinite(
+        mean_response_time_milliseconds
+    ):
+        message = "Calculated queueing metrics exceed the finite float range."
+        raise ValueError(message)
+    return QueueingMetrics(
+        status=QueueingStatus.STABLE,
+        utilization_ratio=utilization_ratio,
+        mean_queue_wait_milliseconds=mean_queue_wait_milliseconds,
+        mean_response_time_milliseconds=mean_response_time_milliseconds,
+    )
