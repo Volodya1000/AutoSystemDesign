@@ -82,4 +82,5 @@ def _encode_six_bit_groups(data: bytes) -> str:
         )
     return "".join(characters)
 
+
 MIN_WHILE_BIT_COUNT = 6
