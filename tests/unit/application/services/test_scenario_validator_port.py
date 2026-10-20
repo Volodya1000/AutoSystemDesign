@@ -223,4 +223,3 @@ def test_scenario_validators_default_empty_keeps_old_behaviour() -> None:
 
     assert result.status is GenerationStatus.SUCCEEDED
 
-EXPECTED_RESULT_ATTEMPTS_COUNT = 2
