@@ -27,8 +27,10 @@ def test_single_server_matches_mm1_reference() -> None:
     mmc_wait = mmc_result.mean_queue_wait_milliseconds
     mm1_response = mm1_result.mean_response_time_milliseconds
     mmc_response = mmc_result.mean_response_time_milliseconds
-    assert mm1_wait is not None and mmc_wait is not None
-    assert mm1_response is not None and mmc_response is not None
+    assert mm1_wait is not None
+    assert mmc_wait is not None
+    assert mm1_response is not None
+    assert mmc_response is not None
     assert mmc_wait == pytest.approx(mm1_wait)
     assert mmc_response == pytest.approx(mm1_response)
 
@@ -40,7 +42,8 @@ def test_erlang_c_example_matches_hand_calculation() -> None:
     assert result.utilization_ratio == pytest.approx(0.25)
     mean_wait = result.mean_queue_wait_milliseconds
     mean_response = result.mean_response_time_milliseconds
-    assert mean_wait is not None and mean_response is not None
+    assert mean_wait is not None
+    assert mean_response is not None
     assert mean_wait == pytest.approx(10.0 / 3.0)
     assert mean_response == pytest.approx(160.0 / 3.0)
 
@@ -51,7 +54,8 @@ def test_more_servers_reduce_waiting_for_the_same_load() -> None:
 
     two_server_wait = two_servers.mean_queue_wait_milliseconds
     three_server_wait = three_servers.mean_queue_wait_milliseconds
-    assert two_server_wait is not None and three_server_wait is not None
+    assert two_server_wait is not None
+    assert three_server_wait is not None
     assert three_server_wait < two_server_wait
 
 
@@ -61,7 +65,8 @@ def test_waiting_grows_as_the_system_approaches_capacity() -> None:
 
     lower_load_wait = lower_load.mean_queue_wait_milliseconds
     near_capacity_wait = near_capacity.mean_queue_wait_milliseconds
-    assert lower_load_wait is not None and near_capacity_wait is not None
+    assert lower_load_wait is not None
+    assert near_capacity_wait is not None
     assert near_capacity_wait > lower_load_wait
 
 
@@ -78,7 +83,8 @@ def test_erlang_c_remains_numerically_stable_for_many_servers() -> None:
     assert result.status is QueueingStatus.STABLE
     mean_wait = result.mean_queue_wait_milliseconds
     mean_response = result.mean_response_time_milliseconds
-    assert mean_wait is not None and mean_response is not None
+    assert mean_wait is not None
+    assert mean_response is not None
     assert math.isfinite(mean_wait)
     assert math.isfinite(mean_response)
 
