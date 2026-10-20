@@ -7,6 +7,7 @@ import pytest
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
+from application.pipeline.stage import StageId
 from domain.models.enums import NodeType
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
@@ -37,9 +38,9 @@ def _run_stage(
         edges=[create_test_edge("client", "service")],
     )
     writer = InMemoryWriter()
-    upstream: dict[str, StageOutcome[object]] = {
-        "c4": StageOutcome[object](
-            name="c4",
+    upstream: dict[StageId, StageOutcome[object]] = {
+        StageId.C4: StageOutcome[object](
+            name=StageId.C4,
             status=StageStatus.PARTIAL,
             duration_seconds=0.0,
             total_tokens=0,
