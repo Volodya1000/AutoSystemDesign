@@ -265,7 +265,7 @@ def test_api_designer_builds_typed_request_and_parses_result(
     assert request.response_schema == ApiDesign.model_json_schema()
     assert request.response_schema_name == "api_design"
     assert request.temperature == EXPECTED_ASSERT_REQUEST_TEMPERATURE
-    assert request.max_tokens == EXPECTED_ASSERT_REQUEST_MAX_TOKENS
+    assert request.max_tokens == 512
     assert request.timeout_seconds == EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS
     assert proposal.payload is api_design
     assert proposal.raw_content == client.result.content
@@ -348,4 +348,4 @@ def test_sequence_designer_builds_interaction_request_and_parses_result(
     assert proposal.usage == client.result.usage
     assert proposal.latency_seconds == EXPECTED_ASSERT_PROPOSAL_LATENCY_SECONDS
 
-EXPECTED_ASSERT_REQUEST_MAX_TOKENS = 512
+
