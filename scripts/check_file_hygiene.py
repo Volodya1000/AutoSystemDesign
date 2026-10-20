@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
 import shutil
-import subprocess
 from pathlib import Path
 
 
@@ -13,15 +13,22 @@ def tracked_files() -> list[Path]:
     if git_executable is None:
         raise RuntimeError
 
-    # Absolute Git path and fixed argv; shell execution is disabled.
-    result = subprocess.run(  # noqa: S603
-        [git_executable, "ls-files", "-z"],
-        check=True,
-        capture_output=True,
-    )
+    async def list_tracked_files() -> bytes:
+        process = await asyncio.create_subprocess_exec(
+            git_executable,
+            "ls-files",
+            "-z",
+            stdout=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await process.communicate()
+        if process.returncode != 0:
+            raise RuntimeError("Git could not list tracked files")
+        return stdout
+
+    output = asyncio.run(list_tracked_files())
     return [
         Path(raw_path.decode("utf-8"))
-        for raw_path in result.stdout.split(b"\0")
+        for raw_path in output.split(b"\0")
         if raw_path
     ]
 
