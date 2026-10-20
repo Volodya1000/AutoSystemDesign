@@ -113,7 +113,9 @@ class TestArchitectureDesignerAgent:
             settings=settings,
         )
         with pytest.raises(LlmConnectionError):
-            designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
+            designer.propose(
+                DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
+            )
 
     def test_completion_request_carries_settings(
         self, scenario: DesignScenario, settings: AppSettings
@@ -123,7 +125,9 @@ class TestArchitectureDesignerAgent:
             client=client,  # type: ignore[arg-type]
             settings=settings,
         )
-        designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
+        designer.propose(
+                DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
+            )
         request: CompletionRequest = client.received_requests[0]
         assert request.temperature == EXPECTED_ASSERT_REQUEST_TEMPERATURE
         assert request.max_tokens == EXPECTED_ASSERT_REQUEST_MAX_TOKENS
