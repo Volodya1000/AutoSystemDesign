@@ -281,7 +281,7 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
                 raise PylintBaselineCheckError
             return {pair_key(pair) for pair in duplicate_pairs(output)}
         finally:
-        run_process(
+            run_process(
                 [
                     git_executable(),
                     "worktree",
