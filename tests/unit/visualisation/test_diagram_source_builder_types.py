@@ -27,7 +27,8 @@ def test_mypy_rejects_builder_for_the_wrong_subject_type(
         encoding="utf-8",
     )
 
-    result = subprocess.run(
+    # Use the current interpreter with a generated test file and explicit argv.
+    result = subprocess.run(  # noqa: S603
         [
             sys.executable,
             "-m",
