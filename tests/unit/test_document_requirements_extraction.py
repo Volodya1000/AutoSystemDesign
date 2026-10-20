@@ -101,10 +101,7 @@ def test_rejects_paraphrased_claim_even_when_its_citation_exists(
             return ExtractionChunk(
                 requirements=[
                     Requirement(
-                        statement=(
-                            "The service guarantees exactly-once payment "
-                            "processing."
-                        ),
+                        statement="The service guarantees exactly-once payments.",
                         kind=RequirementKind.FUNCTIONAL,
                         source_evidence=[
                             RequirementEvidence(source_excerpt=source_excerpt)
