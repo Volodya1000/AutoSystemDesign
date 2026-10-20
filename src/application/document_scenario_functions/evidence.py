@@ -181,4 +181,3 @@ def validate_source_backed_notes(
     return tuple(issues)
 
 MIN_AND_JOIN_EXCERPT_SPLIT_COUNT_FOR_EXCERPT = 2
-
