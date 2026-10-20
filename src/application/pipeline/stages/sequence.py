@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Protocol
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
-from application.pipeline.stage import StageId, begin_stage_execution
+from application.pipeline.stage import StageId
 from application.pipeline.stages._naming import (
     functional_requirement_ids,
     plan_base_names,
@@ -65,7 +65,8 @@ class SequenceStage:
     def run(
         self, context: StageContext
     ) -> StageOutcome[dict[str, InteractionScenario]]:
-        stage_start, scenario = begin_stage_execution(context)
+        stage_start: float = time.perf_counter()
+        scenario: DesignScenario = context.scenario
 
         if not scenario.functional_requirements:
             _logger.info(
