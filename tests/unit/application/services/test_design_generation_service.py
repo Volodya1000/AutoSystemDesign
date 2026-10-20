@@ -126,7 +126,7 @@ class TestDesignGenerationService:
         assert len(result.attempts) == 1
         assert result.attempts[0].validation is not None
         assert result.attempts[0].validation.is_successful
-        assert result.attempts[0].latency_seconds == 5.0
+        assert result.attempts[0].latency_seconds == EXPECTED_ASSERT_RESULT_ATTEMPTS_0_LATENCY_SECONDS
         assert result.graph is result.attempts[0].payload
         assert result.total_usage == TokenUsage(prompt_tokens=100, completion_tokens=50)
         assert len(designer.received_tasks) == 1
@@ -137,7 +137,7 @@ class TestDesignGenerationService:
         )
         result: DesignGenerationResult = service.generate(scenario)
         assert result.status is GenerationStatus.SUCCEEDED
-        assert len(result.attempts) == 2
+        assert len(result.attempts) == EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT_2
         assert result.attempts[0].validation is not None
         assert result.attempts[0].validation.has_error(IsolatedNodeError)
         first_graph: ArchitectureGraph | None = result.attempts[0].payload
@@ -162,7 +162,7 @@ class TestDesignGenerationService:
         assert first_attempt.parsed is False
         assert first_attempt.payload is None
         assert first_attempt.validation is None
-        assert first_attempt.usage.prompt_tokens == 90
+        assert first_attempt.usage.prompt_tokens == EXPECTED_ASSERT_FIRST_ATTEMPT_USAGE_PROMPT_TOKENS
         assert first_attempt.parsing_failures == parsing_failure.failure_details
         repair_task: DesignTask = designer.received_tasks[1]
         assert repair_task.mode is DesignTaskMode.REPAIR
@@ -174,7 +174,7 @@ class TestDesignGenerationService:
         service, _ = _build_service([_proposal(_isolated_graph(), 10, 5)] * 3)
         result: DesignGenerationResult = service.generate(scenario)
         assert result.status is GenerationStatus.VALIDATION_FAILED
-        assert len(result.attempts) == 3
+        assert len(result.attempts) == EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT
         assert result.graph is not None
 
     def test_all_attempts_unparseable(self, scenario: DesignScenario) -> None:
@@ -216,7 +216,7 @@ class TestDesignGenerationService:
             for error in result.attempts[0].validation.errors
             if isinstance(error, IsolatedNodeError)
         ]
-        assert len(isolated_errors) == 2  # one per validator
+        assert len(isolated_errors) == EXPECTED_ASSERT_ISOLATED_ERRORS_COUNT  # one per validator
 
     def test_empty_validators_are_rejected(self) -> None:
         with pytest.raises(
@@ -245,3 +245,10 @@ class TestDesignGenerationService:
                 validators=[StructuralTopologyValidator()],
                 max_attempts=11,
             )
+
+EXPECTED_ASSERT_ISOLATED_ERRORS_COUNT = 2
+EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 3
+EXPECTED_ASSERT_FIRST_ATTEMPT_USAGE_PROMPT_TOKENS = 90
+EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT_2 = 2
+EXPECTED_ASSERT_RESULT_ATTEMPTS_0_LATENCY_SECONDS = 5.0
+
