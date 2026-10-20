@@ -39,8 +39,7 @@ class ApiStage:
         self._reporter: GenerationReporter = reporter
 
     def run(self, context: StageContext) -> StageOutcome[ApiDesign]:
-        stage_start: float = time.perf_counter()
-        scenario = context.scenario
+        stage_start, scenario = begin_stage_execution(context)
 
         if not scenario.functional_requirements:
             _logger.info(
