@@ -27,7 +27,6 @@ from domain.specifications.broker_consumer_validator import (
 from domain.specifications.budget_validator import BudgetRequirementValidator
 from domain.specifications.cache_usage_validator import CacheUsageValidator
 from domain.specifications.capacity_validator import CapacitySaturationValidator
-from domain.specifications.latency_validator import LatencySloValidator
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
 from domain.specifications.sequence_validation import (
     ClientOwnershipValidator,
@@ -81,7 +80,6 @@ def build_design_generation_service(
     scenario_validators: list[ScenarioValidator] = [
         RequirementValidationDispatcher([BudgetRequirementValidator()]),
         CapacitySaturationValidator(),
-        LatencySloValidator(),
     ]
     return DesignGenerationService(
         designer=designer,

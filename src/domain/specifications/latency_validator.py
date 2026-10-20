@@ -13,17 +13,11 @@ from collections import deque
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from domain.exceptions.architecture_errors import (
-    ArchitectureValidationError,
-    TheoreticalLatencyViolationError,
-)
 from domain.exceptions.model_validation_errors import (
     ModelValidationCode,
     ModelValidationError,
 )
 from domain.models.nodes import CapacityNode, ClientNode
-from domain.models.requirements import LatencyRequirement
-from domain.specifications.interfaces import ScenarioValidator, ValidationResult
 from domain.specifications.traffic_flow import compute_node_incoming_rps
 
 if TYPE_CHECKING:
@@ -218,41 +212,3 @@ def compute_critical_path(
         node_latencies_ms=node_latencies,
         edge_latencies_ms=tuple(edge_latencies),
     )
-
-
-class LatencySloValidator(ScenarioValidator):
-    """Checks the critical path against every LatencyRequirement."""
-
-    def validate(
-        self,
-        graph: ArchitectureGraph,
-        scenario: DesignScenario,
-    ) -> ValidationResult:
-        if scenario.workload is None:
-            return ValidationResult(errors=[])
-
-        try:
-            critical = compute_critical_path(graph, scenario)
-        except ValueError:
-            # Cycle detection is owned by StructuralTopologyValidator; see
-            # the matching guard in CapacitySaturationValidator.
-            return ValidationResult(errors=[])
-
-        if critical is None:
-            return ValidationResult(errors=[])
-
-        errors: list[ArchitectureValidationError] = []
-
-        for requirement in scenario.requirements:
-            if not isinstance(requirement, LatencyRequirement):
-                continue
-            if not requirement.is_met_requirement(critical.total_latency_ms):
-                errors.append(
-                    TheoreticalLatencyViolationError(
-                        critical_path_node_identifiers=list(critical.path_node_ids),
-                        calculated_mean_latency_milliseconds=critical.total_latency_ms,
-                        target_threshold_milliseconds=requirement.threshold_value,
-                    )
-                )
-
-        return ValidationResult(errors=errors)

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from domain.models.enums import EdgeRoutingMode
 from domain.models.nodes import CacheNode, CapacityNode, DatabaseNode
+from domain.models.requirements import LatencyRequirement
 from domain.performance_analysis.report import (
     NodePerformanceMetrics,
     PerformanceAnalysisReport,
@@ -77,8 +78,14 @@ def build_performance_analysis_report(
         utilization_by_node,
         latency_by_node,
     )
+    latency_slo_finding = _latency_slo_not_evaluated_finding(
+        scenario,
+        critical_path.path_node_ids if critical_path is not None else (),
+    )
     findings = _capacity_findings(graph, utilization_by_node)
     findings.extend(_branching_findings(graph))
+    if latency_slo_finding is not None:
+        findings.append(latency_slo_finding)
     if unavailable_latency_nodes:
         findings.append(_unavailable_latency_finding(unavailable_latency_nodes))
 
@@ -86,7 +93,7 @@ def build_performance_analysis_report(
         scenario_identifier=scenario.identifier,
         status=(
             PerformanceAnalysisStatus.PARTIAL
-            if unavailable_latency_nodes
+            if unavailable_latency_nodes or latency_slo_finding is not None
             else PerformanceAnalysisStatus.COMPLETE
         ),
         nodes=node_metrics,
@@ -226,6 +233,37 @@ def _capacity_findings(
             )
 
     return findings
+
+
+def _latency_slo_not_evaluated_finding(
+    scenario: DesignScenario,
+    critical_path_node_identifiers: tuple[str, ...],
+) -> PerformanceFinding | None:
+    """Explain that a percentile target cannot be checked from a mean estimate."""
+    requirements = [
+        requirement
+        for requirement in scenario.requirements
+        if isinstance(requirement, LatencyRequirement)
+    ]
+    if not requirements:
+        return None
+
+    targets = ", ".join(
+        f"p{requirement.percentile:g} {requirement.operator.value} "
+        f"{requirement.threshold_value:g} ms"
+        for requirement in requirements
+    )
+    return PerformanceFinding(
+        finding_code=PerformanceFindingCode.LATENCY_NOT_EVALUATED,
+        severity=PerformanceFindingSeverity.WARNING,
+        title="Процентильная цель задержки не оценена",
+        description=(
+            f"Цели {targets} нельзя проверить текущей моделью: она оценивает "
+            "среднее время ответа, но не распределение задержки. Средняя оценка "
+            "остаётся доступной отдельно и не интерпретируется как процентиль."
+        ),
+        affected_node_identifiers=list(critical_path_node_identifiers),
+    )
 
 
 def _unavailable_latency_finding(
