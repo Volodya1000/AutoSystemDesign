@@ -87,7 +87,7 @@ extend-select = [
     "RUF005", # Prefer clearer sequence concatenation.
     "E501",   # Apply the configured 88-column line limit consistently.
 ]
-# All enabled rules must be fixed rather than suppressed.
+# Fix all findings; allow local noqa only for reviewed security-rule false positives.
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
