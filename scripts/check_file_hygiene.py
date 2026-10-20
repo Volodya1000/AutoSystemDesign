@@ -31,9 +31,7 @@ def tracked_files() -> list[Path]:
 
     output = asyncio.run(list_tracked_files())
     return [
-        Path(raw_path.decode("utf-8"))
-        for raw_path in output.split(b"\0")
-        if raw_path
+        Path(raw_path.decode("utf-8")) for raw_path in output.split(b"\0") if raw_path
     ]
 
 
