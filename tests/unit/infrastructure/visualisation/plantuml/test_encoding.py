@@ -14,7 +14,6 @@ from infrastructure.visualisation.plantuml.encoding import (
 )
 from infrastructure.visualisation.plantuml.models import DiagramImageFormat
 
-MIN_WHILE_BIT_COUNT = 8
 
 pytestmark = pytest.mark.unit
 
@@ -28,7 +27,7 @@ def _decode_plantuml_token(token: str) -> str:
     for character in token:
         bit_buffer = (bit_buffer << 6) | _PLANTUML_ALPHABET.index(character)
         bit_count += 6
-        while bit_count >= MIN_WHILE_BIT_COUNT:
+        while bit_count >= 8:
             bit_count -= 8
             output.append((bit_buffer >> bit_count) & 0xFF)
 
