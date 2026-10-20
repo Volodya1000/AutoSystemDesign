@@ -36,7 +36,6 @@ def _scenario(peak_rps: float = 25.0) -> DesignScenario:
 def _service_graph(
     service: str,
     *,
-    peak_rps: float = 25.0,
     concurrency: int = 1,
     mean_ms: float = 20.0,
 ) -> ArchitectureGraph:
@@ -58,7 +57,12 @@ def test_report_reuses_existing_capacity_calculation() -> None:
     graph = _service_graph("service")
     report = build_performance_analysis_report(graph, _scenario())
 
-    client_metrics, service_metrics = report.nodes
+    client_metrics = next(
+        item for item in report.nodes if item.node_identifier == "client"
+    )
+    service_metrics = next(
+        item for item in report.nodes if item.node_identifier == "service"
+    )
 
     assert report.scenario_identifier == "capacity_report"
     assert report.status is PerformanceAnalysisStatus.PARTIAL
@@ -87,7 +91,7 @@ def test_saturation_finding_respects_existing_threshold(
     is_saturated: bool,
     expected_utilization: float,
 ) -> None:
-    graph = _service_graph("service", peak_rps=peak_rps)
+    graph = _service_graph("service")
     scenario = _scenario(peak_rps)
 
     report = build_performance_analysis_report(graph, scenario)
