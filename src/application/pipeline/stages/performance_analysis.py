@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 from application.pipeline.stage import StageId
+from application.pipeline.stage_execution import begin_stage_execution
 
 
 class PerformanceAnalysisStage:
@@ -31,15 +32,15 @@ class PerformanceAnalysisStage:
     depends_on: tuple[StageId, ...] = (StageId.C4,)
 
     def run(self, context: StageContext) -> StageOutcome[PerformanceAnalysisReport]:
-        stage_start: float = time.perf_counter()
+        stage_start, scenario = begin_stage_execution(context)
         graph: ArchitectureGraph = require_payload(
             context, self.depends_on[0], ArchitectureGraph
         )
         report: PerformanceAnalysisReport = build_performance_analysis_report(
-            graph, context.scenario
+            graph, scenario
         )
         artifact_filename: str = (
-            f"{context.scenario.identifier}_performance_analysis.json"
+            f"{scenario.identifier}_performance_analysis.json"
         )
         artifact_path: Path = context.writer.write_text(
             context.out_dir / artifact_filename,
