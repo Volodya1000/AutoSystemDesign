@@ -33,10 +33,11 @@ def build_performance_analysis_report(
     utilization. Queue waiting time and response time stay unknown until a
     separately validated queueing model is introduced.
     """
-    if scenario.workload is None:
+    workload = scenario.workload
+    if workload is None:
         return _build_unavailable_report(graph, scenario)
 
-    incoming_by_node = compute_node_incoming_rps(graph, scenario.workload)
+    incoming_by_node = compute_node_incoming_rps(graph, workload)
     utilization_by_node = compute_node_utilization(graph, scenario)
     capacity_by_node = {
         node.identifier: compute_node_capacity_rps(node)
