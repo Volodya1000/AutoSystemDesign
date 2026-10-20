@@ -28,7 +28,6 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
 from domain.specifications.interfaces import ValidationResult
 
-EXPECTED_VALUE = 2
 
 pytestmark = pytest.mark.unit
 
@@ -173,7 +172,7 @@ def test_unknown_request_and_response_schema_references_are_rejected() -> None:
         sum(
             isinstance(error, UnresolvedSchemaReferenceError) for error in result.errors
         )
-        == EXPECTED_VALUE
+        == 2
     )
 
 
