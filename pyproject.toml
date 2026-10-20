@@ -65,7 +65,11 @@ extend-select = [
     "PLR1714", # Replace repeated equality checks with membership tests.
     "SLF",    # Enforce encapsulation by preventing private-member access.
     "ARG005", # Remove unused lambda parameters.
+    "S603",  # Audit subprocess calls even when shell execution is disabled.
     "S607",   # Review subprocess calls using partial executable paths.
+    "S310",  # Audit potentially unsafe URL-opening calls.
+    "EM101", # Keep exception messages in named variables for tracebacks.
+    "PLC0415", # Keep imports at module scope unless laziness is intentional.
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
     "INP001", # Require explicit package markers for source, scripts, and tests.
