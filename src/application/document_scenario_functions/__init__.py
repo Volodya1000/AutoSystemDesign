@@ -1,6 +1,7 @@
 """Pure transformations used by the document-to-scenario application service."""
 
 from application.document_scenario_functions.evidence import (
+    CandidateValidationOptions,
     resolve_candidate,
     validate_source_backed_notes,
 )
@@ -15,6 +16,7 @@ from application.document_scenario_functions.naming import (
 )
 
 __all__ = [
+    "CandidateValidationOptions",
     "build_functional_requirements",
     "build_metric_requirements",
     "build_workload",
