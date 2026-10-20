@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from collections import Counter
+from typing import TYPE_CHECKING
 
 from domain.models.nodes import CapacityNode
-from domain.models.scenarios import DesignScenario
-from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import (
     NodePerformanceMetrics,
     PerformanceAnalysisReport,
@@ -21,6 +20,10 @@ from domain.specifications.capacity_validator import (
     compute_node_utilization,
 )
 from domain.specifications.traffic_flow import compute_node_incoming_rps
+
+if TYPE_CHECKING:
+    from domain.models.scenarios import DesignScenario
+    from domain.models.topology import ArchitectureGraph
 
 
 def build_performance_analysis_report(
@@ -150,7 +153,7 @@ def _workload_missing_finding() -> PerformanceFinding:
         severity=PerformanceFindingSeverity.WARNING,
         title="Недостаточно данных о нагрузке",
         description=(
-            "В сценарии не задан профиль нагрузки, поэтому входящий поток и "
+            "Профиль нагрузки в сценарии не задан, поэтому входящий поток и "
             "загрузка узлов не рассчитываются. Статическая пропускная способность "
             "узлов остаётся доступной."
         ),
