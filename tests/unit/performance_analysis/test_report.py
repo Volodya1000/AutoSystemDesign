@@ -1,4 +1,4 @@
-"""Check the performance report's public data and JSON contract."""
+"""Check the public behaviour of the performance report JSON contract."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from domain.performance_analysis.report import (
     PerformanceAnalysisReport,
     PerformanceAnalysisStatus,
     PerformanceFinding,
+    PerformanceFindingCode,
     PerformanceFindingSeverity,
 )
 
@@ -19,7 +20,7 @@ pytestmark = pytest.mark.unit
 
 
 def _report() -> PerformanceAnalysisReport:
-    """Build a representative report without running performance calculations."""
+    """Create a representative report without running performance calculations."""
     return PerformanceAnalysisReport(
         scenario_identifier="online_store",
         status=PerformanceAnalysisStatus.PARTIAL,
@@ -35,14 +36,13 @@ def _report() -> PerformanceAnalysisReport:
         ],
         findings=[
             PerformanceFinding(
-                code="capacity_headroom",
+                finding_code=PerformanceFindingCode.CAPACITY_HEADROOM,
                 severity=PerformanceFindingSeverity.INFO,
                 title="Capacity headroom is available",
                 description="The estimated load is below the estimated capacity.",
                 affected_node_identifiers=["database"],
             )
         ],
-        assumptions=["The values in this test are illustrative, not a model output."],
     )
 
 
@@ -54,7 +54,7 @@ def test_report_round_trips_through_json() -> None:
     assert restored == report
 
 
-def test_unavailable_metrics_are_serialized_as_null() -> None:
+def test_unavailable_metrics_remain_null_in_json() -> None:
     report = PerformanceAnalysisReport(
         scenario_identifier="online_store",
         status=PerformanceAnalysisStatus.UNAVAILABLE,
@@ -70,19 +70,26 @@ def test_unavailable_metrics_are_serialized_as_null() -> None:
     assert node["estimated_mean_response_time_milliseconds"] is None
 
 
-def test_report_collection_defaults_are_independent() -> None:
-    first = PerformanceAnalysisReport(
-        scenario_identifier="first",
-        status=PerformanceAnalysisStatus.UNAVAILABLE,
-    )
-    second = PerformanceAnalysisReport(
-        scenario_identifier="second",
-        status=PerformanceAnalysisStatus.UNAVAILABLE,
+def test_overload_ratio_can_exceed_one() -> None:
+    node = NodePerformanceMetrics(
+        node_identifier="database",
+        incoming_requests_per_second=120.0,
+        estimated_capacity_requests_per_second=100.0,
+        utilization_ratio=1.2,
     )
 
-    first.assumptions.append("No workload profile was provided.")
+    assert node.utilization_ratio == pytest.approx(1.2)
 
-    assert second.assumptions == []
+
+def test_finding_code_and_severity_have_stable_json_values() -> None:
+    payload: dict[str, object] = json.loads(_report().model_dump_json())
+    findings = payload["findings"]
+    assert isinstance(findings, list)
+    finding = findings[0]
+    assert isinstance(finding, dict)
+
+    assert finding["finding_code"] == "capacity_headroom"
+    assert finding["severity"] == "info"
 
 
 @pytest.mark.parametrize(
