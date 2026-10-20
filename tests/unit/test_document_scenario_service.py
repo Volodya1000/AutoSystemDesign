@@ -12,6 +12,7 @@ from domain.scenario_extraction import (
     ExtractedWorkload,
 )
 from tests.test_support import has_issue
+from tests.unit.constants import EXPECTED_BASELINE_RPS, EXPECTED_PEAK_RPS, EXPECTED_READ_RATIO
 
 BASELINE = "During normal operation, checkout should support 120 requests per second."
 PEAK = "During a seasonal sale, traffic may reach 400 requests per second."
@@ -25,9 +26,6 @@ READ_RATIO = "Read requests account for 0.7 of total traffic."
 
 
 EXPECTED_ASSERT_RESULT_SCENARIO_REQUIREMENTS_COUN = 2
-EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_READ_RAT = 0.7
-EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_PEAK_REQ = 400.0
-EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_BASELINE = 120.0
 
 def make_source_requirements() -> req_doc.DocumentRequirements:
     excerpts = [BASELINE, PEAK, READ_RATIO, LATENCY, AVAILABILITY, FUNCTIONAL]
@@ -120,9 +118,9 @@ def test_maps_verified_fields_into_pipeline_compatible_scenario() -> None:
     assert result.scenario.identifier == "spec"
     assert result.scenario.description == FUNCTIONAL
     assert result.scenario.workload is not None
-    assert result.scenario.workload.baseline_requests_per_second == EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_BASELINE
-    assert result.scenario.workload.peak_requests_per_second == EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_PEAK_REQ
-    assert result.scenario.workload.read_ratio == EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_READ_RAT
+    assert result.scenario.workload.baseline_requests_per_second == EXPECTED_BASELINE_RPS
+    assert result.scenario.workload.peak_requests_per_second == EXPECTED_PEAK_RPS
+    assert result.scenario.workload.read_ratio == EXPECTED_READ_RATIO
     assert len(result.scenario.requirements) == EXPECTED_ASSERT_RESULT_SCENARIO_REQUIREMENTS_COUN
     assert result.scenario.functional_requirements[0].identifier == "FR-001"
     assert result.field_evidence["workload.baseline_requests_per_second"] == BASELINE
