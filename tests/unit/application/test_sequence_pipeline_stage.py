@@ -275,4 +275,3 @@ def test_sequence_stage_fails_when_required_scenarios_cannot_be_generated(
     assert outcome.status is StageStatus.FAILED
     assert outcome.payload == {}
     assert renderer.calls == 0
-
