@@ -40,7 +40,6 @@ from infrastructure.llm.models import (
     MessageRole,
 )
 
-from tests.unit.constants import EXPECTED_REQUEST_MAX_TOKENS
 
 EXPECTED_ASSERT_PROPOSAL_LATENCY_SECONDS = 0.25
 EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS = 9.0
