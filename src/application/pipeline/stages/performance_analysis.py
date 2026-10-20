@@ -16,7 +16,6 @@ from domain.performance_analysis.report import PerformanceAnalysisReport
 
 if TYPE_CHECKING:
     from pathlib import Path
-from application.pipeline.stage_execution import begin_stage_execution
 
 
 class PerformanceAnalysisStage:
@@ -31,7 +30,8 @@ class PerformanceAnalysisStage:
     depends_on: tuple[StageId, ...] = (StageId.C4,)
 
     def run(self, context: StageContext) -> StageOutcome[PerformanceAnalysisReport]:
-        stage_start, scenario = begin_stage_execution(context)
+        stage_start: float = time.perf_counter()
+        scenario: DesignScenario = context.scenario
         graph: ArchitectureGraph = require_payload(
             context, self.depends_on[0], ArchitectureGraph
         )
