@@ -20,9 +20,7 @@ def test_single_server_matches_mm1_reference() -> None:
     mmc_result = compute_mmc_metrics(10.0, 20.0, server_count=1)
 
     assert mmc_result.status is mm1_result.status
-    assert mmc_result.utilization_ratio == pytest.approx(
-        mm1_result.utilization_ratio
-    )
+    assert mmc_result.utilization_ratio == pytest.approx(mm1_result.utilization_ratio)
     mm1_wait = mm1_result.mean_queue_wait_milliseconds
     mmc_wait = mmc_result.mean_queue_wait_milliseconds
     mm1_response = mm1_result.mean_response_time_milliseconds
