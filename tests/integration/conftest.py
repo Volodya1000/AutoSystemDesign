@@ -20,8 +20,6 @@ from infrastructure.llm.client import LiteLlmClient
 _TEST_CONFIG_FILE: str = "config.test.yaml"
 
 
-EXPECTED_IF_RESPONSE_STATUS_CODE = 200
-
 @pytest.fixture(scope="session")
 def app_settings() -> AppSettings:
     """Load test settings (config.test.yaml + .env); skips when unset."""
@@ -48,7 +46,7 @@ def require_lm_studio(app_settings: AppSettings) -> None:
         )
     except httpx.HTTPError as error:
         pytest.skip(f"LM Studio is not reachable at {app_settings.base_url}: {error}")
-    if response.status_code != EXPECTED_IF_RESPONSE_STATUS_CODE:
+    if response.status_code != 200:
         pytest.skip(
             f"LM Studio responded with {response.status_code} "
             f"at {app_settings.base_url}"
