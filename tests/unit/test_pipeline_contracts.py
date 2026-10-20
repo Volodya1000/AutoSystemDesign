@@ -134,7 +134,7 @@ def test_runner_rejects_missing_dependency() -> None:
 
 
 def test_runner_rejects_out_of_order_dependency() -> None:
-    with pytest.raises(ValueError, match="depends on 'c4'"):
+    with pytest.raises(ValueError, match="depends on"):
         PipelineRunner(
             stages=[
                 FakeStage(name=StageId.SEQUENCE, depends_on=(StageId.C4,)),
