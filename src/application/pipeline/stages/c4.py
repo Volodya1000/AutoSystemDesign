@@ -7,6 +7,7 @@ import time
 from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.stage import StageId
 from application.results import GenerationStatus
 from domain.specifications.metrics import compute_project_metrics, format_metrics_title
 
@@ -23,8 +24,8 @@ _logger = logging.getLogger("pipeline.c4")
 
 
 class C4Stage:
-    name: str = "c4"
-    depends_on: tuple[str, ...] = ()
+    name: StageId = StageId.C4
+    depends_on: tuple[StageId, ...] = ()
 
     def __init__(
         self,
