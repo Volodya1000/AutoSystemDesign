@@ -10,8 +10,6 @@ from config.llm import LlmSettings, StructuredOutputMode
 from config.root import CONFIG_FILE_ENV_VAR, AppSettings
 from config.testing import IntegrationSettings
 
-EXPECTED_TEMPERATURE = 0.4
-
 
 pytestmark = pytest.mark.unit
 
@@ -57,7 +55,7 @@ class TestAppSettings:
         assert settings.base_url == "http://localhost:1234/v1"
         assert settings.api_key.get_secret_value() == "lm-studio"
         assert settings.llm.model == "lm_studio/env-model"
-        assert settings.llm.temperature == EXPECTED_TEMPERATURE
+        assert settings.llm.temperature == 0.4
         assert settings.llm.structured_output_mode is StructuredOutputMode.JSON_SCHEMA
 
     def test_env_file_provides_connection_fields(self, tmp_path: Path) -> None:
@@ -91,7 +89,7 @@ class TestAppSettings:
         _write_config_file(tmp_path, _LLM_YAML + "generation:\n  max_attempts: 7\n")
         settings: AppSettings = AppSettings()  # type: ignore[call-arg]
         assert settings.llm.model == "lm_studio/yaml-model"
-        assert settings.llm.temperature == EXPECTED_TEMPERATURE
+        assert settings.llm.temperature == 0.4
         assert settings.generation.max_attempts == 7
         assert settings.testing.generation_runs == 3  # untouched default
 
@@ -103,7 +101,7 @@ class TestAppSettings:
         monkeypatch.setenv("ASD_LLM__MODEL", "lm_studio/env-model")
         settings: AppSettings = AppSettings()  # type: ignore[call-arg]
         assert settings.llm.model == "lm_studio/env-model"
-        assert settings.llm.temperature == EXPECTED_TEMPERATURE
+        assert settings.llm.temperature == 0.4
 
     def test_config_file_env_var_redirects_yaml(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
