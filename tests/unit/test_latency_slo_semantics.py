@@ -47,7 +47,7 @@ def _graph() -> ArchitectureGraph:
     )
 
 
-def test_percentile_target_is_not_evaluated_and_mean_remains_available() -> None
+def test_percentile_target_is_not_evaluated_and_mean_remains_available() -> None:
     report = build_performance_analysis_report(_graph(), _scenario())
 
     service_metrics = next(
