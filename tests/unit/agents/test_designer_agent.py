@@ -18,9 +18,7 @@ from infrastructure.llm.models import (
 )
 from infrastructure.prompts.fragments_schema import FEW_SHOT_GRAPH_JSON
 
-
 EXPECTED_TOTAL_TOKENS = 18
-
 
 pytestmark = pytest.mark.unit
 
