@@ -10,7 +10,8 @@
 каталоги:
 
 - `src/domain/performance_analysis/` — модели результата и чистые расчёты предметной области.
-- `src/application/performance_analysis/` — сборка отчёта и orchestration анализа, включая стадию конвейера.
+- `src/application/performance_analysis/` — сборка отчёта.
+- `src/application/pipeline/stages/performance_analysis.py` — интеграция отчёта с конвейером.
 - `src/infrastructure/performance_analysis/` — адаптеры вывода, в том числе будущий PDF-рендерер.
 
 Папка создаётся, когда в соответствующем слое появляется реальный код; пустые пакеты
