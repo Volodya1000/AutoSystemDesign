@@ -2,19 +2,20 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from copy import deepcopy
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from domain.models.enums import NodeType
-from domain.models.topology import ArchitectureGraph
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from domain.models.topology import ArchitectureGraph
 
 _ENDPOINT_FIELDS: tuple[str, str] = ("from_lifeline", "to_lifeline")
 
 
-def normalize_interaction_payload(
-    payload: object, graph: ArchitectureGraph
-) -> object:
+def normalize_interaction_payload(payload: object, graph: ArchitectureGraph) -> object:
     """Resolve unambiguous C4 node references before strict scenario validation.
 
     A message may name a C4 node directly even when its ComponentLifeline uses
@@ -41,7 +42,10 @@ def normalize_interaction_payload(
                 unresolved_ids.add(reference)
 
     aliases = _resolve_lifeline_references(
-        unresolved_ids, lifelines, component_lifelines, graph
+        unresolved_ids,
+        lifelines,
+        component_lifelines,
+        graph,
     )
     for message in messages:
         for field in _ENDPOINT_FIELDS:
@@ -111,44 +115,53 @@ def _resolve_lifeline_references(
     return aliases
 
 
-def _iter_message_steps(
-    steps: list[object],
-) -> Iterator[dict[str, object]]:
+def _iter_message_steps(steps: list[object]) -> Iterator[dict[str, object]]:
     """Yield message steps from the complete nested interaction tree."""
     for raw_step in steps:
         step = _as_dict(raw_step)
         if step is None:
             continue
 
-        kind = step.get("kind")
-        if kind == "message":
+        if step.get("kind") == "message":
             yield step
-        elif kind == "alt":
-            branches = _as_list(step.get("branches"))
-            if branches is None:
-                continue
-            for raw_branch in branches:
-                branch = _as_dict(raw_branch)
-                if branch is None:
-                    continue
-                nested_steps = _as_list(branch.get("steps"))
-                if nested_steps is not None:
-                    yield from _iter_message_steps(nested_steps)
-        elif kind in {"opt", "loop"}:
-            nested_steps = _as_list(step.get("steps"))
-            if nested_steps is not None:
-                yield from _iter_message_steps(nested_steps)
+        else:
+            yield from _iter_nested_message_steps(step)
+
+
+def _iter_nested_message_steps(step: dict[str, object]) -> Iterator[dict[str, object]]:
+    """Yield messages contained by a nested AST step."""
+    if step.get("kind") == "alt":
+        yield from _iter_branch_message_steps(step)
+    elif step.get("kind") in {"opt", "loop"}:
+        nested_steps = _as_list(step.get("steps"))
+        if nested_steps is not None:
+            yield from _iter_message_steps(nested_steps)
+
+
+def _iter_branch_message_steps(step: dict[str, object]) -> Iterator[dict[str, object]]:
+    """Yield messages from each branch of an alternative step."""
+    branches = _as_list(step.get("branches"))
+    if branches is None:
+        return
+
+    for raw_branch in branches:
+        branch = _as_dict(raw_branch)
+        if branch is None:
+            continue
+        nested_steps = _as_list(branch.get("steps"))
+        if nested_steps is not None:
+            yield from _iter_message_steps(nested_steps)
 
 
 def _as_dict(value: object) -> dict[str, object] | None:
     """Return a dictionary when the value has the expected JSON shape."""
     if not isinstance(value, dict):
         return None
-    return cast(dict[str, object], value)
+    return cast("dict[str, object]", value)
 
 
 def _as_list(value: object) -> list[object] | None:
     """Return a list when the value has the expected JSON shape."""
     if not isinstance(value, list):
         return None
-    return cast(list[object], value)
+    return cast("list[object]", value)

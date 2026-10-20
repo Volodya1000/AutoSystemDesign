@@ -63,7 +63,8 @@ def render_interaction_schema() -> str:
         "9. Keep the two component identifiers distinct in meaning: "
         "'architecture_node_id' links a ComponentLifeline to a C4 node, "
         "while 'lifeline_id' is the identifier used by message endpoints. "
-        "When a message references a C4 node, declare its ComponentLifeline "
-        "and use that lifeline's lifeline_id in the message.\n"
+        "If a message involves a C4 node, include a ComponentLifeline for it "
+        "and use that lifeline's lifeline_id, not the C4 node identifier, "
+        "as the message endpoint unless both identifiers are identical.\n"
         "Do not include comments or Markdown wrappers."
     )

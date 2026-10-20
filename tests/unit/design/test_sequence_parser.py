@@ -124,7 +124,11 @@ class TestParseInteractionScenario:
                 _component_lifeline("primary_db", "orders_db"),
                 _component_lifeline("replica_db", "orders_db"),
             ],
-            steps=[_message("orders_api", "orders_db")],
+            steps=[
+                _message("orders_api", "orders_db"),
+                _message("primary_db", "orders_api"),
+                _message("replica_db", "orders_api"),
+            ],
         )
 
         with pytest.raises(DesignProposalParsingError) as exc_info:
