@@ -319,4 +319,3 @@ class TestCycleTolerance:
 
         assert result.is_successful is True
         assert result.errors == []
-
