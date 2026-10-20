@@ -22,7 +22,8 @@ def main() -> int:
     if uvx_executable is None:
         raise RuntimeError
 
-    result = subprocess.run(
+    # Uses the resolved uvx executable and a fixed argv list, never a shell.
+    result = subprocess.run(  # noqa: S603
         [uvx_executable, "--from", "import-linter==2.15", "lint-imports"],
         cwd=root,
         env=env,
