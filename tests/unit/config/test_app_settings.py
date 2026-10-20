@@ -10,6 +10,10 @@ from config.llm import LlmSettings, StructuredOutputMode
 from config.root import CONFIG_FILE_ENV_VAR, AppSettings
 from config.testing import IntegrationSettings
 
+EXPECTED_TEMPERATURE = 0.4
+EXPECTED_GENERATION_RUNS = 3
+EXPECTED_MAX_ATTEMPTS = 7
+
 pytestmark = pytest.mark.unit
 
 _ENV_ONLY_VALUES: dict[str, str] = {
@@ -171,6 +175,3 @@ class TestAppSettings:
         assert settings.generation == GenerationSettings()
         assert settings.testing == IntegrationSettings()
 
-EXPECTED_TEMPERATURE = 0.4
-EXPECTED_GENERATION_RUNS = 3
-EXPECTED_MAX_ATTEMPTS = 7
