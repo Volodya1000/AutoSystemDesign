@@ -8,6 +8,10 @@ are required.
 import pytest
 from pydantic import SecretStr
 
+from application.results import GenerationStatus
+from application.tasks import DesignProposal, DesignTask
+from application.usage import TokenUsage
+
 from application.pipeline.stage import StageId
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
@@ -15,7 +19,11 @@ from application.pipeline.stages.performance_analysis import PerformanceAnalysis
 from application.pipeline.stages.sequence import SequenceStage
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
+from domain.models import DesignScenario, LatencyRequirement, WorkloadProfile
+from domain.models.enums import NodeType
+from domain.models.topology import ArchitectureGraph
 from infrastructure.composition import (
+    build_design_generation_service,
     _build_api_stage,
     _build_c4_stage,
     _build_performance_analysis_stage,
@@ -24,6 +32,7 @@ from infrastructure.composition import (
 )
 from infrastructure.reporting import LoggingGenerationReporter
 from infrastructure.visualisation.plantuml import DiagramImageFormat
+from tests.factories import create_test_compute_node, create_test_edge, create_test_node
 
 pytestmark = pytest.mark.unit
 
@@ -93,3 +102,71 @@ def test_build_pipeline_reuses_provided_settings(
 
     assert wiring.runner is not None
     assert wiring.writer is not None
+
+
+
+class _FakeLlmClient:
+    def __init__(self, settings: AppSettings) -> None:
+        del settings
+
+
+class _FixedArchitectureDesigner:
+    def __init__(self, graph: ArchitectureGraph) -> None:
+        self._graph = graph
+        self.calls = 0
+
+    def propose(self, task: DesignTask) -> DesignProposal:
+        del task
+        self.calls += 1
+        return DesignProposal(
+            graph=self._graph,
+            raw_content="{}",
+            usage=TokenUsage(),
+        )
+
+
+def test_unmodelled_percentile_target_does_not_trigger_repair_attempts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    graph = ArchitectureGraph(
+        nodes=[
+            create_test_node("client", NodeType.CLIENT),
+            create_test_compute_node(
+                "service",
+                concurrency=1,
+                mean_ms=10.0,
+                std_ms=10.0,
+            ),
+        ],
+        edges=[create_test_edge("client", "service")],
+    )
+    scenario = DesignScenario(
+        identifier="latency_slo_test",
+        description="A percentile target that the current model cannot evaluate",
+        workload=WorkloadProfile(
+            baseline_requests_per_second=10.0,
+            peak_requests_per_second=20.0,
+        ),
+        requirements=[LatencyRequirement(threshold_value=1.0, percentile=99.0)],
+    )
+    designer = _FixedArchitectureDesigner(graph)
+
+    def build_fixed_designer(
+        client: _FakeLlmClient,
+        settings: AppSettings,
+    ) -> _FixedArchitectureDesigner:
+        del client, settings
+        return designer
+
+    monkeypatch.setattr("infrastructure.composition.LiteLlmClient", _FakeLlmClient)
+    monkeypatch.setattr(
+        "infrastructure.composition.ArchitectureDesignerAgent",
+        build_fixed_designer,
+    )
+
+    service = build_design_generation_service(settings=_settings())
+    result = service.generate(scenario)
+
+    assert result.status is GenerationStatus.SUCCEEDED
+    assert len(result.attempts) == 1
+    assert designer.calls == 1
