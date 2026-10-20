@@ -20,6 +20,8 @@ from infrastructure.llm.client import LiteLlmClient
 _TEST_CONFIG_FILE: str = "config.test.yaml"
 
 
+EXPECTED_IF_RESPONSE_STATUS_CODE = 200
+
 @pytest.fixture(scope="session")
 def app_settings() -> AppSettings:
     """Load test settings (config.test.yaml + .env); skips when unset."""
@@ -78,4 +80,3 @@ def initial_task(scenario: DesignScenario) -> DesignTask:
     """Create the initial design task for the shared scenario."""
     return DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
 
-EXPECTED_IF_RESPONSE_STATUS_CODE = 200
