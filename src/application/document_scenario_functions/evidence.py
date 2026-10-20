@@ -23,6 +23,7 @@ _NUMERIC_TOKEN = re.compile(
     r"(?:st|nd|rd|th)?(?!\w)",
     re.IGNORECASE,
 )
+MIN_DISTINCT_EXCERPTS = 2
 
 
 def _contains_number(text: str, expected: float) -> bool:
@@ -157,7 +158,8 @@ def validate_source_backed_notes(
         # multiple independently verified citations keeps this exception narrow.
         synthesized_conflict_supported = (
             issue_kind is RequirementIssueKind.CONFLICTING
-            and len({" ".join(excerpt.split()) for excerpt in excerpts}) >= 2
+            and len({" ".join(excerpt.split()) for excerpt in excerpts})
+            >= MIN_DISTINCT_EXCERPTS
         )
         if unsupported or not (description_supported or synthesized_conflict_supported):
             issues.append(

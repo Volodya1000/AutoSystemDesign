@@ -86,6 +86,8 @@ extend-select = [
     "UP042",  # Prefer StrEnum for string enums.
     "ERA001", # Remove commented-out code.
     "D205", # Require a blank line between docstring summary and body.
+    "D401", # Require docstrings to use imperative mood.
+    "PLR2004", # Replace unexplained magic values with named constants.
     "D404", # Avoid starting docstrings with "This".
     "RUF002", # Avoid ambiguous Unicode in docstrings.
     "RUF005", # Prefer clearer sequence concatenation.
@@ -95,7 +97,10 @@ extend-select = [
 allowed-confusables = ["а", "е", "о", "р", "с", "С"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101"]
+"tests/**/*.py" = [
+    "S101",    # Allow assertions in tests.
+    "PLR2004", # Keep readable literal expectations in tests.
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10

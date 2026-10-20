@@ -77,7 +77,7 @@ def render_and_write[SubjectT](
     base_name: str,
     out_dir: Path,
 ) -> DiagramRenderResult:
-    """Builds the service, generates source, renders, writes.
+    """Build the service, generates source, renders, writes.
 
     Never raises for expected visualization errors: they become warnings.
     Unexpected exceptions (programming errors) propagate untouched.

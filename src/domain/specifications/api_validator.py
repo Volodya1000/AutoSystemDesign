@@ -27,7 +27,7 @@ _PATH_VARIABLE_PATTERN: re.Pattern[str] = re.compile(r"\{([^}]+)\}")
 
 
 def normalize_path_template(path: str) -> str:
-    """Replaces path variable names with empty placeholders to identify collisions.
+    """Replace path variable names with empty placeholders to identify collisions.
 
     For example, '/v1/users/{id}' and '/v1/users/{userId}' both normalize
     to '/v1/users/{}', which represents a path collision per OpenAPI specifications.

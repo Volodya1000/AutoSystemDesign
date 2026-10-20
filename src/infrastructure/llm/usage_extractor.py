@@ -26,7 +26,7 @@ def extract_usage(
     *,
     model: str,
 ) -> TokenUsage:
-    """Returns provider-reported tokens, or a token-count estimate.
+    """Return provider-reported tokens, or a token-count estimate.
 
     Providers that omit usage (some self-hosted endpoints, streaming
     shims) fall through to a best-effort local token count; the returned

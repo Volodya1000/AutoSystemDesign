@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 def check_node_identifiers_uniqueness(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Ensures all node identifiers within the topology graph are unique."""
+    """Ensure all node identifiers within the topology graph are unique."""
     errors: list[ArchitectureValidationError] = []
     seen_identifiers: set[str] = set()
 
@@ -35,7 +35,7 @@ def check_node_identifiers_uniqueness(
 def check_edge_referential_integrity(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Ensures all edges connect nodes that actually exist in the topology."""
+    """Ensure all edges connect nodes that actually exist in the topology."""
     errors: list[ArchitectureValidationError] = []
     existing_identifiers: set[str] = {node.identifier for node in graph.nodes}
 

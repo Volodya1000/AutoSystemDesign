@@ -56,7 +56,7 @@ class ConfigFileValidationError(ValueError):
 
 
 def _load_yaml_config(config_file: Path) -> dict[str, Any]:
-    """Parses the yaml config and refuses env-owned top-level fields.
+    """Parse the yaml config and refuses env-owned top-level fields.
 
     base_url and api_key must come from the environment (or .env) only;
     putting them into the config file is rejected loudly.
@@ -128,7 +128,7 @@ def load_app_settings() -> AppSettings:
 
 
 def with_llm_updates(settings: AppSettings, **updates: object) -> AppSettings:
-    """Returns a copy of the settings with LlmSettings fields overridden."""
+    """Return a copy of the settings with LlmSettings fields overridden."""
     updated_llm: LlmSettings = settings.llm.model_copy(
         update=cast("dict[str, Any]", updates)
     )

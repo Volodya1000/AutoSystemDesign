@@ -98,7 +98,7 @@ class PipelineRunner:
 
     @staticmethod
     def _validate_stages(stages: tuple[PipelineStage, ...]) -> None:
-        """Validates stage-name uniqueness and dependency ordering.
+        """Validate stage-name uniqueness and dependency ordering.
 
         Results are keyed by stage name in ``upstream``, so duplicate names
         would silently overwrite each other; dependencies must reference

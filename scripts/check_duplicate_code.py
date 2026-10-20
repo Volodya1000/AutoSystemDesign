@@ -20,6 +20,8 @@ from typing import NamedTuple
 
 DUPLICATE_HEADING = "R0801: Similar lines in"
 _logger = logging.getLogger(__name__)
+MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
+EXPECTED_IF_MODULES_COUNT = 2
 
 
 class ProcessResult(NamedTuple):
@@ -53,9 +55,6 @@ def run_process(
     if check and result.returncode != 0:
         raise RuntimeError(f"Command failed with exit code {result.returncode}")
     return result
-
-
-MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
 
 
 class DuplicatePair(NamedTuple):
@@ -198,10 +197,10 @@ def duplicate_pairs(output: str) -> list[DuplicatePair]:
             match = MODULE_LOCATION.match(candidate.strip())
             if match:
                 modules.append((match.group(1), int(match.group(2))))
-                if len(modules) == 2:
+                if len(modules) == EXPECTED_IF_MODULES_COUNT:
                     break
 
-        if len(modules) == 2:
+        if len(modules) == EXPECTED_IF_MODULES_COUNT:
             pairs.append(
                 DuplicatePair(
                     line,

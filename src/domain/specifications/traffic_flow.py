@@ -58,7 +58,7 @@ def _propagate_flows(
 
 
 def _topological_order(graph: ArchitectureGraph) -> list[str]:
-    """Returns node identifiers in Kahn topological order.
+    """Return node identifiers in Kahn topological order.
 
     Raises ValueError when the graph contains a cycle. Structural
     validation normally guarantees a DAG; this is a defensive contract check.
@@ -94,7 +94,7 @@ def compute_node_incoming_rps(
     graph: ArchitectureGraph,
     workload: WorkloadProfile,
 ) -> dict[str, float]:
-    """Returns the incoming request rate (RPS) for every node.
+    """Return the incoming request rate (RPS) for every node.
 
     Rules:
     * Peak load is divided equally between client nodes.

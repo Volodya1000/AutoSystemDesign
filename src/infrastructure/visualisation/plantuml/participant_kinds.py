@@ -44,7 +44,7 @@ def participant_keyword(
     lifeline: ScenarioLifeline,
     node_type_by_id: dict[str, NodeType],
 ) -> str:
-    """Returns the PlantUML participant keyword for one lifeline.
+    """Return the PlantUML participant keyword for one lifeline.
 
     ``node_type_by_id`` may be empty: every component then falls back to
     ``DEFAULT_COMPONENT_KEYWORD`` so the diagram still renders when the

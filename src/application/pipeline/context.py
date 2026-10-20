@@ -49,7 +49,7 @@ def require_payload[PayloadT](
     stage_name: str,
     expected_type: type[PayloadT],
 ) -> PayloadT:
-    """Fetches a typed payload from an upstream stage's outcome.
+    """Fetch a typed payload from an upstream stage's outcome.
 
     Runtime-checked via ``isinstance``. PARTIAL outcomes are acceptable:
     the payload was produced successfully, only optional artifacts failed.

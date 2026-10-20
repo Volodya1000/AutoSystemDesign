@@ -25,7 +25,7 @@ _KNOWN_PROTOCOLS: Final[tuple[ConnectionProtocol, ...]] = tuple(
 
 
 def render_known_protocols() -> str:
-    """Lists the protocol singletons an edge may reference by name."""
+    """List the protocol singletons an edge may reference by name."""
     lines: list[str] = ["Allowed protocol values for edge.protocol.name:"]
     lines.extend(
         f"- {protocol.name} (is_asynchronous={str(protocol.is_asynchronous).lower()})"

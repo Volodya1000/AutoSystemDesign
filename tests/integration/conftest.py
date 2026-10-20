@@ -22,7 +22,7 @@ _TEST_CONFIG_FILE: str = "config.test.yaml"
 
 @pytest.fixture(scope="session")
 def app_settings() -> AppSettings:
-    """Loads test settings (config.test.yaml + .env); skips when unset."""
+    """Load test settings (config.test.yaml + .env); skips when unset."""
     with pytest.MonkeyPatch.context() as patcher:
         patcher.setenv(CONFIG_FILE_ENV_VAR, _TEST_CONFIG_FILE)
         try:
@@ -75,5 +75,5 @@ def designer(gate_settings: AppSettings) -> ArchitectureDesignerAgent:
 
 @pytest.fixture
 def initial_task(scenario: DesignScenario) -> DesignTask:
-    """Initial design task for the shared scenario."""
+    """Create the initial design task for the shared scenario."""
     return DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
