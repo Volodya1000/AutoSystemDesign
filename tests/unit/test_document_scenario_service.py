@@ -115,10 +115,10 @@ def test_maps_verified_fields_into_pipeline_compatible_scenario() -> None:
     assert result.scenario.identifier == "spec"
     assert result.scenario.description == FUNCTIONAL
     assert result.scenario.workload is not None
-    assert result.scenario.workload.baseline_requests_per_second == 120.0
-    assert result.scenario.workload.peak_requests_per_second == 400.0
-    assert result.scenario.workload.read_ratio == 0.7
-    assert len(result.scenario.requirements) == 2
+    assert result.scenario.workload.baseline_requests_per_second == EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_BASELINE
+    assert result.scenario.workload.peak_requests_per_second == EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_PEAK_REQ
+    assert result.scenario.workload.read_ratio == EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_READ_RAT
+    assert len(result.scenario.requirements) == EXPECTED_ASSERT_RESULT_SCENARIO_REQUIREMENTS_COUN
     assert result.scenario.functional_requirements[0].identifier == "FR-001"
     assert result.field_evidence["workload.baseline_requests_per_second"] == BASELINE
     assert result.field_evidence["requirements[0].type_identifier"] == LATENCY
@@ -318,3 +318,9 @@ def test_keeps_synthesized_conflict_when_all_source_excerpts_are_verified() -> N
     ]
     assert len(conflict_issues) == 1
     assert conflict_issues[0].evidence == [first, second]
+
+EXPECTED_ASSERT_RESULT_SCENARIO_REQUIREMENTS_COUN = 2
+EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_READ_RAT = 0.7
+EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_PEAK_REQ = 400.0
+EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_BASELINE = 120.0
+
