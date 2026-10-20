@@ -28,4 +28,3 @@ class TestBuildInitialMessages:
         assert "web_client" in user_content  # few-shot example
         assert "client -> load_balancer" in user_content  # allowed connections
         assert "Hard rules" in user_content
-
