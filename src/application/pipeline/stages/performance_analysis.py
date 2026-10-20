@@ -3,17 +3,13 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING
-
 from application.performance_analysis.report_builder import (
     build_performance_analysis_report,
 )
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
 from domain.models.topology import ArchitectureGraph
-
-if TYPE_CHECKING:
-    from domain.performance_analysis.report import PerformanceAnalysisReport
+from domain.performance_analysis.report import PerformanceAnalysisReport
 
 
 class PerformanceAnalysisStage:
