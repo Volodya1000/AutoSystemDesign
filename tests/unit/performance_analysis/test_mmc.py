@@ -23,12 +23,14 @@ def test_single_server_matches_mm1_reference() -> None:
     assert mmc_result.utilization_ratio == pytest.approx(
         mm1_result.utilization_ratio
     )
-    assert mmc_result.mean_queue_wait_milliseconds == pytest.approx(
-        mm1_result.mean_queue_wait_milliseconds
-    )
-    assert mmc_result.mean_response_time_milliseconds == pytest.approx(
-        mm1_result.mean_response_time_milliseconds
-    )
+    mm1_wait = mm1_result.mean_queue_wait_milliseconds
+    mmc_wait = mmc_result.mean_queue_wait_milliseconds
+    mm1_response = mm1_result.mean_response_time_milliseconds
+    mmc_response = mmc_result.mean_response_time_milliseconds
+    assert mm1_wait is not None and mmc_wait is not None
+    assert mm1_response is not None and mmc_response is not None
+    assert mmc_wait == pytest.approx(mm1_wait)
+    assert mmc_response == pytest.approx(mm1_response)
 
 
 def test_erlang_c_example_matches_hand_calculation() -> None:
@@ -36,28 +38,31 @@ def test_erlang_c_example_matches_hand_calculation() -> None:
 
     assert result.status is QueueingStatus.STABLE
     assert result.utilization_ratio == pytest.approx(0.25)
-    assert result.mean_queue_wait_milliseconds == pytest.approx(10.0 / 3.0)
-    assert result.mean_response_time_milliseconds == pytest.approx(160.0 / 3.0)
+    mean_wait = result.mean_queue_wait_milliseconds
+    mean_response = result.mean_response_time_milliseconds
+    assert mean_wait is not None and mean_response is not None
+    assert mean_wait == pytest.approx(10.0 / 3.0)
+    assert mean_response == pytest.approx(160.0 / 3.0)
 
 
 def test_more_servers_reduce_waiting_for_the_same_load() -> None:
     two_servers = compute_mmc_metrics(10.0, 20.0, server_count=2)
     three_servers = compute_mmc_metrics(10.0, 20.0, server_count=3)
 
-    assert (
-        three_servers.mean_queue_wait_milliseconds
-        < two_servers.mean_queue_wait_milliseconds
-    )
+    two_server_wait = two_servers.mean_queue_wait_milliseconds
+    three_server_wait = three_servers.mean_queue_wait_milliseconds
+    assert two_server_wait is not None and three_server_wait is not None
+    assert three_server_wait < two_server_wait
 
 
 def test_waiting_grows_as_the_system_approaches_capacity() -> None:
     lower_load = compute_mmc_metrics(20.0, 20.0, server_count=2)
     near_capacity = compute_mmc_metrics(39.9, 20.0, server_count=2)
 
-    assert (
-        near_capacity.mean_queue_wait_milliseconds
-        > lower_load.mean_queue_wait_milliseconds
-    )
+    lower_load_wait = lower_load.mean_queue_wait_milliseconds
+    near_capacity_wait = near_capacity.mean_queue_wait_milliseconds
+    assert lower_load_wait is not None and near_capacity_wait is not None
+    assert near_capacity_wait > lower_load_wait
 
 
 def test_unstable_multiserver_queue_has_no_finite_steady_state_times() -> None:
@@ -71,8 +76,11 @@ def test_erlang_c_remains_numerically_stable_for_many_servers() -> None:
     result = compute_mmc_metrics(19_900.0, 20.0, server_count=1_000)
 
     assert result.status is QueueingStatus.STABLE
-    assert math.isfinite(result.mean_queue_wait_milliseconds)
-    assert math.isfinite(result.mean_response_time_milliseconds)
+    mean_wait = result.mean_queue_wait_milliseconds
+    mean_response = result.mean_response_time_milliseconds
+    assert mean_wait is not None and mean_response is not None
+    assert math.isfinite(mean_wait)
+    assert math.isfinite(mean_response)
 
 
 @pytest.mark.parametrize("server_count", [0, -1, 10_001])
