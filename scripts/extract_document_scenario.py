@@ -1,4 +1,5 @@
-"""Extract source-grounded requirements and write a pipeline-compatible YAML scenario."""
+"""Extract source-grounded requirements and write a pipeline-compatible
+YAML scenario."""
 
 import argparse
 import json
@@ -27,7 +28,10 @@ from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMappe
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line interface for document-to-scenario generation."""
     parser = argparse.ArgumentParser(
-        description="Extract verified requirements and create a pipeline-ready scenario."
+        description=(
+            "Extract verified requirements and create a "
+            "pipeline-ready scenario."
+        )
     )
     parser.add_argument(
         "--document",
@@ -45,12 +49,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--evidence-output",
         type=Path,
         default=None,
-        help="Path for the JSON evidence manifest (default: <output-stem>.evidence.json).",
+        help=(
+            "Path for the JSON evidence manifest (default: "
+            "<output-stem>.evidence.json)."
+        ),
     )
     parser.add_argument(
         "--run-pipeline",
         action="store_true",
-        help="Run the existing design pipeline after writing YAML and the evidence manifest.",
+        help=(
+            "Run the existing design pipeline after writing YAML and the "
+            "evidence manifest."
+        ),
     )
     parser.add_argument(
         "--pipeline-out-dir",
@@ -83,7 +93,7 @@ def _write_evidence_manifest(path: Path, result: DocumentScenarioResult) -> None
 
 
 def _run_pipeline(args: argparse.Namespace) -> int:
-    """Invoke the existing pipeline CLI so its orchestration remains the single source."""
+    """Invoke the existing pipeline CLI, keeping orchestration in one place."""
     logger = logging.getLogger(__name__)
     script_path = Path(__file__).with_name("generate_pipeline.py")
     command = [sys.executable, str(script_path), "--scenario", str(args.output)]
@@ -93,7 +103,7 @@ def _run_pipeline(args: argparse.Namespace) -> int:
         command.append("--no-diagram")
     try:
         return subprocess.run(command, check=False).returncode
-    except OSError as error:
+    except OSError:
         logger.exception("Could not start the design pipeline")
         return 2
 
