@@ -221,4 +221,3 @@ def test_scenario_validators_default_empty_keeps_old_behaviour() -> None:
     result: DesignGenerationResult = service.generate(_port_test_scenario())
 
     assert result.status is GenerationStatus.SUCCEEDED
-
