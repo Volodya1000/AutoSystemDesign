@@ -7,8 +7,8 @@ import pytest
 
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
-from application.pipeline.stages.api import ApiStage
 from application.pipeline.stage import StageId
+from application.pipeline.stages.api import ApiStage
 from application.results import ApiGenerationResult, GenerationAttempt
 from application.usage import TokenUsage
 from domain.models.api import ApiDesign, ApiOperation, ApiResponse, HttpMethod
