@@ -6,8 +6,8 @@ import pytest
 
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from application.pipeline.stage import StageId
+from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from domain.models.enums import NodeType
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
