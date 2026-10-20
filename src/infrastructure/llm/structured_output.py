@@ -14,6 +14,7 @@ from infrastructure.llm.models import (
     MessageRole,
 )
 from infrastructure.llm.protocols import CompletionClient
+EXPECTED_IF_LINES_COUNT = 3
 
 
 class StructuredOutputError(ValueError):
@@ -87,4 +88,4 @@ class StructuredOutputAdapter:
         content = strip_markdown_json_fence(response.content)
         return response_model.model_validate_json(content)
 
-EXPECTED_IF_LINES_COUNT = 3
+
