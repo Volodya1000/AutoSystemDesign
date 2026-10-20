@@ -107,4 +107,3 @@ def test_scenario_citation_must_match_a_complete_verified_excerpt() -> None:
     assert not matches_verified_excerpt(
         "supports login.", ["The service supports login."]
     )
-
