@@ -276,4 +276,3 @@ def test_sequence_stage_fails_when_required_scenarios_cannot_be_generated(
     assert renderer.calls == 0
 
 EXPECTED_ASSERT_WRITER_WRITES_COUNT = 2
-
