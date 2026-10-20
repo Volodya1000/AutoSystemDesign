@@ -56,7 +56,9 @@ def build_performance_analysis_report(
         for node in graph.nodes
     ]
 
-    findings = _capacity_findings(graph, utilization_by_node, capacity_by_node)
+    findings = _capacity_findings(
+        graph, incoming_by_node, utilization_by_node, capacity_by_node
+    )
     findings.append(_latency_not_evaluated_finding())
 
     outgoing_edge_counts = Counter(edge.source_identifier for edge in graph.edges)
@@ -102,6 +104,7 @@ def _build_unavailable_report(
 
 def _capacity_findings(
     graph: ArchitectureGraph,
+    incoming_by_node: dict[str, float],
     utilization_by_node: dict[str, float],
     capacity_by_node: dict[str, float],
 ) -> list[PerformanceFinding]:
@@ -115,7 +118,7 @@ def _capacity_findings(
         if utilization < SATURATION_THRESHOLD:
             continue
 
-        incoming_rps = utilization * capacity
+        incoming_rps = incoming_by_node[node.identifier]
         findings.append(
             PerformanceFinding(
                 finding_code=PerformanceFindingCode.CAPACITY_SATURATION,
