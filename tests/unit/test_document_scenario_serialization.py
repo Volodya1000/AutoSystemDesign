@@ -28,9 +28,8 @@ def test_scenario_payload_round_trips_discriminated_requirements() -> None:
         "availability",
     ]
     assert isinstance(restored.requirements[0], LatencyRequirement)
-    assert restored.requirements[0].threshold_value == EXPECTED_LATENCY_THRESHOLD
+    assert restored.requirements[0].threshold_value == 300.0
     assert isinstance(restored.requirements[1], AvailabilityRequirement)
-    assert restored.requirements[1].threshold_value == EXPECTED_AVAILABILITY_THRESHOLD
+    assert restored.requirements[1].threshold_value == 99.9
 
-EXPECTED_AVAILABILITY_THRESHOLD = 99.9
-EXPECTED_LATENCY_THRESHOLD = 300.0
+
