@@ -87,5 +87,3 @@ class StructuredOutputAdapter:
             raise ValueError(f"LLM returned an empty {operation} response")
         content = strip_markdown_json_fence(response.content)
         return response_model.model_validate_json(content)
-
-
