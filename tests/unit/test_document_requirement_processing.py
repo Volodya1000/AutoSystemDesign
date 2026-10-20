@@ -23,7 +23,7 @@ def test_split_document_text_keeps_chunks_within_limit() -> None:
     chunks = split_document_text(text, max_chars=50, overlap_chars=8)
 
     assert len(chunks) > 1
-    assert all(0 < len(chunk) <= 50 for chunk in chunks)
+    assert all(0 < len(chunk) <= MAX_ASSERT_ALL_0_CHUNK_COUNT for chunk in chunks)
     assert all(chunk in text for chunk in chunks)
 
 
@@ -64,7 +64,7 @@ def test_deduplicate_requirements_preserves_distinct_source_evidence() -> None:
 
     result = deduplicate_requirements([first, duplicate, different_kind])
 
-    assert len(result) == 2
+    assert len(result) == EXPECTED_ASSERT_RESULT_COUNT
     assert result[0].source_evidence == [
         RequirementEvidence(source_excerpt="The service MUST support login."),
         RequirementEvidence(source_excerpt="Customers can log in to the service."),
@@ -107,3 +107,7 @@ def test_scenario_citation_must_match_a_complete_verified_excerpt() -> None:
     assert not matches_verified_excerpt(
         "supports login.", ["The service supports login."]
     )
+
+EXPECTED_ASSERT_RESULT_COUNT = 2
+MAX_ASSERT_ALL_0_CHUNK_COUNT = 50
+
