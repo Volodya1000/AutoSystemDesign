@@ -7,7 +7,6 @@ from pydantic import ValidationError
 
 from config.llm import LlmSettings, StructuredOutputMode
 
-
 pytestmark = pytest.mark.unit
 
 _VALID_KWARGS: dict[str, Any] = {
