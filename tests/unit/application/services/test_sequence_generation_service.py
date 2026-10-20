@@ -273,4 +273,3 @@ def test_failed_requirement_does_not_discard_successful_scenarios() -> None:
     assert list(result.scenarios_results) == ["FR-1", "FR-2"]
     assert result.scenarios_results["FR-1"].interaction_scenario is not None
     assert result.scenarios_results["FR-2"].interaction_scenario is None
-
