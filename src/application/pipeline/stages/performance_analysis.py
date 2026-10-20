@@ -37,9 +37,7 @@ class PerformanceAnalysisStage:
         report: PerformanceAnalysisReport = build_performance_analysis_report(
             graph, scenario
         )
-        artifact_filename: str = (
-            f"{scenario.identifier}_performance_analysis.json"
-        )
+        artifact_filename: str = f"{scenario.identifier}_performance_analysis.json"
         artifact_path: Path = context.writer.write_text(
             context.out_dir / artifact_filename,
             report.model_dump_json(indent=2),
