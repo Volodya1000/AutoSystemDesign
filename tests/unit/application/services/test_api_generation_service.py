@@ -23,6 +23,8 @@ from domain.specifications.api_validator import ApiDesignValidator
 
 from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
 
+EXPECTED_TOTAL_TOKENS = 40
+
 pytestmark = pytest.mark.unit
 
 
@@ -186,4 +188,3 @@ def test_api_generation_returns_failure_after_max_attempts() -> None:
     assert designer.received_tasks[-1].mode is DesignTaskMode.REPAIR
 
 EXPECTED_RESULT_ATTEMPTS_COUNT = 2
-EXPECTED_TOTAL_TOKENS = 40
