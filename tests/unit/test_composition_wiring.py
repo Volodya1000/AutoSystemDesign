@@ -8,11 +8,11 @@ are required.
 import pytest
 from pydantic import SecretStr
 
+from application.pipeline.stage import StageId
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from application.pipeline.stages.sequence import SequenceStage
-from application.pipeline.stage import StageId
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
 from infrastructure.composition import (
