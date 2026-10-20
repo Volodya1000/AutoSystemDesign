@@ -8,7 +8,7 @@ pytestmark = pytest.mark.unit
 class TestTokenUsage:
     def test_total_tokens_sums_components(self) -> None:
         usage: TokenUsage = TokenUsage(prompt_tokens=10, completion_tokens=5)
-        assert usage.total_tokens == 15
+        assert usage.total_tokens == EXPECTED_ASSERT_USAGE_TOTAL_TOKENS
 
     def test_aggregate_sums_all_usages(self) -> None:
         aggregate: TokenUsage = TokenUsage.aggregate(
@@ -33,3 +33,6 @@ class TestTokenUsage:
         assert TokenUsage.aggregate([]) == TokenUsage(
             prompt_tokens=0, completion_tokens=0
         )
+
+EXPECTED_ASSERT_USAGE_TOTAL_TOKENS = 15
+
