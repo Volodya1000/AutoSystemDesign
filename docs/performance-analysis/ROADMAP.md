@@ -1,6 +1,6 @@
 # Техническое задание и дорожная карта: анализ производительности AutoSystemDesign
 
-**Статус:** живой план реализации; PR 0–3 включены в интеграционную ветку #90, PR 4 реализован в ветке PR #99, PR 5 — в `fix/performance-latency-slo-semantics`, PR 6 — в `feat/performance-mm1-model`, PR 7 — в текущей ветке.
+**Статус:** живой план реализации; PR 0–3 включены в интеграционную ветку #90, PR 4 реализован в ветке PR #99, PR 5 — в `fix/performance-latency-slo-semantics`, PR 6 — в `feat/performance-mm1-model`, PR 7 — в `feat/performance-mmc-model`, PR 8 — в текущей ветке.
 **Тип документа:** техническое задание (ТЗ), план атомарных pull request
 **Область:** анализ нагрузки, пропускной способности, очередей и задержек архитектуры
 **Базовый PR с контрактом результата:** [#90 — Add performance analysis report contract](https://github.com/Volodya1000/AutoSystemDesign/pull/90)
@@ -464,7 +464,7 @@ PDF добавляется только после того, как JSON-кон�
 
 ## PR 8. Уточнить аппроксимацию G/G/c и текущую оценку задержки
 
-**Предлагаемая ветка:** `refactor/performance-ggc-estimator`
+**Предлагаемая ветка:** `feat/performance-ggc-approximation-review`
 **Зависит от:** PR 1, PR 5, PR 7.
 **Цель:** сделать текущую оценку среднего ожидания прозрачной, проверяемой и правильно названной.
 
@@ -781,7 +781,8 @@ PR создаются стеком по зависимостям, а не пар
 - PR #99 (`feat/performance-traffic-routing-semantics`) — PR 4, base = ветка PR #90;
 - PR #101 (`fix/performance-latency-slo-semantics`) — PR 5, base = ветка PR #99;
 - PR #102 (`feat/performance-mm1-model`) — PR 6, base = ветка PR #101;
-- PR #103 (`feat/performance-mmc-model`) — PR 7, base = ветка PR #102.
+- PR #103 (`feat/performance-mmc-model`) — PR 7, base = ветка PR #102;
+- PR #104 (`feat/performance-ggc-approximation-review`) — PR 8, base = ветка PR #103.
 
 Следующий PR базируется на ветке предыдущего зависимого PR. После реализации
 последнего этапа изменения сливаются снизу вверх: #102 → #101 → #99 → #90,
