@@ -1,7 +1,6 @@
 """Domain models for source-grounded requirement extraction."""
 
 from enum import StrEnum
-from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
