@@ -22,7 +22,19 @@ class PerformanceFindingSeverity(StrEnum):
 
 
 class PerformanceFindingCode(StrEnum):
-    """Identify a finding's meaning independently of its display text."""
+    """Stable machine-readable categories for performance findings.
+
+    CAPACITY_HEADROOM means that estimated demand is below estimated capacity,
+    leaving spare capacity (запас пропускной способности).
+
+    CAPACITY_SATURATION means that estimated demand is at or near the capacity
+    limit defined by the applicable validation rule (насыщение пропускной
+    способности). It does not necessarily mean demand is mathematically
+    greater than capacity; the validator may warn before that point.
+
+    These codes identify the kind of finding, not its severity or its display
+    text. Keep them stable for JSON/API consumers.
+    """
 
     CAPACITY_HEADROOM = "capacity_headroom"
     CAPACITY_SATURATION = "capacity_saturation"
@@ -54,16 +66,42 @@ class NodePerformanceMetrics(BaseModel):
 
 
 class PerformanceFinding(BaseModel):
-    """Describe an issue, risk, or observation found during performance analysis."""
+    """Describe an issue, risk, or observation found during performance analysis.
+
+    The report builder should populate title and description from deterministic
+    templates selected by finding_code and the calculated metrics. The initial
+    implementation must not ask an LLM to invent findings or recommendations:
+    deterministic output is testable and reproducible.
+
+    Recommendation is optional and should be supplied only when a supported
+    rule provides a justified action. If no reliable action can be inferred,
+    leave it as None rather than suggesting a guess.
+    """
 
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
-    finding_code: PerformanceFindingCode
-    severity: PerformanceFindingSeverity
-    title: str = Field(min_length=1)
-    description: str = Field(min_length=1)
-    affected_node_identifiers: list[str] = Field(default_factory=list)
-    recommendation: str | None = None
+    finding_code: PerformanceFindingCode = Field(
+        description="Stable machine-readable category; not an HTTP status code."
+    )
+    severity: PerformanceFindingSeverity = Field(
+        description="Importance of this finding: informational, warning, or error."
+    )
+    title: str = Field(
+        min_length=1,
+        description="Short human-readable title from a deterministic message template.",
+    )
+    description: str = Field(
+        min_length=1,
+        description="Explanation based on calculated values and known model limits.",
+    )
+    affected_node_identifiers: list[str] = Field(
+        default_factory=list,
+        description="Identifiers of architecture nodes related to this finding.",
+    )
+    recommendation: str | None = Field(
+        default=None,
+        description="Optional rule-based next step; null when no action is justified.",
+    )
 
 
 class PerformanceAnalysisReport(BaseModel):
