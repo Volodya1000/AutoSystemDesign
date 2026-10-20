@@ -29,4 +29,3 @@ class TestBuildInitialMessages:
         assert "Hard rules" in user_content
 
 EXPECTED_ASSERT_MESSAGES_COUNT = 2
-
