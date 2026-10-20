@@ -5,11 +5,9 @@ import pytest
 from application.document_scenario_functions import build_workload, resolve_candidate
 from application.document_scenario_functions.evidence import CandidateValidationOptions
 from domain.scenario_extraction import EvidenceValue, ExtractedWorkload
+from tests.unit.constants import EXPECTED_BASELINE_RPS, EXPECTED_PEAK_RPS, EXPECTED_READ_RATIO
 
 
-EXPECTED_ASSERT_RESULT_VALUE_READ_RATIO = 0.7
-EXPECTED_PEAK_RPS = 400.0
-EXPECTED_BASELINE_RPS = 120.0
 
 @pytest.mark.unit
 def test_resolve_candidate_returns_evidence_without_mutating_inputs() -> None:
@@ -57,7 +55,7 @@ def test_build_workload_does_not_mutate_candidates_or_verified_excerpts() -> Non
     assert result.value is not None
     assert result.value.baseline_requests_per_second == EXPECTED_BASELINE_RPS
     assert result.value.peak_requests_per_second == EXPECTED_PEAK_RPS
-    assert result.value.read_ratio == EXPECTED_ASSERT_RESULT_VALUE_READ_RATIO
+    assert result.value.read_ratio == EXPECTED_READ_RATIO
     assert result.field_evidence == (
         ("workload.baseline_requests_per_second", baseline),
         ("workload.peak_requests_per_second", peak),
