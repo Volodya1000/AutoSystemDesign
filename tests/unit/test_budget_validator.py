@@ -95,7 +95,7 @@ class TestBudgetRequirementValidator:
         error = errors[0]
         assert isinstance(error, BudgetExceededError)
         assert error.error_code == "BUDGET_EXCEEDED"
-        assert error.total_monthly_cost_usd == EXPECTED_ASSERT_ERROR_TOTAL_MONTHLY_COST_USD
+        assert error.total_monthly_cost_usd == EXPECTED_MONTHLY_COST
         assert error.budget_limit_usd == EXPECTED_ASSERT_ERROR_BUDGET_LIMIT_USD
         assert "3500.00" in error.message
         assert "3000.00" in error.message
@@ -184,9 +184,11 @@ class TestRequirementValidationDispatcher:
         budget_errors: list[BudgetExceededError] = [
             e for e in result.errors if isinstance(e, BudgetExceededError)
         ]
-        assert len(budget_errors) == len(result.errors) == EXPECTED_ASSERT_BUDGET_ERRORS_COUNT_RESULT_ERRORS
+        assert (
+            len(budget_errors) == len(result.errors) == EXPECTED_ERROR_COUNT
+        )
         assert [e.budget_limit_usd for e in budget_errors] == [3000.0, 4000.0]
 
-EXPECTED_ASSERT_BUDGET_ERRORS_COUNT_RESULT_ERRORS = 2
+EXPECTED_ERROR_COUNT = 2
 EXPECTED_ASSERT_ERROR_BUDGET_LIMIT_USD = 3000.0
-EXPECTED_ASSERT_ERROR_TOTAL_MONTHLY_COST_USD = 3500.0
+EXPECTED_MONTHLY_COST = 3500.0
