@@ -23,6 +23,8 @@ from domain.models.sequence import ComponentLifeline, InteractionScenario, UserL
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 
+EXPECTED_TOTAL_TOKENS = 45
+
 pytestmark = pytest.mark.unit
 
 
@@ -273,4 +275,3 @@ def test_failed_requirement_does_not_discard_successful_scenarios() -> None:
     assert result.scenarios_results["FR-1"].interaction_scenario is not None
     assert result.scenarios_results["FR-2"].interaction_scenario is None
 
-EXPECTED_TOTAL_TOKENS = 45
