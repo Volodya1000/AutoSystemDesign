@@ -40,6 +40,8 @@ from infrastructure.llm.models import (
     MessageRole,
 )
 
+from tests.unit.constants import EXPECTED_REQUEST_MAX_TOKENS
+
 pytestmark = pytest.mark.unit
 
 
@@ -215,7 +217,7 @@ def test_architecture_designer_builds_typed_request_and_parses_result(
         "initial prompt" if mode is DesignTaskMode.INITIAL else "repair prompt"
     )
     assert request.temperature == EXPECTED_ASSERT_REQUEST_TEMPERATURE
-    assert request.max_tokens == EXPECTED_ASSERT_REQUEST_MAX_TOKENS
+    assert request.max_tokens == EXPECTED_REQUEST_MAX_TOKENS
     assert request.timeout_seconds == EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS
     assert request.response_schema == ArchitectureGraph.model_json_schema()
     assert request.response_schema_name == "architecture_graph"
