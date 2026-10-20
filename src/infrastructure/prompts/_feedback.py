@@ -22,7 +22,7 @@ def render_feedback(
     *,
     empty_message: str,
 ) -> str:
-    """Renders a 'Detected problems' block, or ``empty_message`` if empty.
+    """Render a 'Detected problems' block, or ``empty_message`` if empty.
 
     The block is a "Detected problems:" header followed by one numbered
     line per error. Validation errors come first (formatted as
