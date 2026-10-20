@@ -17,6 +17,8 @@ from domain.performance_analysis.report import PerformanceAnalysisReport
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from domain.models import DesignScenario
+
 
 class PerformanceAnalysisStage:
     """Persist a report without changing pipeline orchestration or domain formulas.
