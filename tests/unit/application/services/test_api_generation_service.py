@@ -185,4 +185,3 @@ def test_api_generation_returns_failure_after_max_attempts() -> None:
     assert result.api_design is None
     assert len(result.attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
     assert designer.received_tasks[-1].mode is DesignTaskMode.REPAIR
-
