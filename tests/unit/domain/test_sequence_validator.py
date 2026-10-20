@@ -20,6 +20,8 @@ from domain.specifications.sequence_validator import (
     SharedClientLifelineError,
 )
 
+EXPECTED_ASSERT_SCENARIO_LIFELINES_COUNT = 2
+
 pytestmark = pytest.mark.unit
 
 _MessageKind = Literal["request", "response", "event", "notification", "user_action"]
@@ -339,4 +341,3 @@ class TestUnusedLifelines:
 
         assert len(scenario.lifelines) == EXPECTED_ASSERT_SCENARIO_LIFELINES_COUNT
 
-EXPECTED_ASSERT_SCENARIO_LIFELINES_COUNT = 2
