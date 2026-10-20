@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 def check_cache_usage(
     graph: ArchitectureGraph,
 ) -> list[ArchitectureValidationError]:
-    """Returns one error per cache with a write-only or miss-path defect.
+    """Return one error per cache with a write-only or miss-path defect.
 
     The two checks are mutually exclusive per cache: a write-only sink has
     no synchronous readers, so the miss-path check has nothing to verify.
