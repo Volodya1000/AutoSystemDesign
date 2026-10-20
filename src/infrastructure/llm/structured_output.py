@@ -88,4 +88,3 @@ class StructuredOutputAdapter:
         return response_model.model_validate_json(content)
 
 EXPECTED_IF_LINES_COUNT = 3
-
