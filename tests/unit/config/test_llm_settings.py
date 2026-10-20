@@ -7,7 +7,6 @@ from pydantic import ValidationError
 
 from config.llm import LlmSettings, StructuredOutputMode
 
-EXPECTED_ASSERT_SETTINGS_TEMPERATURE = 0.2
 
 pytestmark = pytest.mark.unit
 
@@ -28,7 +27,7 @@ class TestLlmSettings:
     def test_accepts_valid_values(self) -> None:
         settings: LlmSettings = LlmSettings(**_VALID_KWARGS)
         assert settings.model == "lm_studio/qwen3-8b"
-        assert settings.temperature == EXPECTED_ASSERT_SETTINGS_TEMPERATURE
+        assert settings.temperature == 0.2
         assert settings.structured_output_mode is StructuredOutputMode.PROMPT
 
     def test_rejects_temperature_out_of_bounds(self) -> None:
