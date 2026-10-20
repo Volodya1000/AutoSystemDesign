@@ -1,6 +1,5 @@
 """Static regression tests for diagram source builder subject types."""
 
-import sys
 from pathlib import Path
 
 import pytest
