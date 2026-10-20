@@ -97,7 +97,10 @@ extend-select = [
 allowed-confusables = ["а", "е", "о", "р", "с", "С"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101", "PLR2004"]
+"tests/**/*.py" = [
+    "S101",    # Allow assertions in tests.
+    "PLR2004", # Keep readable literal expectations in tests.
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
