@@ -28,10 +28,12 @@ def compute_project_metrics(
     graph: ArchitectureGraph,
     scenario: DesignScenario,
 ) -> ProjectMetrics:
-    """Aggregate capacity, mean latency, and cost without comparing to percentile SLOs."""
+    """Aggregate capacity, mean latency, and cost without percentile comparisons."""
     utilization = compute_node_utilization(graph, scenario) if scenario.workload else {}
     if utilization:
-        max_node_id, max_utilization = max(utilization.items(), key=lambda item: item[1])
+        max_node_id, max_utilization = max(
+            utilization.items(), key=lambda item: item[1]
+        )
     else:
         max_node_id = None
         max_utilization = None

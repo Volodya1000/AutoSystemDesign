@@ -4,7 +4,6 @@ import pytest
 
 from domain.models.edges import Edge
 from domain.models.protocols import ASYNCHRONOUS_MESSAGE_QUEUE
-from domain.models.scenarios import WorkloadProfile
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.mm1 import compute_mm1_metrics
 from domain.specifications.latency_validator import compute_critical_path
@@ -49,17 +48,11 @@ def test_unknown_channel_count_does_not_fall_back_to_maximum_concurrency() -> No
 
 
 def test_zero_load_can_be_estimated_without_known_channel_count() -> None:
-    graph = create_test_latency_graph()
-    scenario = create_test_latency_scenario().model_copy(
-        update={
-            "workload": WorkloadProfile(
-                baseline_requests_per_second=0.0,
-                peak_requests_per_second=0.0,
-            )
-        }
-    )
+    baseline = create_test_latency_graph()
+    # A disconnected service receives zero traffic although workload is positive.
+    graph = ArchitectureGraph(nodes=baseline.nodes, edges=[])
 
-    result = compute_critical_path(graph, scenario)
+    result = compute_critical_path(graph, create_test_latency_scenario())
 
     assert result is not None
     assert result.node_queue_wait_ms["service"] == pytest.approx(0.0)

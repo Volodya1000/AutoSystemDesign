@@ -33,7 +33,7 @@ def _run_stage(
     graph = ArchitectureGraph(
         nodes=[
             create_test_node("client", NodeType.CLIENT),
-            create_test_compute_node("service"),
+            create_test_compute_node("service", service_channels_per_replica=1),
         ],
         edges=[create_test_edge("client", "service")],
     )
