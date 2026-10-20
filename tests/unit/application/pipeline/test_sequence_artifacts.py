@@ -19,7 +19,7 @@ from tests.unit.in_memory_writer import InMemoryWriter
 
 if TYPE_CHECKING:
     from application.pipeline.stage import StageId
-    from collections.abc import Mapping
+        from collections.abc import Mapping
     from pathlib import Path
 
 pytestmark = pytest.mark.unit
