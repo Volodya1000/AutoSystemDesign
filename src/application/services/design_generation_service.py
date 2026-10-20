@@ -128,7 +128,7 @@ class DesignGenerationService:
     def _validate(
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> ValidationResult:
-        """Runs every topology and scenario validator, aggregating errors."""
+        """Run every topology and scenario validator, aggregating errors."""
         errors = [
             error
             for validator in self._validators
