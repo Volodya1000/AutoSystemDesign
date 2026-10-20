@@ -68,6 +68,7 @@ extend-select = [
     "S607",   # Review subprocess calls using partial executable paths.
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
+    "INP001", # Require explicit package markers for source, scripts, and tests.
     "ARG001", # Remove unused function arguments.
     "ARG002", # Remove unused method arguments.
     "PT018", # Keep each pytest assertion focused.
