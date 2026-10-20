@@ -52,7 +52,7 @@ def build_workload(
     extracted: ExtractedWorkload,
     verified_excerpts: list[str],
 ) -> MappingOutcome[WorkloadProfile | None]:
-    """Create a workload only when all fields required by the source-backed model exist."""
+    """Create a workload only when every required source-backed field exists."""
     candidates = (
         extracted.baseline_requests_per_second,
         extracted.peak_requests_per_second,
