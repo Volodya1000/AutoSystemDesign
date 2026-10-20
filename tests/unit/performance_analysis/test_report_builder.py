@@ -44,6 +44,7 @@ def _service_graph(
                 service,
                 concurrency=concurrency,
                 mean_ms=mean_ms,
+                service_channels_per_replica=1,
             ),
         ],
         edges=[create_test_edge("client", service)],
