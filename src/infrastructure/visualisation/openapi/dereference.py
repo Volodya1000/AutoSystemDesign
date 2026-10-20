@@ -38,7 +38,7 @@ def _split_pointer(pointer: str) -> list[str]:
     ]
 
 
-def _lookup_pointer(document: Any, pointer: str) -> Any:
+def _lookup_pointer(document: object, pointer: str) -> object:
     """Navigates *document* by a JSON Pointer; returns _MISSING if absent.
 
     A valid pointer is either empty (the whole document) or starts with
@@ -79,7 +79,7 @@ def _unresolved_stub(ref: str) -> dict:
     return {"description": f"Unresolved reference: {ref}"}
 
 
-def _dereference(node: Any, active: tuple[str, ...], root: Any) -> Any:
+def _dereference(node: object, active: tuple[str, ...], root: object) -> object:
     """Rebuilds *node* with every internal ``$ref`` replaced by its target.
 
     The function is pure: it never mutates its input, and the returned tree
