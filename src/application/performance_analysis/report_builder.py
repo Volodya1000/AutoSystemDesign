@@ -76,7 +76,7 @@ def build_performance_analysis_report(
     nodes_with_unavailable_latency: list[str] = []
 
     for node in graph.nodes:
-        response_time = latency_by_node.get(node.identifier)
+        response_time: float | None = latency_by_node.get(node.identifier)
         queue_wait: float | None = None
 
         if isinstance(node, CapacityNode):
