@@ -15,6 +15,8 @@ from infrastructure.visualisation.plantuml.renderer import (
     resolve_image_renderer,
 )
 
+EXPECTED_ASSERT_OBSERVED_TIMEOUT = 4.0
+
 pytestmark = pytest.mark.unit
 
 
@@ -193,4 +195,3 @@ def test_http_renderer_maps_connection_errors_to_domain_error(
     with pytest.raises(DiagramRenderingError, match="Cannot reach Kroki server"):
         renderer.render("source", DiagramImageFormat.SVG)
 
-EXPECTED_ASSERT_OBSERVED_TIMEOUT = 4.0
