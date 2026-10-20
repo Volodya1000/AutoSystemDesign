@@ -121,9 +121,7 @@ class TestArchitectureDesignerAgent:
             client=client,  # type: ignore[arg-type]
             settings=settings,
         )
-        designer.propose(
-                DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
-            )
+        designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
         request: CompletionRequest = client.received_requests[0]
         assert request.temperature == 0.7
         assert request.max_tokens == 512
