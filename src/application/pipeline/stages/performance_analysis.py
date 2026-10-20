@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+
 from application.performance_analysis.report_builder import (
     build_performance_analysis_report,
 )
