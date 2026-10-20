@@ -198,10 +198,10 @@ def duplicate_pairs(output: str) -> list[DuplicatePair]:
             match = MODULE_LOCATION.match(candidate.strip())
             if match:
                 modules.append((match.group(1), int(match.group(2))))
-                if len(modules) == 2:
+                if len(modules) == EXPECTED_IF_MODULES_COUNT:
                     break
 
-        if len(modules) == 2:
+        if len(modules) == EXPECTED_IF_MODULES_COUNT:
             pairs.append(
                 DuplicatePair(
                     line,
@@ -366,6 +366,9 @@ def main() -> int:
 
     _logger.info("No new duplicate-code findings in changed Python files.")
     return 0
+
+EXPECTED_IF_MODULES_COUNT = 2
+
 
 
 if __name__ == "__main__":
