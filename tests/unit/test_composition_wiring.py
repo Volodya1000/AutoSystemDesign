@@ -10,12 +10,14 @@ from pydantic import SecretStr
 
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
+from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from application.pipeline.stages.sequence import SequenceStage
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
 from infrastructure.composition import (
     _build_api_stage,
     _build_c4_stage,
+    _build_performance_analysis_stage,
     _build_sequence_stage,
     build_pipeline,
 )
@@ -46,6 +48,13 @@ def test_build_c4_stage_without_renderer() -> None:
     assert isinstance(stage, C4Stage)
     assert stage.name == "c4"
     assert not stage.depends_on
+
+
+def test_build_performance_analysis_stage_depends_on_c4() -> None:
+    stage = _build_performance_analysis_stage()
+    assert isinstance(stage, PerformanceAnalysisStage)
+    assert stage.name == "performance_analysis"
+    assert stage.depends_on == ("c4",)
 
 
 def test_build_sequence_stage_depends_on_c4() -> None:
