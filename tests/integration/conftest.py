@@ -22,7 +22,7 @@ _TEST_CONFIG_FILE: str = "config.test.yaml"
 
 @pytest.fixture(scope="session")
 def app_settings() -> AppSettings:
-    """Loads test settings (config.test.yaml + .env); skips when unset."""
+    """Load test settings (config.test.yaml + .env); skips when unset."""
     with pytest.MonkeyPatch.context() as patcher:
         patcher.setenv(CONFIG_FILE_ENV_VAR, _TEST_CONFIG_FILE)
         try:
@@ -46,7 +46,7 @@ def require_lm_studio(app_settings: AppSettings) -> None:
         )
     except httpx.HTTPError as error:
         pytest.skip(f"LM Studio is not reachable at {app_settings.base_url}: {error}")
-    if response.status_code != 200:
+    if response.status_code != EXPECTED_IF_RESPONSE_STATUS_CODE:
         pytest.skip(
             f"LM Studio responded with {response.status_code} "
             f"at {app_settings.base_url}"
@@ -75,5 +75,8 @@ def designer(gate_settings: AppSettings) -> ArchitectureDesignerAgent:
 
 @pytest.fixture
 def initial_task(scenario: DesignScenario) -> DesignTask:
-    """Initial design task for the shared scenario."""
+    """Create the initial design task for the shared scenario."""
     return DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
+
+EXPECTED_IF_RESPONSE_STATUS_CODE = 200
+
