@@ -2,7 +2,11 @@
 
 from math import isfinite
 
-from domain.performance_analysis.queueing import QueueingMetrics, QueueingStatus
+from domain.performance_analysis.queueing import (
+    QueueingMetrics,
+    QueueingStatus,
+    validate_queueing_rates,
+)
 
 MILLISECONDS_PER_SECOND = 1000.0
 
@@ -17,7 +21,7 @@ def compute_mm1_metrics(
     arrival process, exponentially distributed service times, one independent
     server, and an unbounded queue in steady state.
     """
-    _validate_rates(
+    validate_queueing_rates(
         arrival_rate_requests_per_second,
         service_rate_requests_per_second,
     )
@@ -54,21 +58,3 @@ def compute_mm1_metrics(
         mean_queue_wait_milliseconds=mean_queue_wait_milliseconds,
         mean_response_time_milliseconds=mean_response_time_milliseconds,
     )
-
-
-def _validate_rates(
-    arrival_rate_requests_per_second: float,
-    service_rate_requests_per_second: float,
-) -> None:
-    if (
-        not isfinite(arrival_rate_requests_per_second)
-        or arrival_rate_requests_per_second < 0.0
-    ):
-        message = "Arrival rate must be finite and non-negative."
-        raise ValueError(message)
-    if (
-        not isfinite(service_rate_requests_per_second)
-        or service_rate_requests_per_second <= 0.0
-    ):
-        message = "Service rate must be finite and positive."
-        raise ValueError(message)

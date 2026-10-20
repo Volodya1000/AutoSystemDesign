@@ -1,6 +1,7 @@
 """Shared result contract for queueing-model calculations."""
 
 from enum import StrEnum
+from math import isfinite
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -48,3 +49,23 @@ class QueueingMetrics(BaseModel):
             )
             raise ValueError(message)
         return self
+
+
+
+def validate_queueing_rates(
+    arrival_rate_requests_per_second: float,
+    service_rate_requests_per_second: float,
+) -> None:
+    """Reject rates that cannot describe a physical queueing model."""
+    if (
+        not isfinite(arrival_rate_requests_per_second)
+        or arrival_rate_requests_per_second < 0.0
+    ):
+        message = "Arrival rate must be finite and non-negative."
+        raise ValueError(message)
+    if (
+        not isfinite(service_rate_requests_per_second)
+        or service_rate_requests_per_second <= 0.0
+    ):
+        message = "Service rate must be finite and positive."
+        raise ValueError(message)

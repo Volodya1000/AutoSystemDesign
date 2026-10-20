@@ -28,13 +28,35 @@ class BaseNode(BaseModel):
 class CapacityNode(BaseNode):
     """Abstract base for nodes with processing capacity, queueing and cost."""
 
-    maximum_concurrency: int = Field(gt=0)
+    maximum_concurrency: int = Field(
+        gt=0,
+        description=(
+            "Maximum concurrent in-flight requests per replica. The current "
+            "capacity estimate uses this value, but queueing models do not "
+            "assume it equals the number of independent service channels."
+        ),
+    )
     maximum_queue_size: int = Field(ge=0)
+    service_channels_per_replica: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Optional number of independent service channels per replica. "
+            "Leave unset when unknown; do not infer it from maximum_concurrency."
+        ),
+    )
 
     mean_processing_time_milliseconds: float = Field(gt=0.0)
     standard_deviation_processing_time: float = Field(ge=0.0)
 
     monthly_cost_usd: float = Field(ge=0.0)
+
+    @property
+    def queueing_server_count(self) -> int | None:
+        """Return the total independent queueing channels when explicitly known."""
+        if self.service_channels_per_replica is None:
+            return None
+        return self.replicas_count * self.service_channels_per_replica
 
     @model_validator(mode="after")
     def _reject_direct_capacity_instantiation(self) -> "CapacityNode":

@@ -1,12 +1,11 @@
 """Numerical and boundary tests for the M/M/1 queue model."""
 
-import json
-
 import pytest
 from pydantic import ValidationError
 
 from domain.performance_analysis.mm1 import compute_mm1_metrics
 from domain.performance_analysis.queueing import QueueingMetrics, QueueingStatus
+from tests.unit.performance_analysis.assertions import assert_unstable_queueing_metrics
 
 pytestmark = pytest.mark.unit
 
@@ -62,12 +61,7 @@ def test_unstable_queue_has_no_finite_steady_state_times(
 
     assert result.status is QueueingStatus.UNSTABLE
     assert result.utilization_ratio == pytest.approx(expected_utilization)
-    assert result.mean_queue_wait_milliseconds is None
-    assert result.mean_response_time_milliseconds is None
-
-    serialized = json.loads(result.model_dump_json())
-    assert serialized["mean_queue_wait_milliseconds"] is None
-    assert serialized["mean_response_time_milliseconds"] is None
+    assert_unstable_queueing_metrics(result)
 
 
 @pytest.mark.parametrize(
