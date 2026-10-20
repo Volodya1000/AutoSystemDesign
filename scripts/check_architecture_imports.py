@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 import shutil
-import subprocess
 from pathlib import Path
 
 
@@ -22,14 +22,18 @@ def main() -> int:
     if uvx_executable is None:
         raise RuntimeError
 
-    # Uses the resolved uvx executable and a fixed argv list, never a shell.
-    result = subprocess.run(  # noqa: S603
-        [uvx_executable, "--from", "import-linter==2.15", "lint-imports"],
-        cwd=root,
-        env=env,
-        check=False,
-    )
-    return result.returncode
+    async def run_linter() -> int:
+        process = await asyncio.create_subprocess_exec(
+            uvx_executable,
+            "--from",
+            "import-linter==2.15",
+            "lint-imports",
+            cwd=root,
+            env=env,
+        )
+        return await process.wait()
+
+    return asyncio.run(run_linter())
 
 
 if __name__ == "__main__":
