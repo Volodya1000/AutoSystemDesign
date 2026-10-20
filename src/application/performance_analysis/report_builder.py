@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from math import isfinite
+from typing import TYPE_CHECKING
 
 from domain.models.nodes import CapacityNode
-from domain.models.scenarios import DesignScenario
-from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import (
     NodePerformanceMetrics,
     PerformanceAnalysisReport,
@@ -22,6 +21,10 @@ from domain.specifications.capacity_validator import (
 )
 from domain.specifications.latency_validator import compute_critical_path
 from domain.specifications.traffic_flow import compute_node_incoming_rps
+
+if TYPE_CHECKING:
+    from domain.models.scenarios import DesignScenario
+    from domain.models.topology import ArchitectureGraph
 
 
 def build_performance_report(
