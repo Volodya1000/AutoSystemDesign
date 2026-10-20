@@ -38,8 +38,8 @@ def build_performance_analysis_report(
 
     Capacity is known from the node model even without a workload. Load,
     utilization, and latency are left unavailable when the scenario has no
-    workload profile. Infinite latency estimates are represented as null,
-    because the report contract intentionally accepts only finite numbers.
+    workload profile. Unavailable latency estimates are represented as null when queueing assumptions
+    are unknown or the modeled system is unstable.
     """
     capacity_by_node: dict[str, float] = {
         node.identifier: compute_node_capacity_rps(node)
@@ -80,7 +80,13 @@ def build_performance_analysis_report(
     )
     latency_slo_finding = _latency_slo_not_evaluated_finding(
         scenario,
-        critical_path.path_node_ids if critical_path is not None else (),
+        critical_path.path_node_ids
+        if critical_path is not None and critical_path.total_latency_ms is not None
+        else tuple(
+            node.identifier
+            for node in graph.nodes
+            if isinstance(node, CapacityNode)
+        ),
     )
     findings = _capacity_findings(graph, utilization_by_node)
     findings.extend(_branching_findings(graph))
@@ -106,7 +112,7 @@ def _build_node_metrics(
     capacity_by_node: dict[str, float],
     incoming_by_node: dict[str, float],
     utilization_by_node: dict[str, float],
-    latency_by_node: dict[str, float],
+    latency_by_node: dict[str, float | None],
 ) -> tuple[list[NodePerformanceMetrics], list[str]]:
     """Build per-node metrics and collect nodes with unavailable latency."""
     node_metrics: list[NodePerformanceMetrics] = []
@@ -275,10 +281,10 @@ def _unavailable_latency_finding(
         severity=PerformanceFindingSeverity.WARNING,
         title="Оценка задержки недоступна как конечное значение",
         description=(
-            "Расчётное время пребывания запроса в узлах "
-            f"{', '.join(node_identifiers)} бесконечно при заданной нагрузке. "
-            "Поля задержки оставлены null, поскольку контракт отчёта допускает "
-            "только конечные числовые значения."
+            "Среднее время ответа не удалось оценить для указанных узлов. "
+            "Текущая модель требует известного числа независимых каналов "
+            "обслуживания, корректных параметров и устойчивого режима. "
+            "Неоценённая задержка не означает нулевую задержку."
         ),
         affected_node_identifiers=node_identifiers,
     )

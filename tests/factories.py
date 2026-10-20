@@ -34,6 +34,7 @@ class _CapacityOverrides(TypedDict, total=False):
     concurrency: int
     mean_ms: float
     std_ms: float
+    service_channels_per_replica: int | None
     replicas: int
     cost: float
 
@@ -46,6 +47,7 @@ def create_test_compute_node(
         "concurrency": "maximum_concurrency",
         "mean_ms": "mean_processing_time_milliseconds",
         "std_ms": "standard_deviation_processing_time",
+    "service_channels_per_replica": "service_channels_per_replica",
         "replicas": "replicas_count",
         "cost": "monthly_cost_usd",
     }
@@ -113,16 +115,21 @@ def create_test_edge(
     )
 
 
-def create_test_latency_graph() -> ArchitectureGraph:
+def create_test_latency_graph(
+    *,
+    service_channels_per_replica: int | None = None,
+    concurrency: int = 1,
+) -> ArchitectureGraph:
     """Build a low-load graph whose mean response time exceeds a tiny p99 target."""
     return ArchitectureGraph(
         nodes=[
             create_test_node("client", NodeType.CLIENT),
             create_test_compute_node(
                 "service",
-                concurrency=1,
+                concurrency=concurrency,
                 mean_ms=10.0,
                 std_ms=10.0,
+                service_channels_per_replica=service_channels_per_replica,
             ),
         ],
         edges=[create_test_edge("client", "service")],
