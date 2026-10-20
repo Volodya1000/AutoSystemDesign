@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.stage import StageId
-from application.pipeline.stage_execution import begin_stage_execution
 from application.results import GenerationStatus
 from domain.specifications.metrics import compute_project_metrics, format_metrics_title
 
@@ -39,7 +38,8 @@ class C4Stage:
         self._reporter: GenerationReporter = reporter
 
     def run(self, context: StageContext) -> StageOutcome[ArchitectureGraph]:
-        stage_start, scenario = begin_stage_execution(context)
+        stage_start: float = time.perf_counter()
+        scenario: DesignScenario = context.scenario
 
         generation_start: float = time.perf_counter()
         result = self._service.generate(scenario)
