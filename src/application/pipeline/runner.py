@@ -35,7 +35,7 @@ class PipelineConfigurationError(ValueError):
         return cls("PipelineRunner requires at least one stage")
 
     @classmethod
-    def duplicate_stage_id(cls, stage_id: str) -> PipelineConfigurationError:
+    def duplicate_stage_id(cls, stage_id: StageId) -> PipelineConfigurationError:
         return cls(
             f"Duplicate stage name '{stage_id}'; stage names must "
             "be unique because outcomes are keyed by name"
