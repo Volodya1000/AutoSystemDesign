@@ -17,7 +17,6 @@ from infrastructure.llm.models import (
     FinishReason,
 )
 from infrastructure.prompts.fragments_schema import FEW_SHOT_GRAPH_JSON
-from tests.unit.constants import EXPECTED_REQUEST_MAX_TOKENS
 
 
 EXPECTED_TOTAL_TOKENS = 18
