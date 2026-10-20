@@ -10,9 +10,10 @@ and therefore serve as the automatic fallback in "auto" mode.
 from __future__ import annotations
 
 import logging
-import httpx
 import urllib.parse
 from typing import TYPE_CHECKING, Final, Protocol
+
+import httpx
 
 from infrastructure.visualisation.plantuml.encoding import (
     build_kroki_url,
