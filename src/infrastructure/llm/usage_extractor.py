@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 def extract_usage(
-    raw_usage: Any,
+    raw_usage: object,
     request: CompletionRequest,
     content: str,
     *,
