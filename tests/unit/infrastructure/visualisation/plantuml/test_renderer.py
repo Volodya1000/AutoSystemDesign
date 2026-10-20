@@ -15,7 +15,6 @@ from infrastructure.visualisation.plantuml.renderer import (
     resolve_image_renderer,
 )
 
-
 pytestmark = pytest.mark.unit
 
 
