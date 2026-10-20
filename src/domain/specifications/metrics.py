@@ -31,7 +31,7 @@ def compute_project_metrics(
     graph: ArchitectureGraph,
     scenario: DesignScenario,
 ) -> ProjectMetrics:
-    """Aggregates F3/F4/F5 outputs into a single immutable snapshot."""
+    """Aggregate F3/F4/F5 outputs into a single immutable snapshot."""
     utilization = compute_node_utilization(graph, scenario) if scenario.workload else {}
     if utilization:
         max_node_id, max_utilization = max(
@@ -72,7 +72,7 @@ def compute_project_metrics(
 
 
 def format_metrics_title(metrics: ProjectMetrics) -> str:
-    """Builds a single-line summary for the C4 title.
+    """Build a single-line summary for the C4 title.
 
     Example: 'Budget 2900/3000 USD | Peak util 67% | Path latency 245/300 ms'
     Omits any section whose data is absent.
