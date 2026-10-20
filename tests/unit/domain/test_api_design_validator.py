@@ -190,4 +190,3 @@ def test_unknown_components_and_requirement_references_are_rejected() -> None:
     assert result.has_error(NonExistentRequirementReferenceError)
 
 EXPECTED_VALUE = 2
-
