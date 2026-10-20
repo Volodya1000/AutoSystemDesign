@@ -62,4 +62,3 @@ def test_build_workload_does_not_mutate_candidates_or_verified_excerpts() -> Non
     )
     assert extracted.model_dump() == original_payload
     assert verified_excerpts == [baseline, peak, ratio]
-
