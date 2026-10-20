@@ -63,7 +63,7 @@ def test_report_reuses_existing_capacity_calculation() -> None:
     )
 
     assert report.scenario_identifier == "capacity_report"
-    assert report.status is PerformanceAnalysisStatus.PARTIAL
+    assert report.status is PerformanceAnalysisStatus.COMPLETE
     assert client_metrics.node_identifier == "client"
     assert client_metrics.incoming_requests_per_second == pytest.approx(25.0)
     assert client_metrics.estimated_capacity_requests_per_second is None
@@ -72,8 +72,11 @@ def test_report_reuses_existing_capacity_calculation() -> None:
     assert service_metrics.incoming_requests_per_second == pytest.approx(25.0)
     assert service_metrics.estimated_capacity_requests_per_second == pytest.approx(50.0)
     assert service_metrics.utilization_ratio == pytest.approx(0.5)
-    assert service_metrics.estimated_mean_queue_wait_milliseconds is None
-    assert service_metrics.estimated_mean_response_time_milliseconds is None
+    response_time = service_metrics.estimated_mean_response_time_milliseconds
+    queue_wait = service_metrics.estimated_mean_queue_wait_milliseconds
+    assert response_time is not None
+    assert queue_wait is not None
+    assert queue_wait == pytest.approx(response_time - 20.0)
 
 
 @pytest.mark.parametrize(
@@ -191,3 +194,24 @@ def test_report_remains_valid_after_json_round_trip() -> None:
     restored = type(report).model_validate_json(report.model_dump_json())
 
     assert restored == report
+
+
+def test_infinite_latency_is_reported_as_unavailable_not_serialized() -> None:
+    report = build_performance_analysis_report(
+        _service_graph("service"),
+        _scenario(peak_rps=50.0),
+    )
+
+    service_metrics = next(
+        item for item in report.nodes if item.node_identifier == "service"
+    )
+
+    assert report.status is PerformanceAnalysisStatus.PARTIAL
+    assert service_metrics.utilization_ratio == pytest.approx(1.0)
+    assert service_metrics.estimated_mean_queue_wait_milliseconds is None
+    assert service_metrics.estimated_mean_response_time_milliseconds is None
+    assert any(
+        finding.finding_code is PerformanceFindingCode.METRIC_UNAVAILABLE
+        for finding in report.findings
+    )
+    assert type(report).model_validate_json(report.model_dump_json()) == report
