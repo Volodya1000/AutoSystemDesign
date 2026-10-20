@@ -64,7 +64,8 @@ class PylintBaselineCheckError(RuntimeError):
 
 def git_output(arguments: list[str]) -> str:
     """Run Git and return standard output."""
-    result = subprocess.run(
+    # Explicit argv lists and shell=False prevent shell interpretation.
+    result = subprocess.run(  # noqa: S603
         arguments,
         check=True,
         capture_output=True,
@@ -231,7 +232,8 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
     """Return duplicate pairs already present at the comparison base."""
     with tempfile.TemporaryDirectory(prefix="asd-duplicate-baseline-") as directory:
         baseline = Path(directory) / "baseline"
-        subprocess.run(
+        # Explicit Git argv; no shell or command-string interpolation.
+        subprocess.run(  # noqa: S603
             [
                 git_executable(),
                 "worktree",
@@ -252,7 +254,8 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
                 raise PylintBaselineCheckError
             return {pair_key(pair) for pair in duplicate_pairs(output)}
         finally:
-            subprocess.run(
+            # Explicit Git argv; no shell or command-string interpolation.
+            subprocess.run(  # noqa: S603
                 [
                     git_executable(),
                     "worktree",
