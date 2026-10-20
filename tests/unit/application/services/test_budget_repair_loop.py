@@ -27,7 +27,6 @@ from domain.specifications.requirement_dispatch import (
 )
 from domain.specifications.structural_validator import StructuralTopologyValidator
 
-from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
 
 pytestmark = pytest.mark.unit
 
@@ -103,7 +102,7 @@ def test_budget_violation_triggers_repair_attempt() -> None:
     result: DesignGenerationResult = service.generate(_scenario())
 
     assert result.status is GenerationStatus.SUCCEEDED
-    assert len(result.attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+    assert len(result.attempts) == 2
 
     first_validation = result.attempts[0].validation
     assert first_validation is not None
