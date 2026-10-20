@@ -51,8 +51,8 @@ def test_build_workload_does_not_mutate_candidates_or_verified_excerpts() -> Non
     result = build_workload(extracted, verified_excerpts)
 
     assert result.value is not None
-    assert result.value.baseline_requests_per_second == EXPECTED_ASSERT_RESULT_VALUE_BASELINE_REQUESTS_PE
-    assert result.value.peak_requests_per_second == EXPECTED_ASSERT_RESULT_VALUE_PEAK_REQUESTS_PER_SE
+    assert result.value.baseline_requests_per_second == EXPECTED_BASELINE_RPS
+    assert result.value.peak_requests_per_second == EXPECTED_PEAK_RPS
     assert result.value.read_ratio == EXPECTED_ASSERT_RESULT_VALUE_READ_RATIO
     assert result.field_evidence == (
         ("workload.baseline_requests_per_second", baseline),
@@ -63,5 +63,5 @@ def test_build_workload_does_not_mutate_candidates_or_verified_excerpts() -> Non
     assert verified_excerpts == [baseline, peak, ratio]
 
 EXPECTED_ASSERT_RESULT_VALUE_READ_RATIO = 0.7
-EXPECTED_ASSERT_RESULT_VALUE_PEAK_REQUESTS_PER_SE = 400.0
-EXPECTED_ASSERT_RESULT_VALUE_BASELINE_REQUESTS_PE = 120.0
+EXPECTED_PEAK_RPS = 400.0
+EXPECTED_BASELINE_RPS = 120.0
