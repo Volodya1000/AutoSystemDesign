@@ -6,6 +6,7 @@ from pydantic import ValidationError
 
 from application.document_processing import deduplicate_issues, is_evidence_supported
 from application.document_scenario_functions import (
+    CandidateValidationOptions,
     build_functional_requirements,
     build_metric_requirements,
     build_workload,
@@ -64,7 +65,8 @@ class DocumentScenarioService:
                     RequirementIssue(
                         kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
                         description=(
-                            "No source-grounded requirements remain after evidence validation."
+                            "No source-grounded requirements remain after "
+                            "evidence validation."
                         ),
                     )
                 )
@@ -129,8 +131,10 @@ class DocumentScenarioService:
             description_candidate,
             "description",
             verified_excerpts,
-            required=True,
-            verbatim_text=True,
+            options=CandidateValidationOptions(
+                required=True,
+                verbatim_text=True,
+            ),
         )
         issues.extend(description_result.issues)
         field_evidence = dict(description_result.field_evidence)
@@ -168,7 +172,10 @@ class DocumentScenarioService:
                     RequirementIssue(
                         kind=RequirementIssueKind.INVALID_VALUE,
                         field="scenario",
-                        description=f"Mapped values violate the scenario schema: {error}",
+                        description=(
+                            "Mapped values violate the scenario schema: "
+                            f"{error}"
+                        ),
                     )
                 )
 
