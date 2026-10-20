@@ -205,9 +205,7 @@ def _compute_node_latencies(
             latencies[node.identifier] = 0.0
             queue_waits[node.identifier] = None
         elif isinstance(node, CapacityNode):
-            queue_wait = _node_queue_wait_ms(
-                node, incoming.get(node.identifier, 0.0)
-            )
+            queue_wait = _node_queue_wait_ms(node, incoming.get(node.identifier, 0.0))
             queue_waits[node.identifier] = queue_wait
             if queue_wait is None:
                 latencies[node.identifier] = None
@@ -267,9 +265,7 @@ def _compute_synchronous_critical_path(
     if not math.isfinite(dist[end_node]):
         return None, (), ()
 
-    path, edge_latencies = _reconstruct_path(
-        end_node, predecessor, pred_edge_latency
-    )
+    path, edge_latencies = _reconstruct_path(end_node, predecessor, pred_edge_latency)
     return dist[end_node], tuple(path), tuple(edge_latencies)
 
 

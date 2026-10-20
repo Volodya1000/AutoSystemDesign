@@ -83,9 +83,7 @@ def build_performance_analysis_report(
         critical_path.path_node_ids
         if critical_path is not None and critical_path.total_latency_ms is not None
         else tuple(
-            node.identifier
-            for node in graph.nodes
-            if isinstance(node, CapacityNode)
+            node.identifier for node in graph.nodes if isinstance(node, CapacityNode)
         ),
     )
     findings = _capacity_findings(graph, utilization_by_node)

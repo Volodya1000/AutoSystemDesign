@@ -47,7 +47,7 @@ def create_test_compute_node(
         "concurrency": "maximum_concurrency",
         "mean_ms": "mean_processing_time_milliseconds",
         "std_ms": "standard_deviation_processing_time",
-    "service_channels_per_replica": "service_channels_per_replica",
+        "service_channels_per_replica": "service_channels_per_replica",
         "replicas": "replicas_count",
         "cost": "monthly_cost_usd",
     }

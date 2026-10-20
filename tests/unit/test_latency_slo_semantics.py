@@ -19,7 +19,7 @@ pytestmark = pytest.mark.unit
 def test_percentile_target_is_not_evaluated_and_mean_remains_available() -> None:
     report = build_performance_analysis_report(
         create_test_latency_graph(service_channels_per_replica=1),
-        create_test_latency_scenario()
+        create_test_latency_scenario(),
     )
 
     service_metrics = next(
