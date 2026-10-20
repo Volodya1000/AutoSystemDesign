@@ -54,7 +54,7 @@ class TestAppSettings:
         assert settings.base_url == "http://localhost:1234/v1"
         assert settings.api_key.get_secret_value() == "lm-studio"
         assert settings.llm.model == "lm_studio/env-model"
-        assert settings.llm.temperature == 0.4
+        assert settings.llm.temperature == EXPECTED_ASSERT_SETTINGS_LLM_TEMPERATURE
         assert settings.llm.structured_output_mode is StructuredOutputMode.JSON_SCHEMA
 
     def test_env_file_provides_connection_fields(self, tmp_path: Path) -> None:
@@ -88,9 +88,9 @@ class TestAppSettings:
         _write_config_file(tmp_path, _LLM_YAML + "generation:\n  max_attempts: 7\n")
         settings: AppSettings = AppSettings()  # type: ignore[call-arg]
         assert settings.llm.model == "lm_studio/yaml-model"
-        assert settings.llm.temperature == 0.4
-        assert settings.generation.max_attempts == 7
-        assert settings.testing.generation_runs == 3  # untouched default
+        assert settings.llm.temperature == EXPECTED_ASSERT_SETTINGS_LLM_TEMPERATURE
+        assert settings.generation.max_attempts == EXPECTED_ASSERT_SETTINGS_GENERATION_MAX_ATTEMPTS
+        assert settings.testing.generation_runs == EXPECTED_ASSERT_SETTINGS_TESTING_GENERATION_RUNS  # untouched default
 
     def test_environment_overrides_yaml(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -100,7 +100,7 @@ class TestAppSettings:
         monkeypatch.setenv("ASD_LLM__MODEL", "lm_studio/env-model")
         settings: AppSettings = AppSettings()  # type: ignore[call-arg]
         assert settings.llm.model == "lm_studio/env-model"
-        assert settings.llm.temperature == 0.4
+        assert settings.llm.temperature == EXPECTED_ASSERT_SETTINGS_LLM_TEMPERATURE
 
     def test_config_file_env_var_redirects_yaml(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -168,3 +168,8 @@ class TestAppSettings:
         )
         assert settings.generation == GenerationSettings()
         assert settings.testing == IntegrationSettings()
+
+EXPECTED_ASSERT_SETTINGS_LLM_TEMPERATURE = 0.4
+EXPECTED_ASSERT_SETTINGS_TESTING_GENERATION_RUNS = 3
+EXPECTED_ASSERT_SETTINGS_GENERATION_MAX_ATTEMPTS = 7
+
