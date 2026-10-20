@@ -56,7 +56,9 @@ class ApiStage:
                 message="No functional requirements provided; skipping API generation.",
             )
 
-        graph: ArchitectureGraph = require_payload(context, StageId.C4, ArchitectureGraph)
+        graph: ArchitectureGraph = require_payload(
+            context, StageId.C4, ArchitectureGraph
+        )
         sequences: Mapping[str, InteractionScenario] = require_payload(
             context, StageId.SEQUENCE, dict
         )
