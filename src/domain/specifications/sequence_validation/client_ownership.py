@@ -12,6 +12,7 @@ from domain.specifications.interfaces import ValidationResult
 from .helpers import iter_message_steps
 
 if TYPE_CHECKING:
+    from domain.exceptions.architecture_errors import ArchitectureValidationError
     from domain.models.roles import ProjectRolesCatalog
     from domain.models.topology import ArchitectureGraph
 
@@ -54,7 +55,7 @@ class ClientOwnershipValidator:
                 if client_id in client_ids and role is not None:
                     client_roles[client_id].add(role)
 
-        errors = [
+        errors: list[ArchitectureValidationError] = [
             SharedClientLifelineError(
                 client_lifeline_id=client_id,
                 business_role_ids=sorted(roles),
