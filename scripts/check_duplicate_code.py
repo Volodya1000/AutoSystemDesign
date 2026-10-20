@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import re
 import shutil
@@ -18,6 +19,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 DUPLICATE_HEADING = "R0801: Similar lines in"
+_logger = logging.getLogger(__name__)
 
 
 class ProcessResult(NamedTuple):
@@ -277,7 +279,7 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
         try:
             returncode, output = pylint_output(baseline)
             if returncode & ~8:
-                print(output)
+                _logger.error("%s", output)
                 raise PylintBaselineCheckError
             return {pair_key(pair) for pair in duplicate_pairs(output)}
         finally:
@@ -333,14 +335,14 @@ def main() -> int:
         }
 
     if not changed:
-        print("No changed Python files; duplicate-code check skipped.")
+        _logger.info("No changed Python files; duplicate-code check skipped.")
         return 0
 
     returncode, output = pylint_output()
     # R0801 is a refactor message (exit-code bit 8) and is handled below.
     # Other exit-code bits indicate a failed/invalid lint run and must fail CI.
     if returncode & ~8:
-        print(output)
+        _logger.error("%s", output)
         return 1
 
     current_pairs = duplicate_pairs(output)
@@ -359,10 +361,10 @@ def main() -> int:
             failures.append(failure)
 
     if failures:
-        print("\n".join(failures))
+        _logger.error("%s", "\n".join(failures))
         return 1
 
-    print("No new duplicate-code findings in changed Python files.")
+    _logger.info("No new duplicate-code findings in changed Python files.")
     return 0
 
 
