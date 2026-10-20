@@ -68,6 +68,8 @@ extend-select = [
     "S607",   # Review subprocess calls using partial executable paths.
     "PT011",  # Require specific exception expectations in pytest.
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
+    "ARG001", # Remove unused function arguments.
+    "ARG002", # Remove unused method arguments.
     "PT018", # Keep each pytest assertion focused.
     "PT006", # Use explicit parameterization argument names.
     "ANN001", # Require parameter type annotations.
@@ -78,6 +80,7 @@ extend-select = [
     "D404", # Avoid starting docstrings with "This".
     "RUF002", # Avoid ambiguous Unicode in docstrings.
     "RUF005", # Prefer clearer sequence concatenation.
+    "E501",   # Apply the configured 88-column line limit consistently.
 ]
 # All enabled rules must be fixed rather than suppressed.
 

@@ -36,6 +36,7 @@ class NullReporter:
         self.labels: list[str] = []
 
     def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None:
+        del attempts
         self.labels.append(label)
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:

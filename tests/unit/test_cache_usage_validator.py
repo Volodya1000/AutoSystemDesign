@@ -235,7 +235,8 @@ class TestMultipleSyncReaders:
     def test_only_compute_without_fallback_is_reported(self) -> None:
         """Report only the reader without a database fallback.
 
-        Two compute nodes read the same cache; one has a DB fallback and the other does not.
+        Two compute nodes read the same cache; one has a DB fallback, and the other does
+        not.
         """
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),

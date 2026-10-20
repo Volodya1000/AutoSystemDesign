@@ -3,7 +3,8 @@
 Usage (from the repository root, with LM Studio running):
     uv run scripts/generate_pipeline.py --scenario scenarios/ecommerce_checkout.yaml
     uv run scripts/generate_pipeline.py --scenario scenarios/x.yaml --out-dir output
-    uv run scripts/generate_pipeline.py --scenario scenarios/x.yaml --diagram-server kroki
+    uv run scripts/generate_pipeline.py --scenario scenarios/x.yaml \
+        --diagram-server kroki
     uv run scripts/generate_pipeline.py --scenario scenarios/x.yaml --no-diagram
     uv run scripts/generate_pipeline.py --scenario scenarios/x.yaml --verbose
 

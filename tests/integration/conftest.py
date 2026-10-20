@@ -47,7 +47,8 @@ def require_lm_studio(app_settings: AppSettings) -> None:
         pytest.skip(f"LM Studio is not reachable at {app_settings.base_url}: {error}")
     if response.status_code != 200:
         pytest.skip(
-            f"LM Studio responded with {response.status_code} at {app_settings.base_url}"
+            f"LM Studio responded with {response.status_code} "
+            f"at {app_settings.base_url}"
         )
 
 
