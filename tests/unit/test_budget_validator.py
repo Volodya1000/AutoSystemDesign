@@ -17,7 +17,6 @@ from domain.specifications.requirement_dispatch import (
     RequirementValidationDispatcher,
 )
 
-
 pytestmark = pytest.mark.unit
 
 
