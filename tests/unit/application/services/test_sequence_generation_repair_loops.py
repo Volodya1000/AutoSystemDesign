@@ -37,7 +37,6 @@ if TYPE_CHECKING:
     from application.results import SequenceGenerationResult
 
 
-
 pytestmark = pytest.mark.unit
 
 
