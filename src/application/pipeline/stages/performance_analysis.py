@@ -10,7 +10,7 @@ from application.performance_analysis.report_builder import (
 )
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.stage import StageId
+from application.pipeline.stage import StageId, begin_stage_execution
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import PerformanceAnalysisReport
 
@@ -32,8 +32,7 @@ class PerformanceAnalysisStage:
     depends_on: tuple[StageId, ...] = (StageId.C4,)
 
     def run(self, context: StageContext) -> StageOutcome[PerformanceAnalysisReport]:
-        stage_start: float = time.perf_counter()
-        scenario: DesignScenario = context.scenario
+        stage_start, scenario = begin_stage_execution(context)
         graph: ArchitectureGraph = require_payload(
             context, self.depends_on[0], ArchitectureGraph
         )
