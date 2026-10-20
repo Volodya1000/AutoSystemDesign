@@ -93,9 +93,7 @@ class TestAppSettings:
         assert settings.llm.model == "lm_studio/yaml-model"
         assert settings.llm.temperature == EXPECTED_TEMPERATURE
         assert settings.generation.max_attempts == 7
-        assert (
-            settings.testing.generation_runs == 3
-        )  # untouched default
+        assert settings.testing.generation_runs == 3  # untouched default
 
     def test_environment_overrides_yaml(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
