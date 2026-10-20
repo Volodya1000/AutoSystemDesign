@@ -3,7 +3,7 @@
 from typing import Any, TypedDict, Unpack
 
 from domain.models.edges import Edge
-from domain.models.enums import NodeType
+from domain.models.enums import EdgeRoutingMode, NodeType
 from domain.models.nodes import (
     CacheNode,
     ClientNode,
@@ -63,6 +63,7 @@ def create_test_node(
     identifier: str,
     node_type: NodeType,
     replicas_count: int = 1,
+    cache_hit_rate_probability: float = 0.8,
 ) -> AnyNode:
     """Build the registered node model for a given type and identifier."""
     match node_type:
@@ -81,7 +82,11 @@ def create_test_node(
                 identifier=identifier, **_capacity_fields(replicas_count)
             )
         case NodeType.CACHE:
-            return CacheNode(identifier=identifier, **_capacity_fields(replicas_count))
+            return CacheNode(
+                identifier=identifier,
+                **_capacity_fields(replicas_count),
+                cache_hit_rate_probability=cache_hit_rate_probability,
+            )
         case NodeType.MESSAGE_BROKER:
             return MessageBrokerNode(
                 identifier=identifier, **_capacity_fields(replicas_count)
@@ -93,11 +98,14 @@ def create_test_node(
 def create_test_edge(
     source_identifier: str,
     target_identifier: str,
+    *,
+    routing_mode: EdgeRoutingMode = EdgeRoutingMode.ALTERNATIVE,
 ) -> Edge:
     """Create a deterministic synchronous edge between topology nodes."""
     return Edge(
         source_identifier=source_identifier,
         target_identifier=target_identifier,
         protocol=SYNCHRONOUS_REST_HTTP,
+        routing_mode=routing_mode,
         network_latency_milliseconds=1.0,
     )

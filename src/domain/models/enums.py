@@ -18,6 +18,13 @@ class NodeType(StrEnum):
     MESSAGE_BROKER = "message_broker"
 
 
+class EdgeRoutingMode(StrEnum):
+    """Describe how an edge carries requests from its source node."""
+
+    ALTERNATIVE = "alternative"
+    FAN_OUT = "fan_out"
+
+
 class DatabaseRole(StrEnum):
     PRIMARY = "primary"
     REPLICA = "replica"

@@ -7,7 +7,7 @@ import pytest
 from application.performance_analysis.report_builder import (
     build_performance_analysis_report,
 )
-from domain.models.enums import NodeType
+from domain.models.enums import EdgeRoutingMode, NodeType
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import (
@@ -183,6 +183,56 @@ def test_branching_flow_limit_is_reported_without_pinning_message_text() -> None
 
     assert limitation.severity is PerformanceFindingSeverity.WARNING
     assert limitation.affected_node_identifiers == ["router"]
+
+
+def test_known_fan_out_does_not_report_unknown_branch_distribution() -> None:
+    graph = ArchitectureGraph(
+        nodes=[
+            create_test_node("client", NodeType.CLIENT),
+            create_test_compute_node("router"),
+            create_test_compute_node("service_a"),
+            create_test_compute_node("service_b"),
+        ],
+        edges=[
+            create_test_edge("client", "router"),
+            create_test_edge(
+                "router", "service_a", routing_mode=EdgeRoutingMode.FAN_OUT
+            ),
+            create_test_edge(
+                "router", "service_b", routing_mode=EdgeRoutingMode.FAN_OUT
+            ),
+        ],
+    )
+
+    report = build_performance_analysis_report(graph, _scenario())
+
+    assert all(
+        finding.finding_code is not PerformanceFindingCode.UNSUPPORTED_MODEL
+        for finding in report.findings
+    )
+
+
+def test_cache_fallback_does_not_look_like_an_alternative_route() -> None:
+    graph = ArchitectureGraph(
+        nodes=[
+            create_test_node("client", NodeType.CLIENT),
+            create_test_compute_node("router"),
+            create_test_node("cache", NodeType.CACHE),
+            create_test_node("database", NodeType.DATABASE),
+        ],
+        edges=[
+            create_test_edge("client", "router"),
+            create_test_edge("router", "cache"),
+            create_test_edge("router", "database"),
+        ],
+    )
+
+    report = build_performance_analysis_report(graph, _scenario())
+
+    assert all(
+        finding.finding_code is not PerformanceFindingCode.UNSUPPORTED_MODEL
+        for finding in report.findings
+    )
 
 
 def test_report_remains_valid_after_json_round_trip() -> None:
