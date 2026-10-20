@@ -14,14 +14,13 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.stage import StageId
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
     from application.pipeline.ports import ArtifactWriter, PipelineReporter
-    from application.pipeline.stage import PipelineStage
+    from application.pipeline.stage import PipelineStage, StageId
     from domain.models import DesignScenario
 
 _logger = logging.getLogger("pipeline.runner")
