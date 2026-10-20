@@ -7,17 +7,50 @@ changed file fail the check.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
 DUPLICATE_HEADING = "R0801: Similar lines in"
+
+
+class ProcessResult(NamedTuple):
+    """Captured output from an asynchronously started process."""
+
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+def run_process(
+    arguments: list[str], *, check: bool = False, cwd: Path | None = None
+) -> ProcessResult:
+    """Run an executable directly, capturing output without invoking a shell."""
+
+    async def execute() -> ProcessResult:
+        process = await asyncio.create_subprocess_exec(
+            *arguments,
+            cwd=cwd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate()
+        return ProcessResult(
+            process.returncode or 0,
+            stdout.decode("utf-8", errors="replace"),
+            stderr.decode("utf-8", errors="replace"),
+        )
+
+    result = asyncio.run(execute())
+    if check and result.returncode != 0:
+        raise RuntimeError(f"Command failed with exit code {result.returncode}")
+    return result
 MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
 
 
@@ -64,12 +97,9 @@ class PylintBaselineCheckError(RuntimeError):
 
 def git_output(arguments: list[str]) -> str:
     """Run Git and return standard output."""
-    # Explicit argv lists and shell=False prevent shell interpretation.
-    result = subprocess.run(  # noqa: S603
+    result = run_process(
         arguments,
         check=True,
-        capture_output=True,
-        text=True,
     )
     return result.stdout.strip()
 
@@ -183,7 +213,7 @@ def duplicate_pairs(output: str) -> list[DuplicatePair]:
 
 def pylint_output(cwd: Path | None = None) -> tuple[int, str]:
     """Run the duplicate-code checker and return its exit status and output."""
-    result = subprocess.run(
+    result = run_process(
         [
             sys.executable,
             "-m",
@@ -196,8 +226,6 @@ def pylint_output(cwd: Path | None = None) -> tuple[int, str]:
             "scripts",
         ],
         check=False,
-        capture_output=True,
-        text=True,
         cwd=cwd,
     )
     return result.returncode, result.stdout + result.stderr
@@ -232,8 +260,7 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
     """Return duplicate pairs already present at the comparison base."""
     with tempfile.TemporaryDirectory(prefix="asd-duplicate-baseline-") as directory:
         baseline = Path(directory) / "baseline"
-        # Explicit Git argv; no shell or command-string interpolation.
-        subprocess.run(  # noqa: S603
+        run_process(
             [
                 git_executable(),
                 "worktree",
@@ -244,8 +271,6 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
                 base,
             ],
             check=True,
-            capture_output=True,
-            text=True,
         )
         try:
             returncode, output = pylint_output(baseline)
@@ -254,8 +279,7 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
                 raise PylintBaselineCheckError
             return {pair_key(pair) for pair in duplicate_pairs(output)}
         finally:
-            # Explicit Git argv; no shell or command-string interpolation.
-            subprocess.run(  # noqa: S603
+        run_process(
                 [
                     git_executable(),
                     "worktree",
@@ -264,8 +288,6 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
                     str(baseline),
                 ],
                 check=False,
-                capture_output=True,
-                text=True,
             )
 
 
