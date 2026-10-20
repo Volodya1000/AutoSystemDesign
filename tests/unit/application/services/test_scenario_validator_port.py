@@ -26,6 +26,8 @@ from domain.specifications.interfaces import (
 )
 from tests.unit.test_structural_validator import create_test_edge, create_test_node
 
+from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
+
 pytestmark = pytest.mark.unit
 
 
@@ -195,7 +197,7 @@ def test_scenario_validator_failure_drives_repair_feedback() -> None:
 
     result: DesignGenerationResult = service.generate(_port_test_scenario())
 
-    assert len(result.attempts) == EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT
+    assert len(result.attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
     for attempt in result.attempts:
         assert attempt.validation is not None
         assert [error.error_code for error in attempt.validation.errors] == [
@@ -219,5 +221,5 @@ def test_scenario_validators_default_empty_keeps_old_behaviour() -> None:
 
     assert result.status is GenerationStatus.SUCCEEDED
 
-EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 2
+EXPECTED_RESULT_ATTEMPTS_COUNT = 2
 EXPECTED_ASSERT_VALIDATION_ERRORS_COUNT = 2
