@@ -141,4 +141,3 @@ def test_budget_failure_after_max_attempts_is_validation_failed() -> None:
     assert last_validation.has_error(BudgetExceededError)
 
 EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 2
-
