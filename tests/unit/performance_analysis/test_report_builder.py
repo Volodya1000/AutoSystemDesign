@@ -7,16 +7,17 @@ import json
 import pytest
 
 from application.performance_analysis import build_performance_report
-from domain.models.nodes import CapacityNode
+from domain.models.enums import NodeType
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import (
+    NodePerformanceMetrics,
+    PerformanceAnalysisReport,
     PerformanceAnalysisStatus,
     PerformanceFindingCode,
     PerformanceFindingSeverity,
 )
 from tests.factories import create_test_compute_node, create_test_edge, create_test_node
-from domain.models.enums import NodeType
 
 pytestmark = pytest.mark.unit
 
@@ -37,8 +38,7 @@ def _scenario(peak_rps: float | None = 50.0) -> DesignScenario:
     )
 
 
-def _graph(peak_rps: float | None = 50.0) -> ArchitectureGraph:
-    del peak_rps
+def _graph() -> ArchitectureGraph:
     return ArchitectureGraph(
         nodes=[
             create_test_node("client", NodeType.CLIENT),
@@ -53,8 +53,10 @@ def _graph(peak_rps: float | None = 50.0) -> ArchitectureGraph:
     )
 
 
-def _metrics_by_node(report: object) -> dict[str, object]:
-    """Index serialized node metrics by identity for focused assertions."""
+def _metrics_by_node(
+    report: PerformanceAnalysisReport,
+) -> dict[str, NodePerformanceMetrics]:
+    """Index node metrics by identity for focused assertions."""
     return {metric.node_identifier: metric for metric in report.nodes}
 
 
@@ -68,7 +70,6 @@ def test_report_reuses_existing_load_capacity_and_latency_calculations() -> None
     assert metrics["client"].estimated_capacity_requests_per_second is None
 
     api = metrics["api"]
-    assert isinstance(api, object)
     assert api.incoming_requests_per_second == pytest.approx(50.0)
     assert api.estimated_capacity_requests_per_second == pytest.approx(100.0)
     assert api.utilization_ratio == pytest.approx(0.5)
