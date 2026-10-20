@@ -1,0 +1,74 @@
+"""Exact steady-state calculations for an M/M/1 queue."""
+
+from math import isfinite
+
+from domain.performance_analysis.queueing import QueueingMetrics, QueueingStatus
+
+MILLISECONDS_PER_SECOND = 1000.0
+
+
+def compute_mm1_metrics(
+    arrival_rate_requests_per_second: float,
+    service_rate_requests_per_second: float,
+) -> QueueingMetrics:
+    """Calculate M/M/1 mean queue wait and response time.
+
+    Rates are measured in requests per second. The model assumes a Poisson
+    arrival process, exponentially distributed service times, one independent
+    server, and an unbounded queue in steady state.
+    """
+    _validate_rates(
+        arrival_rate_requests_per_second,
+        service_rate_requests_per_second,
+    )
+
+    utilization_ratio = (
+        arrival_rate_requests_per_second / service_rate_requests_per_second
+    )
+    if not isfinite(utilization_ratio):
+        message = "The utilization ratio is outside the finite floating-point range."
+        raise ValueError(message)
+
+    if arrival_rate_requests_per_second >= service_rate_requests_per_second:
+        return QueueingMetrics(
+            status=QueueingStatus.UNSTABLE,
+            utilization_ratio=utilization_ratio,
+        )
+
+    rate_difference = (
+        service_rate_requests_per_second - arrival_rate_requests_per_second
+    )
+    mean_queue_wait_milliseconds = (
+        MILLISECONDS_PER_SECOND * utilization_ratio / rate_difference
+    )
+    mean_response_time_milliseconds = MILLISECONDS_PER_SECOND / rate_difference
+    if not isfinite(mean_queue_wait_milliseconds) or not isfinite(
+        mean_response_time_milliseconds
+    ):
+        message = "The calculated queueing metrics exceed the finite floating-point range."
+        raise ValueError(message)
+
+    return QueueingMetrics(
+        status=QueueingStatus.STABLE,
+        utilization_ratio=utilization_ratio,
+        mean_queue_wait_milliseconds=mean_queue_wait_milliseconds,
+        mean_response_time_milliseconds=mean_response_time_milliseconds,
+    )
+
+
+def _validate_rates(
+    arrival_rate_requests_per_second: float,
+    service_rate_requests_per_second: float,
+) -> None:
+    if (
+        not isfinite(arrival_rate_requests_per_second)
+        or arrival_rate_requests_per_second < 0.0
+    ):
+        message = "Arrival rate must be finite and non-negative."
+        raise ValueError(message)
+    if (
+        not isfinite(service_rate_requests_per_second)
+        or service_rate_requests_per_second <= 0.0
+    ):
+        message = "Service rate must be finite and positive."
+        raise ValueError(message)
