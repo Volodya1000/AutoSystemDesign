@@ -42,6 +42,49 @@ uv run python scripts/generate_pipeline.py --scenario scenarios/social_network_c
 
 Полное руководство по аргументам запуска, настройке визуализации, результатам и кодам завершения находится в [`docs/usage.md`](docs/usage.md).
 
+## Извлечение требований из Markdown
+
+Для ручной проверки извлечения функциональных и нефункциональных требований есть пример
+`examples/requirements/online_store.md`. Запустите LM Studio или другой OpenAI-compatible
+endpoint и настройте `ASD_BASE_URL`, `ASD_API_KEY` и модель в обычной конфигурации проекта.
+
+```bash
+uv run python scripts/extract_document_requirements.py
+```
+
+По умолчанию результат сохраняется в `output/document_requirements.json`. Можно указать
+другой документ и путь результата:
+
+```bash
+uv run python scripts/extract_document_requirements.py --document examples/requirements/online_store.md --output output/requirements.json
+```
+
+JSON содержит извлечённые требования с цитатами из исходного текста и диагностические
+замечания. Этот запуск предназначен для ручной проверки реальным LLM; модульные тесты
+не требуют работающего endpoint.
+
+Для преобразования требований в YAML-сценарий, совместимый с существующим конвейером,
+используйте двухэтапное извлечение:
+
+```bash
+uv run python scripts/extract_document_scenario.py \\
+  --document examples/requirements/online_store.md \\
+  --output output/online_store.yaml
+uv run python scripts/generate_pipeline.py \\
+  --scenario output/online_store.yaml --no-diagram
+```
+
+Рядом создаётся `output/online_store.evidence.json` с цитатами по полям и диагностикой.
+Перед генерацией архитектуры просмотрите этот файл: неподтверждённые требования и
+числа отбрасываются, а при невозможности проверить обязательное описание YAML не
+создаётся. Если в источнике нет подтверждённого отношения чтений к записям, блок
+`workload` целиком исключается: это не позволяет случайно применить доменное значение
+по умолчанию `read_ratio: 0.8`.
+
+После проверки манифеста можно передать сценарий существующему конвейеру в рамках
+того же вызова, добавив `--run-pipeline`. Для пропуска рендеринга добавьте также
+`--no-diagram`; каталог артефактов можно задать через `--pipeline-out-dir output/design`.
+
 ## Этапы конвейера
 
 1. **C4**: генерация и проверка графа архитектуры.
@@ -87,3 +130,5 @@ uv run pylint src tests
 - `src/config`: настройки приложения и интеграционных тестов.
 - `scenarios`: примеры YAML-сценариев.
 - `tests/unit` и `tests/integration`: автоматические тесты.
+
+**Ограничение проверки:** дословная цитата подтверждает происхождение формулировки, но сама по себе не доказывает правильность семантической классификации (например, что фраза действительно описывает задержку). Для таких решений сохраняется цитата поля, чтобы результат можно было проверить до запуска конвейера.

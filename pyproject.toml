@@ -53,7 +53,8 @@ extend-select = [
     "SIM",   # Simplify unnecessarily complicated control flow.
     "TC",    # Type-checking import and annotation rules.
     "TID",   # Keep imports explicit and maintainable.
-    "TRY",   # Exception handling and error-design rules.
+    "TRY400", # Prefer logging.exception when reporting an active exception.
+    "TRY401", # Avoid redundant exception objects in logging.exception calls.
     "PLR0911", # Keep functions from accumulating too many return paths.
     "PLR0912", # Keep branching logic manageable.
     "PLR0913", # Keep function interfaces small.
@@ -69,7 +70,6 @@ extend-select = [
     "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
     "ARG001", # Remove unused function arguments.
     "ARG002", # Remove unused method arguments.
-    "EM101", # Avoid raising exceptions directly from string literals.
     "PT018", # Keep each pytest assertion focused.
     "PT006", # Use explicit parameterization argument names.
     "ANN001", # Require parameter type annotations.
