@@ -6,13 +6,13 @@ import pytest
 from infrastructure.llm.context_diagnostics import (
     context_overflow_diagnostic,
 )
-from infrastructure.llm.models import CompletionRequest, Message
+from infrastructure.llm.models import CompletionRequest, Message, MessageRole
 
 
 @pytest.fixture
 def completion_request() -> CompletionRequest:
     return CompletionRequest(
-        messages=[Message(role="user", content="Generate an architecture.")],
+        messages=[Message(role=MessageRole.USER, content="Generate an architecture.")],
         max_tokens=16_000,
     )
 
