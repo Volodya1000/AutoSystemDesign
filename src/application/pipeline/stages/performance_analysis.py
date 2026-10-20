@@ -5,11 +5,11 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
-from application.pipeline.context import StageContext, require_payload
-from application.pipeline.outcome import StageOutcome, StageStatus
 from application.performance_analysis.report_builder import (
     build_performance_analysis_report,
 )
+from application.pipeline.context import StageContext, require_payload
+from application.pipeline.outcome import StageOutcome, StageStatus
 from domain.models.topology import ArchitectureGraph
 
 if TYPE_CHECKING:
@@ -37,8 +37,11 @@ class PerformanceAnalysisStage:
         report: PerformanceAnalysisReport = build_performance_analysis_report(
             graph, context.scenario
         )
+        artifact_filename: str = (
+            f"{context.scenario.identifier}_performance_analysis.json"
+        )
         artifact_path = context.writer.write_text(
-            context.out_dir / f"{context.scenario.identifier}_performance_analysis.json",
+            context.out_dir / artifact_filename,
             report.model_dump_json(indent=2),
         )
 
