@@ -92,6 +92,7 @@ extend-select = [
     "E501",   # Apply the configured 88-column line limit consistently.
 ]
 # Fix all enabled lint findings without inline suppressions.
+allowed-confusables = ["а", "е", "о", "р", "с", "С"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]
