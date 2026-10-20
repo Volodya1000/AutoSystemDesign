@@ -25,7 +25,8 @@ def tracked_files() -> list[Path]:
         )
         stdout, _ = await process.communicate()
         if process.returncode != 0:
-            raise RuntimeError("Git could not list tracked files")
+            message = "Git could not list tracked files"
+            raise RuntimeError(message)
         return stdout
 
     output = asyncio.run(list_tracked_files())
