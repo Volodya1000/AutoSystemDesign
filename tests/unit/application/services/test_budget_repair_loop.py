@@ -141,4 +141,3 @@ def test_budget_failure_after_max_attempts_is_validation_failed() -> None:
     last_validation = result.attempts[-1].validation
     assert last_validation is not None
     assert last_validation.has_error(BudgetExceededError)
-
