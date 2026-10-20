@@ -23,11 +23,11 @@ class EvidenceValue[ValueT](BaseModel):
     @model_validator(mode="after")
     def _validate_evidence_pair(self) -> Self:
         if (self.value is None) != (self.source_excerpt is None):
-            raise EvidencePairValidationError(
-                "value and source_excerpt must both be set or both be null"
-            )
+            message = "value and source_excerpt must both be set or both be null"
+            raise EvidencePairValidationError(message)
         if self.source_excerpt is not None and not self.source_excerpt.strip():
-            raise EvidencePairValidationError("source_excerpt must not be blank")
+            message = "source_excerpt must not be blank"
+            raise EvidencePairValidationError(message)
         return self
 
 

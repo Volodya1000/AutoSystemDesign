@@ -41,9 +41,11 @@ class DocumentRequirementsService:
         overlap_chars: int = 500,
     ) -> None:
         if max_chars < 1:
-            raise DocumentInputError("max_chars must be positive")
+            message = "max_chars must be positive"
+            raise DocumentInputError(message)
         if overlap_chars < 0 or overlap_chars >= max_chars:
-            raise DocumentInputError("overlap_chars must be in [0, max_chars)")
+            message = "overlap_chars must be in [0, max_chars)"
+            raise DocumentInputError(message)
         self._reader = reader
         self._extractor = extractor
         self._max_chars = max_chars

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import litellm
+
 if TYPE_CHECKING:
     from infrastructure.llm.models import CompletionRequest
 
@@ -34,8 +36,6 @@ def context_overflow_diagnostic(
         return None
 
     try:
-        import litellm
-
         prompt_tokens = int(
             litellm.token_counter(
                 model=model,

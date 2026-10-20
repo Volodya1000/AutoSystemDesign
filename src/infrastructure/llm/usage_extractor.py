@@ -9,7 +9,7 @@ content, and the configured model name for token counting).
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import litellm
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 def extract_usage(
-    raw_usage: Any,
+    raw_usage: object,
     request: CompletionRequest,
     content: str,
     *,

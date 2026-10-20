@@ -1,8 +1,6 @@
 import json
 import logging
-import subprocess
 from pathlib import Path
-from typing import Any
 
 import pytest
 import yaml
@@ -46,26 +44,29 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
     pipeline_calls: list[list[str]] = []
 
     class FakeService:
-        def __init__(self, requirements_service: Any, mapper: Any) -> None:
+        def __init__(self, requirements_service: object, mapper: object) -> None:
             pass
 
         def extract_file(self, path: Path) -> DocumentScenarioResult:
             assert path == document
             return expected
 
-    def fake_run(
-        command: list[str], *, check: bool
-    ) -> subprocess.CompletedProcess[bytes]:
-        assert not check
-        pipeline_calls.append(command)
-        return subprocess.CompletedProcess(command, 0)
+    class FakeProcess:
+        async def wait(self) -> int:
+            return 0
+
+    async def fake_create_subprocess_exec(*command: str) -> FakeProcess:
+        pipeline_calls.append(list(command))
+        return FakeProcess()
 
     monkeypatch.setattr(cli, "load_app_settings", object)
     monkeypatch.setattr(cli, "LlmDocumentRequirementExtractor", _dummy_factory)
     monkeypatch.setattr(cli, "DocumentRequirementsService", _dummy_factory)
     monkeypatch.setattr(cli, "LlmDocumentScenarioMapper", _dummy_factory)
     monkeypatch.setattr(cli, "DocumentScenarioService", FakeService)
-    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        cli.asyncio, "create_subprocess_exec", fake_create_subprocess_exec
+    )
 
     exit_code = cli.main(
         [
@@ -119,7 +120,7 @@ def test_main_does_not_write_scenario_without_validated_result(
     )
 
     class FakeService:
-        def __init__(self, requirements_service: Any, mapper: Any) -> None:
+        def __init__(self, requirements_service: object, mapper: object) -> None:
             pass
 
         def extract_file(self, _path: Path) -> DocumentScenarioResult:

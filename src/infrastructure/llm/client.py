@@ -114,7 +114,7 @@ class LiteLlmClient:
         }
 
     def _to_completion_result(
-        self, response: Any, request: CompletionRequest, latency_seconds: float
+        self, response: object, request: CompletionRequest, latency_seconds: float
     ) -> CompletionResult:
         choices: list[Any] = getattr(response, "choices", None) or []
         content: str = ""

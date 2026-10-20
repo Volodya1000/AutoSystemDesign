@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-import http.client
-import urllib.error
-import urllib.request
-from typing import TYPE_CHECKING, Literal, Self
-
+import httpx
 import pytest
 
 from infrastructure.visualisation.plantuml import renderer as renderer_module
@@ -18,9 +14,6 @@ from infrastructure.visualisation.plantuml.renderer import (
     PlantumlServerImageRenderer,
     resolve_image_renderer,
 )
-
-if TYPE_CHECKING:
-    from types import TracebackType
 
 pytestmark = pytest.mark.unit
 
@@ -57,28 +50,6 @@ class StubRenderer:
         if self.failure is not None:
             raise self.failure
         return self.image
-
-
-class FakeResponse:
-    """Minimal context-managed response returned by a mocked urlopen."""
-
-    def __init__(self, content: bytes) -> None:
-        self._content = content
-
-    def __enter__(self) -> Self:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> Literal[False]:
-        del exc_type, exc_value, traceback
-        return False
-
-    def read(self) -> bytes:
-        return self._content
 
 
 def test_resolve_image_renderer_supports_named_selections() -> None:
@@ -151,13 +122,11 @@ def test_fallback_renderer_requires_at_least_one_renderer() -> None:
 def test_http_renderer_rejects_non_http_url_before_opening(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def unexpected_urlopen(
-        request: urllib.request.Request, timeout: float
-    ) -> FakeResponse:
-        del request, timeout
+    def unexpected_get(*args: object, **kwargs: object) -> httpx.Response:
+        del args, kwargs
         raise AssertionError
 
-    monkeypatch.setattr(renderer_module.urllib.request, "urlopen", unexpected_urlopen)
+    monkeypatch.setattr(renderer_module.httpx, "get", unexpected_get)
     renderer = PlantumlServerImageRenderer(server_url="file://localhost/tmp")
 
     with pytest.raises(ValueError, match="Invalid diagram URL"):
@@ -169,33 +138,41 @@ def test_http_renderer_sets_user_agent_and_returns_response_bytes(
 ) -> None:
     observed: dict[str, object] = {}
 
-    def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
-        observed["request"] = request
-        observed["timeout"] = timeout
-        return FakeResponse(b"rendered-image")
+    def fake_get(url: str, **kwargs: object) -> httpx.Response:
+        observed["url"] = url
+        observed.update(kwargs)
+        request = httpx.Request("GET", url)
+        return httpx.Response(200, content=b"rendered-image", request=request)
 
-    monkeypatch.setattr(renderer_module.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
     renderer = PlantumlServerImageRenderer(
         server_url="https://plantuml.example/", timeout_seconds=4.0
     )
 
     assert renderer.render("source", DiagramImageFormat.PNG) == b"rendered-image"
-    request = observed["request"]
-    assert isinstance(request, urllib.request.Request)
-    assert request.get_header("User-agent") is not None
+    observed_url = observed["url"]
+    assert isinstance(observed_url, str)
+    assert observed_url.startswith("https://plantuml.example/")
+    observed_headers = observed["headers"]
+    assert isinstance(observed_headers, dict)
+    user_agent = observed_headers.get("User-Agent")
+    assert isinstance(user_agent, str)
+    assert "AutoSystemDesign" in user_agent
     assert observed["timeout"] == 4.0
+    assert observed["follow_redirects"] is False
 
 
 def test_http_renderer_maps_http_errors_to_domain_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
-        del timeout
-        raise urllib.error.HTTPError(
-            request.full_url, 403, "Forbidden", http.client.HTTPMessage(), None
-        )
+    def fake_get(url: str, **kwargs: object) -> httpx.Response:
+        del kwargs
+        request = httpx.Request("GET", url)
+        response = httpx.Response(403, request=request)
+        message = "Forbidden"
+        raise httpx.HTTPStatusError(message, request=request, response=response)
 
-    monkeypatch.setattr(renderer_module.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
     renderer = PlantumlServerImageRenderer(server_url="https://plantuml.example")
 
     with pytest.raises(DiagramRenderingError, match="HTTP 403"):
@@ -205,11 +182,12 @@ def test_http_renderer_maps_http_errors_to_domain_error(
 def test_http_renderer_maps_connection_errors_to_domain_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def fake_urlopen(request: urllib.request.Request, timeout: float) -> FakeResponse:
-        del request, timeout
-        raise SimulatedNetworkDownError
+    def fake_get(url: str, **kwargs: object) -> httpx.Response:
+        del url, kwargs
+        message = "network down"
+        raise httpx.ConnectError(message)
 
-    monkeypatch.setattr(renderer_module.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
     renderer = KrokiImageRenderer(server_url="https://kroki.example")
 
     with pytest.raises(DiagramRenderingError, match="Cannot reach Kroki server"):

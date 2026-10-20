@@ -1,9 +1,9 @@
 """Extract verified requirements into a pipeline-compatible YAML scenario."""
 
 import argparse
+import asyncio
 import json
 import logging
-import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -98,7 +98,12 @@ def _run_pipeline(args: argparse.Namespace) -> int:
     if args.no_diagram:
         command.append("--no-diagram")
     try:
-        return subprocess.run(command, check=False).returncode
+
+        async def run_pipeline() -> int:
+            process = await asyncio.create_subprocess_exec(*command)
+            return await process.wait()
+
+        return asyncio.run(run_pipeline())
     except OSError:
         logger.exception("Could not start the design pipeline")
         return 2

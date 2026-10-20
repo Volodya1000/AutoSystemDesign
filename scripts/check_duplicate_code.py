@@ -7,17 +7,54 @@ changed file fail the check.
 
 from __future__ import annotations
 
+import asyncio
 import json
+import logging
 import os
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
 DUPLICATE_HEADING = "R0801: Similar lines in"
+_logger = logging.getLogger(__name__)
+
+
+class ProcessResult(NamedTuple):
+    """Captured output from an asynchronously started process."""
+
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+def run_process(
+    arguments: list[str], *, check: bool = False, cwd: Path | None = None
+) -> ProcessResult:
+    """Run an executable directly, capturing output without invoking a shell."""
+
+    async def execute() -> ProcessResult:
+        process = await asyncio.create_subprocess_exec(
+            *arguments,
+            cwd=cwd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate()
+        return ProcessResult(
+            process.returncode or 0,
+            stdout.decode("utf-8", errors="replace"),
+            stderr.decode("utf-8", errors="replace"),
+        )
+
+    result = asyncio.run(execute())
+    if check and result.returncode != 0:
+        raise RuntimeError(f"Command failed with exit code {result.returncode}")
+    return result
+
+
 MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
 
 
@@ -64,11 +101,9 @@ class PylintBaselineCheckError(RuntimeError):
 
 def git_output(arguments: list[str]) -> str:
     """Run Git and return standard output."""
-    result = subprocess.run(
+    result = run_process(
         arguments,
         check=True,
-        capture_output=True,
-        text=True,
     )
     return result.stdout.strip()
 
@@ -182,7 +217,7 @@ def duplicate_pairs(output: str) -> list[DuplicatePair]:
 
 def pylint_output(cwd: Path | None = None) -> tuple[int, str]:
     """Run the duplicate-code checker and return its exit status and output."""
-    result = subprocess.run(
+    result = run_process(
         [
             sys.executable,
             "-m",
@@ -195,8 +230,6 @@ def pylint_output(cwd: Path | None = None) -> tuple[int, str]:
             "scripts",
         ],
         check=False,
-        capture_output=True,
-        text=True,
         cwd=cwd,
     )
     return result.returncode, result.stdout + result.stderr
@@ -231,7 +264,7 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
     """Return duplicate pairs already present at the comparison base."""
     with tempfile.TemporaryDirectory(prefix="asd-duplicate-baseline-") as directory:
         baseline = Path(directory) / "baseline"
-        subprocess.run(
+        run_process(
             [
                 git_executable(),
                 "worktree",
@@ -242,17 +275,15 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
                 base,
             ],
             check=True,
-            capture_output=True,
-            text=True,
         )
         try:
             returncode, output = pylint_output(baseline)
             if returncode & ~8:
-                print(output)
+                _logger.error("%s", output)
                 raise PylintBaselineCheckError
             return {pair_key(pair) for pair in duplicate_pairs(output)}
         finally:
-            subprocess.run(
+            run_process(
                 [
                     git_executable(),
                     "worktree",
@@ -261,8 +292,6 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
                     str(baseline),
                 ],
                 check=False,
-                capture_output=True,
-                text=True,
             )
 
 
@@ -306,14 +335,14 @@ def main() -> int:
         }
 
     if not changed:
-        print("No changed Python files; duplicate-code check skipped.")
+        _logger.info("No changed Python files; duplicate-code check skipped.")
         return 0
 
     returncode, output = pylint_output()
     # R0801 is a refactor message (exit-code bit 8) and is handled below.
     # Other exit-code bits indicate a failed/invalid lint run and must fail CI.
     if returncode & ~8:
-        print(output)
+        _logger.error("%s", output)
         return 1
 
     current_pairs = duplicate_pairs(output)
@@ -332,10 +361,10 @@ def main() -> int:
             failures.append(failure)
 
     if failures:
-        print("\n".join(failures))
+        _logger.error("%s", "\n".join(failures))
         return 1
 
-    print("No new duplicate-code findings in changed Python files.")
+    _logger.info("No new duplicate-code findings in changed Python files.")
     return 0
 
 

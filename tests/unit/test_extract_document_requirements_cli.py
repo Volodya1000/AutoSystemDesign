@@ -1,7 +1,6 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -42,7 +41,7 @@ def test_main_writes_serialized_extraction_result(
     )
 
     class FakeService:
-        def __init__(self, reader: Any, extractor: Any) -> None:
+        def __init__(self, reader: object, extractor: object) -> None:
             pass
 
         def extract_file(self, path: Path) -> DocumentRequirements:

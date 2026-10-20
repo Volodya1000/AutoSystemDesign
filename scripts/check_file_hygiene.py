@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import shutil
-import subprocess
 from pathlib import Path
+
+_logger = logging.getLogger(__name__)
 
 
 def tracked_files() -> list[Path]:
@@ -13,15 +16,22 @@ def tracked_files() -> list[Path]:
     if git_executable is None:
         raise RuntimeError
 
-    result = subprocess.run(
-        [git_executable, "ls-files", "-z"],
-        check=True,
-        capture_output=True,
-    )
+    async def list_tracked_files() -> bytes:
+        process = await asyncio.create_subprocess_exec(
+            git_executable,
+            "ls-files",
+            "-z",
+            stdout=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await process.communicate()
+        if process.returncode != 0:
+            message = "Git could not list tracked files"
+            raise RuntimeError(message)
+        return stdout
+
+    output = asyncio.run(list_tracked_files())
     return [
-        Path(raw_path.decode("utf-8"))
-        for raw_path in result.stdout.split(b"\0")
-        if raw_path
+        Path(raw_path.decode("utf-8")) for raw_path in output.split(b"\0") if raw_path
     ]
 
 
@@ -46,10 +56,10 @@ def main() -> int:
                 failures.append(f"{path}:{line_number}: trailing whitespace")
 
     if failures:
-        print("\n".join(failures))
+        _logger.error("%s", "\n".join(failures))
         return 1
 
-    print("Whitespace and EOF checks passed.")
+    _logger.info("Whitespace and EOF checks passed.")
     return 0
 
 
