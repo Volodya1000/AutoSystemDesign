@@ -37,4 +37,3 @@ class TestLlmSettings:
     def test_rejects_non_positive_max_tokens(self) -> None:
         with pytest.raises(ValidationError):
             LlmSettings(**{**_VALID_KWARGS, "max_tokens": 0})
-
