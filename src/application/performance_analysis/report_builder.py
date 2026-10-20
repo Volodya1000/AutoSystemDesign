@@ -69,9 +69,40 @@ def build_performance_analysis_report(
     latency_by_node: dict[str, float] = (
         critical_path.node_latencies_ms if critical_path is not None else {}
     )
+    node_metrics, unavailable_latency_nodes = _build_node_metrics(
+        graph,
+        capacity_by_node,
+        incoming_by_node,
+        utilization_by_node,
+        latency_by_node,
+    )
+    findings = _capacity_findings(graph, utilization_by_node)
+    findings.extend(_branching_findings(graph))
+    if unavailable_latency_nodes:
+        findings.append(_unavailable_latency_finding(unavailable_latency_nodes))
 
+    return PerformanceAnalysisReport(
+        scenario_identifier=scenario.identifier,
+        status=(
+            PerformanceAnalysisStatus.PARTIAL
+            if unavailable_latency_nodes
+            else PerformanceAnalysisStatus.COMPLETE
+        ),
+        nodes=node_metrics,
+        findings=findings,
+    )
+
+
+def _build_node_metrics(
+    graph: ArchitectureGraph,
+    capacity_by_node: dict[str, float],
+    incoming_by_node: dict[str, float],
+    utilization_by_node: dict[str, float],
+    latency_by_node: dict[str, float],
+) -> tuple[list[NodePerformanceMetrics], list[str]]:
+    """Build per-node metrics and collect nodes with unavailable latency."""
     node_metrics: list[NodePerformanceMetrics] = []
-    nodes_with_unavailable_latency: list[str] = []
+    unavailable_latency_nodes: list[str] = []
 
     for node in graph.nodes:
         response_time: float | None = latency_by_node.get(node.identifier)
@@ -85,7 +116,7 @@ def build_performance_analysis_report(
                 )
             else:
                 response_time = None
-                nodes_with_unavailable_latency.append(node.identifier)
+                unavailable_latency_nodes.append(node.identifier)
         else:
             response_time = None
 
@@ -102,7 +133,11 @@ def build_performance_analysis_report(
             )
         )
 
-    findings = _capacity_findings(graph, utilization_by_node)
+    return node_metrics, unavailable_latency_nodes
+
+
+def _branching_findings(graph: ArchitectureGraph) -> list[PerformanceFinding]:
+    """Report the traffic-distribution assumption for branching nodes."""
     outgoing_edge_counts: Counter[str] = Counter(
         edge.source_identifier for edge in graph.edges
     )
@@ -111,23 +146,9 @@ def build_performance_analysis_report(
         for node in graph.nodes
         if outgoing_edge_counts[node.identifier] > 1
     ]
-    if branching_nodes:
-        findings.append(_traffic_distribution_limitation(branching_nodes))
-    if nodes_with_unavailable_latency:
-        findings.append(_unavailable_latency_finding(nodes_with_unavailable_latency))
-
-    status = (
-        PerformanceAnalysisStatus.PARTIAL
-        if nodes_with_unavailable_latency
-        else PerformanceAnalysisStatus.COMPLETE
-    )
-
-    return PerformanceAnalysisReport(
-        scenario_identifier=scenario.identifier,
-        status=status,
-        nodes=node_metrics,
-        findings=findings,
-    )
+    if not branching_nodes:
+        return []
+    return [_traffic_distribution_limitation(branching_nodes)]
 
 
 def _workload_missing_finding() -> PerformanceFinding:
