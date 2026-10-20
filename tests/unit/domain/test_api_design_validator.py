@@ -28,6 +28,8 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
 from domain.specifications.interfaces import ValidationResult
 
+EXPECTED_VALUE = 2
+
 pytestmark = pytest.mark.unit
 
 
@@ -189,4 +191,3 @@ def test_unknown_components_and_requirement_references_are_rejected() -> None:
     assert result.has_error(NonExistentComponentReferenceError)
     assert result.has_error(NonExistentRequirementReferenceError)
 
-EXPECTED_VALUE = 2
