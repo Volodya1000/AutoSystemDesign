@@ -17,8 +17,6 @@ from domain.performance_analysis.report import PerformanceAnalysisReport
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from domain.models import DesignScenario
-
 
 class PerformanceAnalysisStage:
     """Persist a report without changing pipeline orchestration or domain formulas.
@@ -33,7 +31,7 @@ class PerformanceAnalysisStage:
 
     def run(self, context: StageContext) -> StageOutcome[PerformanceAnalysisReport]:
         stage_start: float = time.perf_counter()
-        scenario: DesignScenario = context.scenario
+        scenario = context.scenario
         graph: ArchitectureGraph = require_payload(
             context, self.depends_on[0], ArchitectureGraph
         )
