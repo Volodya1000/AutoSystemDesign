@@ -158,7 +158,7 @@ def test_http_renderer_sets_user_agent_and_returns_response_bytes(
     user_agent = observed_headers.get("User-Agent")
     assert isinstance(user_agent, str)
     assert "AutoSystemDesign" in user_agent
-    assert observed["timeout"] == 4.0
+    assert observed["timeout"] == EXPECTED_ASSERT_OBSERVED_TIMEOUT
     assert observed["follow_redirects"] is False
 
 
@@ -192,3 +192,6 @@ def test_http_renderer_maps_connection_errors_to_domain_error(
 
     with pytest.raises(DiagramRenderingError, match="Cannot reach Kroki server"):
         renderer.render("source", DiagramImageFormat.SVG)
+
+EXPECTED_ASSERT_OBSERVED_TIMEOUT = 4.0
+
