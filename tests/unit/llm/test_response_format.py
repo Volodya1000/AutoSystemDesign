@@ -7,7 +7,7 @@ and inspect the captured kwargs. This keeps the tests on the public
 """
 
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 from unittest.mock import Mock, patch
 
 import pytest
@@ -41,7 +41,7 @@ def _client(mode: StructuredOutputMode) -> LiteLlmClient:
 def _request(**kwargs: object) -> CompletionRequest:
     return CompletionRequest(
         messages=[Message(role=MessageRole.USER, content="hi")],
-        **kwargs,
+        **cast("dict[str, Any]", kwargs),
     )
 
 
