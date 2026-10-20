@@ -42,7 +42,12 @@ def context_overflow_diagnostic(
                 messages=[item.model_dump() for item in request.messages],
             )
         )
-    except (ValueError, TypeError, KeyError, AttributeError):  # token counter is best-effort
+    except (
+        ValueError,
+        TypeError,
+        KeyError,
+        AttributeError,
+    ):  # token counter is best-effort
         prompt_tokens = None
 
     details = ["LLM context window exceeded."]
