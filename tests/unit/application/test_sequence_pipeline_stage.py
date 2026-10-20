@@ -28,6 +28,8 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 from tests.unit.in_memory_writer import InMemoryWriter
 
+EXPECTED_ASSERT_WRITER_WRITES_COUNT = 2
+
 pytestmark = pytest.mark.unit
 
 
@@ -275,4 +277,3 @@ def test_sequence_stage_fails_when_required_scenarios_cannot_be_generated(
     assert outcome.payload == {}
     assert renderer.calls == 0
 
-EXPECTED_ASSERT_WRITER_WRITES_COUNT = 2
