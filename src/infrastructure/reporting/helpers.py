@@ -24,7 +24,7 @@ _logger = logging.getLogger("pipeline.report")
 
 
 def log_header(settings: AppSettings, scenario: DesignScenario) -> None:
-    """Logs the effective configuration and the scenario summary."""
+    """Log the effective configuration and the scenario summary."""
     _logger.info("=" * 64)
     _logger.info("AutoSystemDesign - architecture generation run")
     _logger.info("=" * 64)
@@ -44,7 +44,7 @@ def log_header(settings: AppSettings, scenario: DesignScenario) -> None:
 
 
 def log_attempts(attempts: Sequence[GenerationAttempt], label: str) -> None:
-    """Logs per-attempt outcomes of a repair loop."""
+    """Log per-attempt outcomes of a repair loop."""
     _logger.info(label)
     for attempt in attempts:
         parsed_mark: str = "parsed" if attempt.parsed else "UNPARSEABLE"
@@ -80,7 +80,7 @@ def log_attempts(attempts: Sequence[GenerationAttempt], label: str) -> None:
 
 
 def log_token_totals(usage: TokenUsage, generation_seconds: float) -> None:
-    """Logs token accounting and generation wall time for one call."""
+    """Log token accounting and generation wall time for one call."""
     _logger.info(
         "Tokens: prompt=%d, completion=%d, total=%d",
         usage.prompt_tokens,
