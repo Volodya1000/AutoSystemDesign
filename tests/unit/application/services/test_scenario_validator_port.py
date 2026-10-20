@@ -221,4 +221,3 @@ def test_scenario_validators_default_empty_keeps_old_behaviour() -> None:
 
 EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 2
 EXPECTED_ASSERT_VALIDATION_ERRORS_COUNT = 2
-
