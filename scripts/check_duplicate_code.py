@@ -51,6 +51,8 @@ def run_process(
     if check and result.returncode != 0:
         raise RuntimeError(f"Command failed with exit code {result.returncode}")
     return result
+
+
 MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
 
 
