@@ -65,6 +65,10 @@ extend-select = [
     "PLR1714", # Replace repeated equality checks with membership tests.
     "SLF",    # Enforce encapsulation by preventing private-member access.
     "ARG005", # Remove unused lambda parameters.
+    "ANN401", # Avoid unconstrained Any annotations.
+    "PLR2004", # Replace unexplained magic values in comparisons.
+    "RUF001", # Avoid ambiguous Unicode in string literals.
+    "T201", # Route user-facing output through logging instead of print.
     "S603",  # Audit subprocess calls even when shell execution is disabled.
     "S607",   # Review subprocess calls using partial executable paths.
     "S310",  # Audit potentially unsafe URL-opening calls.
