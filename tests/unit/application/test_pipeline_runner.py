@@ -88,12 +88,22 @@ def test_runner_rejects_empty_stage_list() -> None:
             "Duplicate stage name",
         ),
         (
-            [FakeStage(StageId.SEQUENCE, StageStatus.SUCCEEDED, depends_on=(StageId.C4,))],
+            [
+                FakeStage(
+                    StageId.SEQUENCE,
+                    StageStatus.SUCCEEDED,
+                    depends_on=(StageId.C4,),
+                )
+            ],
             "not scheduled before it",
         ),
         (
             [
-                FakeStage(StageId.SEQUENCE, StageStatus.SUCCEEDED, depends_on=(StageId.C4,)),
+                FakeStage(
+                    StageId.SEQUENCE,
+                    StageStatus.SUCCEEDED,
+                    depends_on=(StageId.C4,),
+                ),
                 FakeStage(StageId.C4, StageStatus.SUCCEEDED),
             ],
             "not scheduled before it",
@@ -150,7 +160,10 @@ def test_failed_stage_short_circuits_pipeline_and_reports_partial_history() -> N
     assert sequence.calls == 1
     assert api.calls == 0
     assert len(reporter.reports) == 1
-    assert [outcome.name for outcome in reporter.reports[0]] == [StageId.C4, StageId.SEQUENCE]
+    assert [outcome.name for outcome in reporter.reports[0]] == [
+        StageId.C4,
+        StageId.SEQUENCE,
+    ]
     assert reporter.reports[0][-1].status is StageStatus.FAILED
 
 
