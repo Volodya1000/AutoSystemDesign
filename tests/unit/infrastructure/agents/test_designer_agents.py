@@ -42,6 +42,10 @@ from infrastructure.llm.models import (
 
 from tests.unit.constants import EXPECTED_REQUEST_MAX_TOKENS
 
+EXPECTED_ASSERT_PROPOSAL_LATENCY_SECONDS = 0.25
+EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS = 9.0
+EXPECTED_ASSERT_REQUEST_TEMPERATURE = 0.3
+
 pytestmark = pytest.mark.unit
 
 
@@ -344,7 +348,4 @@ def test_sequence_designer_builds_interaction_request_and_parses_result(
     assert proposal.usage == client.result.usage
     assert proposal.latency_seconds == EXPECTED_ASSERT_PROPOSAL_LATENCY_SECONDS
 
-EXPECTED_ASSERT_PROPOSAL_LATENCY_SECONDS = 0.25
-EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS = 9.0
 EXPECTED_ASSERT_REQUEST_MAX_TOKENS = 512
-EXPECTED_ASSERT_REQUEST_TEMPERATURE = 0.3
