@@ -15,8 +15,6 @@ from infrastructure.document_readers.markdown_reader import MarkdownReader
 from tests.test_support import has_issue
 
 
-MAX_ASSERT_ALL_CHUNK_COUNT = 40
-
 class FakeExtractor:
     def __init__(self) -> None:
         self.inputs: list[str] = []
@@ -50,7 +48,7 @@ def test_splits_large_documents_and_deduplicates_results(tmp_path: Path) -> None
     result = service.extract_file(path)
 
     assert len(extractor.inputs) > 1
-    assert all(len(chunk) <= MAX_ASSERT_ALL_CHUNK_COUNT for chunk in extractor.inputs)
+    assert all(len(chunk) <= 40 for chunk in extractor.inputs)
     assert len(result.requirements) == 1
     assert result.is_relevant
     assert result.requirements[0].source_evidence == [
