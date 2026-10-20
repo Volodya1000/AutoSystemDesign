@@ -25,7 +25,6 @@ from tests.factories import (
     create_test_node,
 )
 
-
 pytestmark = pytest.mark.unit
 
 
