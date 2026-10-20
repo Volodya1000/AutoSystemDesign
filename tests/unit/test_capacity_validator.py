@@ -320,4 +320,3 @@ class TestCycleTolerance:
         assert result.errors == []
 
 EXPECTED_ASSERT_SATURATION_THRESHOLD = 0.98
-
