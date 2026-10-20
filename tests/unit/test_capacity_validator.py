@@ -25,7 +25,6 @@ from tests.factories import (
     create_test_node,
 )
 
-EXPECTED_ASSERT_SATURATION_THRESHOLD = 0.98
 
 pytestmark = pytest.mark.unit
 
@@ -59,7 +58,7 @@ def _chain_graph(*nodes: AnyNode) -> ArchitectureGraph:
 class TestSaturationThresholdConstant:
     def test_threshold_is_98_percent(self) -> None:
         """Roadmap F4 pins the threshold at 98%: no config, no tuning."""
-        assert SATURATION_THRESHOLD == EXPECTED_ASSERT_SATURATION_THRESHOLD
+        assert SATURATION_THRESHOLD == 0.98
 
 
 # -------------------------------------------------------- below threshold
