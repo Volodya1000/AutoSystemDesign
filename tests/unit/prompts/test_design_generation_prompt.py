@@ -12,7 +12,7 @@ class TestBuildInitialMessages:
     def test_structure_and_content(self, scenario: DesignScenario) -> None:
         task: DesignTask = DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
         messages = build_initial_messages(task)
-        assert len(messages) == 2
+        assert len(messages) == EXPECTED_ASSERT_MESSAGES_COUNT
         assert [message.role for message in messages] == [
             MessageRole.SYSTEM,
             MessageRole.USER,
@@ -27,3 +27,6 @@ class TestBuildInitialMessages:
         assert "web_client" in user_content  # few-shot example
         assert "client -> load_balancer" in user_content  # allowed connections
         assert "Hard rules" in user_content
+
+EXPECTED_ASSERT_MESSAGES_COUNT = 2
+
