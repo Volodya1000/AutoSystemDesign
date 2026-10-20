@@ -193,4 +193,3 @@ def test_http_renderer_maps_connection_errors_to_domain_error(
 
     with pytest.raises(DiagramRenderingError, match="Cannot reach Kroki server"):
         renderer.render("source", DiagramImageFormat.SVG)
-
