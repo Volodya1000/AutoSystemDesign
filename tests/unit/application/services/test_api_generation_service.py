@@ -21,7 +21,6 @@ from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
 
-from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
 
 
 pytestmark = pytest.mark.unit
@@ -133,7 +132,7 @@ def test_api_validation_failure_builds_repair_task() -> None:
     result: ApiGenerationResult = _service(designer).generate(_scenario(), _graph(), {})
 
     assert result.status is GenerationStatus.SUCCEEDED
-    assert len(result.attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+    assert len(result.attempts) == 2
     repair_task = designer.received_tasks[1]
     assert repair_task.mode is DesignTaskMode.REPAIR
     assert repair_task.previous_payload is not None
@@ -161,7 +160,7 @@ def test_api_parsing_failure_builds_repair_task() -> None:
     result: ApiGenerationResult = _service(designer).generate(_scenario(), _graph(), {})
 
     assert result.status is GenerationStatus.SUCCEEDED
-    assert len(result.attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+    assert len(result.attempts) == 2
     repair_task = designer.received_tasks[1]
     assert repair_task.mode is DesignTaskMode.REPAIR
     assert repair_task.previous_payload == parsing_error.raw_content
@@ -183,5 +182,5 @@ def test_api_generation_returns_failure_after_max_attempts() -> None:
 
     assert result.status is GenerationStatus.VALIDATION_FAILED
     assert result.api_design is None
-    assert len(result.attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+    assert len(result.attempts) == 2
     assert designer.received_tasks[-1].mode is DesignTaskMode.REPAIR
