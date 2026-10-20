@@ -98,9 +98,11 @@ def test_incoming_rate_rejects_negative_or_non_finite_values(value: float) -> No
 
 
 def test_report_rejects_unknown_fields() -> None:
+    payload: dict[str, object] = {
+        "scenario_identifier": "online_store",
+        "status": PerformanceAnalysisStatus.COMPLETE.value,
+        "unexpected_field": True,
+    }
+
     with pytest.raises(ValidationError):
-        PerformanceAnalysisReport(
-            scenario_identifier="online_store",
-            status=PerformanceAnalysisStatus.COMPLETE,
-            unexpected_field=True,
-        )
+        PerformanceAnalysisReport.model_validate(payload)
