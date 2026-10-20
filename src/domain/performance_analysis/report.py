@@ -45,13 +45,9 @@ class NodePerformanceMetrics(BaseModel):
 
     node_identifier: str = Field(min_length=1)
     incoming_requests_per_second: float | None = Field(default=None, ge=0.0)
-    estimated_capacity_requests_per_second: float | None = Field(
-        default=None, gt=0.0
-    )
+    estimated_capacity_requests_per_second: float | None = Field(default=None, gt=0.0)
     utilization_ratio: float | None = Field(default=None, ge=0.0)
-    estimated_mean_queue_wait_milliseconds: float | None = Field(
-        default=None, ge=0.0
-    )
+    estimated_mean_queue_wait_milliseconds: float | None = Field(default=None, ge=0.0)
     estimated_mean_response_time_milliseconds: float | None = Field(
         default=None, ge=0.0
     )
