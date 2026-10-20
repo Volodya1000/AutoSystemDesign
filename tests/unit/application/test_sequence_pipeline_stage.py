@@ -255,7 +255,7 @@ def test_sequence_stage_returns_partial_when_diagram_rendering_warns(
     assert outcome.status is StageStatus.PARTIAL
     assert outcome.warnings == ("diagram renderer unavailable",)
     assert outcome.payload is not None
-    assert len(writer.writes) == 2
+    assert len(writer.writes) == EXPECTED_ASSERT_WRITER_WRITES_COUNT
 
 
 def test_sequence_stage_fails_when_required_scenarios_cannot_be_generated(
@@ -274,3 +274,6 @@ def test_sequence_stage_fails_when_required_scenarios_cannot_be_generated(
     assert outcome.status is StageStatus.FAILED
     assert outcome.payload == {}
     assert renderer.calls == 0
+
+EXPECTED_ASSERT_WRITER_WRITES_COUNT = 2
+
