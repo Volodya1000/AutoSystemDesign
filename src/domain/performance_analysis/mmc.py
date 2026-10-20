@@ -58,29 +58,9 @@ def compute_mmc_metrics(
         )
 
     offered_load = arrival_rate_requests_per_second / service_rate_requests_per_second
-    log_offered_load = log(offered_load)
-    log_waiting_term = (
-        server_count * log_offered_load
-        - lgamma(server_count + 1)
-        - log1p(-utilization_ratio)
+    probability_of_waiting = _erlang_c_probability_of_waiting(
+        offered_load, utilization_ratio, server_count
     )
-    largest_log_term = max(
-        log_waiting_term,
-        max(
-            server_index * log_offered_load - lgamma(server_index + 1)
-            for server_index in range(server_count)
-        ),
-    )
-    scaled_no_wait_sum = fsum(
-        exp(
-            server_index * log_offered_load
-            - lgamma(server_index + 1)
-            - largest_log_term
-        )
-        for server_index in range(server_count)
-    )
-    scaled_wait_term = exp(log_waiting_term - largest_log_term)
-    probability_of_waiting = scaled_wait_term / (scaled_no_wait_sum + scaled_wait_term)
 
     remaining_service_rate = total_service_rate - arrival_rate_requests_per_second
     mean_queue_wait_milliseconds = (
@@ -108,3 +88,34 @@ def _validate_server_count(server_count: int) -> None:
             f"{MAX_SUPPORTED_SERVER_COUNT}."
         )
         raise ValueError(message)
+
+
+def _erlang_c_probability_of_waiting(
+    offered_load: float,
+    utilization_ratio: float,
+    server_count: int,
+) -> float:
+    """Compute Erlang C probability using log-scaled terms."""
+    log_offered_load = log(offered_load)
+    log_waiting_term = (
+        server_count * log_offered_load
+        - lgamma(server_count + 1)
+        - log1p(-utilization_ratio)
+    )
+    largest_log_term = max(
+        log_waiting_term,
+        max(
+            server_index * log_offered_load - lgamma(server_index + 1)
+            for server_index in range(server_count)
+        ),
+    )
+    scaled_no_wait_sum = fsum(
+        exp(
+            server_index * log_offered_load
+            - lgamma(server_index + 1)
+            - largest_log_term
+        )
+        for server_index in range(server_count)
+    )
+    scaled_wait_term = exp(log_waiting_term - largest_log_term)
+    return scaled_wait_term / (scaled_no_wait_sum + scaled_wait_term)
