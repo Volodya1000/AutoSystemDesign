@@ -23,7 +23,6 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications.structural_validator import StructuralTopologyValidator
 from tests.factories import create_test_edge, create_test_node
 
-from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
 
 
 pytestmark = pytest.mark.unit
@@ -142,7 +141,7 @@ class TestDesignGenerationService:
         )
         result: DesignGenerationResult = service.generate(scenario)
         assert result.status is GenerationStatus.SUCCEEDED
-        assert len(result.attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+        assert len(result.attempts) == 2
         assert result.attempts[0].validation is not None
         assert result.attempts[0].validation.has_error(IsolatedNodeError)
         first_graph: ArchitectureGraph | None = result.attempts[0].payload
