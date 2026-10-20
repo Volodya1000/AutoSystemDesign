@@ -8,8 +8,8 @@ import pytest
 from application.pipeline.context import StageContext
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
-from application.pipeline.stages.sequence import SequenceStage
 from application.pipeline.stage import StageId
+from application.pipeline.stages.sequence import SequenceStage
 from application.results import (
     GenerationAttempt,
     SequenceGenerationResult,
