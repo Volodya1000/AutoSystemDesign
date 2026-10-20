@@ -184,7 +184,5 @@ class TestRequirementValidationDispatcher:
         budget_errors: list[BudgetExceededError] = [
             e for e in result.errors if isinstance(e, BudgetExceededError)
         ]
-        assert (
-            len(budget_errors) == len(result.errors) == 2
-        )
+        assert len(budget_errors) == len(result.errors) == 2
         assert [e.budget_limit_usd for e in budget_errors] == [3000.0, 4000.0]
