@@ -20,5 +20,5 @@ __all__ = ["extract_json_payload", "parse_architecture_graph"]
 
 
 def parse_architecture_graph(payload: str, usage: TokenUsage) -> ArchitectureGraph:
-    """Parses a raw LLM completion into an ArchitectureGraph."""
+    """Parse a raw LLM completion into an ArchitectureGraph."""
     return parse_payload(payload, ArchitectureGraph, usage)
