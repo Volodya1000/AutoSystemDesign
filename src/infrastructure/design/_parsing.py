@@ -1,16 +1,16 @@
 """Shared JSON-extraction and payload-parsing helpers for the design package.
 
-``extract_json_payload`` strips markdown fences and Qwen-style think blocks
-from a raw LLM completion. ``parse_payload`` combines it with pydantic
+extract_json_payload strips markdown fences and Qwen-style think blocks
+from a raw LLM completion. parse_payload combines it with pydantic
 validation and maps both JSON and schema errors to
-``DesignProposalParsingError``. Every parser in this package is a one-liner
-wrapping ``parse_payload``.
+DesignProposalParsingError. Every parser in this package wraps parse_payload.
 """
 
 from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ValidationError
@@ -55,13 +55,17 @@ def extract_json_payload(raw: str) -> str:
 
 
 def parse_payload[ModelT: BaseModel](
-    text: str, model: type[ModelT], usage: TokenUsage
+    text: str,
+    model: type[ModelT],
+    usage: TokenUsage,
+    *,
+    normalizer: Callable[[object], object] | None = None,
 ) -> ModelT:
-    """Extract JSON from ``text`` and validate it against ``model``.
+    """Extract JSON, optionally normalize it, and validate it against a model.
 
-    On failure raises ``DesignProposalParsingError`` carrying the original
-    text (before extraction) so repair prompts can show the model what it
-    actually emitted, including any fences or think blocks.
+    On failure raises DesignProposalParsingError carrying the original text
+    so repair prompts can show the model what it actually emitted, including
+    any fences or think blocks.
     """
     extracted: str = extract_json_payload(text)
     try:
@@ -78,6 +82,9 @@ def parse_payload[ModelT: BaseModel](
             ],
             usage=usage,
         ) from decode_error
+
+    if normalizer is not None:
+        raw_data = normalizer(raw_data)
 
     try:
         return model.model_validate(raw_data)

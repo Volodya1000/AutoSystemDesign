@@ -83,7 +83,9 @@ class SequenceDesignerAgent:
         )
 
         scenario = parse_interaction_scenario(
-            completion.content, usage=completion.usage
+            completion.content,
+            usage=completion.usage,
+            architecture_graph=task.architecture_graph,
         )
         return SequenceInteractionProposal(
             payload=scenario,
