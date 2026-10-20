@@ -344,9 +344,7 @@ def test_interaction_validation_feedback_is_sent_to_repair_attempt() -> None:
     )
 
     assert result.is_successful
-    assert (
-        len(result.scenarios_results["FR-1"].attempts) == 2
-    )
+    assert len(result.scenarios_results["FR-1"].attempts) == 2
     repair = designer.interaction_tasks[1]
     first_payload = result.scenarios_results["FR-1"].attempts[0].payload
     assert first_payload is not None
