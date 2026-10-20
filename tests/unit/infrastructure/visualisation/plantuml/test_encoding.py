@@ -14,6 +14,8 @@ from infrastructure.visualisation.plantuml.encoding import (
 )
 from infrastructure.visualisation.plantuml.models import DiagramImageFormat
 
+MIN_WHILE_BIT_COUNT = 8
+
 pytestmark = pytest.mark.unit
 
 
@@ -92,4 +94,3 @@ def test_build_kroki_url_supports_an_explicit_diagram_type() -> None:
 
     assert url.startswith("https://kroki.example/graphviz/svg/")
 
-MIN_WHILE_BIT_COUNT = 8
