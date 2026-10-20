@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import litellm
-
 from typing import TYPE_CHECKING
+
+import litellm
 
 if TYPE_CHECKING:
     from infrastructure.llm.models import CompletionRequest
