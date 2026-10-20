@@ -77,11 +77,15 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
     if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
         raise InvalidDiagramUrlError
 
-    request = urllib.request.Request(
+    # The scheme and host are checked above, restricting requests to HTTP(S).
+    request = urllib.request.Request(  # noqa: S310
         url, headers={"User-Agent": _USER_AGENT}, method="GET"
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+        response_context = urllib.request.urlopen(  # noqa: S310
+            request, timeout=timeout_seconds
+        )
+        with response_context as response:
             content: bytes = response.read()
     except urllib.error.HTTPError as error:
         raise DiagramRenderingError.rejected(server_label, error.code) from error
