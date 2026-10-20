@@ -340,4 +340,3 @@ class TestUnusedLifelines:
         assert len(scenario.lifelines) == EXPECTED_ASSERT_SCENARIO_LIFELINES_COUNT
 
 EXPECTED_ASSERT_SCENARIO_LIFELINES_COUNT = 2
-
