@@ -216,9 +216,7 @@ def changed_line_numbers(base: str, path: str) -> set[int]:
         [git_executable(), "diff", "--unified=0", base, "HEAD", "--", path]
     )
     changed_lines: set[int] = set()
-    hunk_pattern = re.compile(
-        r"^@@ -[0-9]+(?:,[0-9]+)? \+([0-9]+)(?:,([0-9]+))? @@"
-    )
+    hunk_pattern = re.compile(r"^@@ -[0-9]+(?:,[0-9]+)? \+([0-9]+)(?:,([0-9]+))? @@")
     for line in diff.splitlines():
         match = hunk_pattern.match(line)
         if match is None:
