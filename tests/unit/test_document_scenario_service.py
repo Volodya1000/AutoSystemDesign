@@ -283,10 +283,7 @@ def test_uses_verified_functional_requirement_when_description_is_missing() -> N
 def test_keeps_synthesized_conflict_when_all_source_excerpts_are_verified() -> None:
     source = make_source_requirements()
     first = "The confirmation email must be sent within 10 seconds."
-    second = (
-        "Confirmation emails may be delayed by up to 2 minutes during peak "
-        "traffic."
-    )
+    second = "Confirmation emails may be delayed 2 minutes during peak traffic."
     source.requirements.extend(
         [
             req_doc.Requirement(
