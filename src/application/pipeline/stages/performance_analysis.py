@@ -10,13 +10,12 @@ from application.performance_analysis.report_builder import (
 )
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.stage import StageId
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import PerformanceAnalysisReport
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-from application.pipeline.stage import StageId
 from application.pipeline.stage_execution import begin_stage_execution
 
 
