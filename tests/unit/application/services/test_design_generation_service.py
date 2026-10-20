@@ -252,4 +252,3 @@ class TestDesignGenerationService:
                 validators=[StructuralTopologyValidator()],
                 max_attempts=11,
             )
-
