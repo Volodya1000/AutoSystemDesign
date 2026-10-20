@@ -99,8 +99,8 @@ class TestArchitectureDesignerAgent:
         )
         with pytest.raises(DesignProposalParsingError) as exc_info:
             designer.propose(
-                DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
-            )
+            DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
+        )
         assert exc_info.value.usage.total_tokens == EXPECTED_TOTAL_TOKENS
         assert exc_info.value.failure_details
 
@@ -134,6 +134,6 @@ class TestArchitectureDesignerAgent:
             )
         request: CompletionRequest = client.received_requests[0]
         assert request.temperature == 0.7
-        assert request.max_tokens == EXPECTED_ASSERT_REQUEST_MAX_TOKENS
+        assert request.max_tokens == 512
         assert request.timeout_seconds == 12.5
         assert request.messages
