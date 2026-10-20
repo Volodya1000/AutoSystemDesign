@@ -38,8 +38,8 @@ def build_performance_analysis_report(
 
     Capacity is known from the node model even without a workload. Load,
     utilization, and latency are left unavailable when the scenario has no
-    workload profile. Unavailable latency estimates are represented as null when queueing assumptions
-    are unknown or the modeled system is unstable.
+    workload profile. Unavailable latency estimates are represented as null when
+    queueing assumptions are unknown or the modeled system is unstable.
     """
     capacity_by_node: dict[str, float] = {
         node.identifier: compute_node_capacity_rps(node)

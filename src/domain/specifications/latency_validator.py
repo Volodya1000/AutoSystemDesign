@@ -150,6 +150,32 @@ def _reachable_sync_node_ids(
     return [identifier for identifier in node_ids if identifier in reachable]
 
 
+def _calculate_ggc_wait_ms(
+    mean: float,
+    std: float,
+    incoming_rps: float,
+    server_count: int,
+) -> float | None:
+    total_service_rate = server_count * 1000.0 / mean
+    if not math.isfinite(total_service_rate) or total_service_rate <= 0.0:
+        return None
+    utilization_ratio = incoming_rps / total_service_rate
+    if not math.isfinite(utilization_ratio) or utilization_ratio >= 1.0:
+        return None
+    service_variance_ratio = (std / mean) ** 2
+    if not math.isfinite(service_variance_ratio):
+        return None
+    exponent = math.sqrt(2.0 * (server_count + 1.0)) - 1.0
+    mean_wait = (
+        (1.0 + service_variance_ratio)
+        / 2.0
+        * utilization_ratio**exponent
+        / (server_count * (1.0 - utilization_ratio))
+        * mean
+    )
+    return mean_wait if math.isfinite(mean_wait) and mean_wait >= 0.0 else None
+
+
 def _node_queue_wait_ms(node: CapacityNode, incoming_rps: float) -> float | None:
     """Estimate mean queue wait with Allen-Cunneen, or return None if unsupported."""
     mean = node.mean_processing_time_milliseconds
@@ -160,34 +186,10 @@ def _node_queue_wait_ms(node: CapacityNode, incoming_rps: float) -> float | None
         return None
     if incoming_rps == 0.0:
         return 0.0
-
     server_count = node.queueing_server_count
     if server_count is None or server_count > MAX_SUPPORTED_SERVER_COUNT:
         return None
-
-    total_service_rate = server_count * 1000.0 / mean
-    if not math.isfinite(total_service_rate) or total_service_rate <= 0.0:
-        return None
-    utilization_ratio = incoming_rps / total_service_rate
-    if not math.isfinite(utilization_ratio) or utilization_ratio >= 1.0:
-        return None
-
-    service_coefficient_of_variation = std / mean
-    service_variance_ratio = service_coefficient_of_variation**2
-    if not math.isfinite(service_variance_ratio):
-        return None
-
-    exponent = math.sqrt(2.0 * (server_count + 1.0)) - 1.0
-    mean_wait = (
-        (1.0 + service_variance_ratio)
-        / 2.0
-        * utilization_ratio**exponent
-        / (server_count * (1.0 - utilization_ratio))
-        * mean
-    )
-    if not math.isfinite(mean_wait) or mean_wait < 0.0:
-        return None
-    return mean_wait
+    return _calculate_ggc_wait_ms(mean, std, incoming_rps, server_count)
 
 
 def _compute_node_latencies(
