@@ -346,5 +346,3 @@ def test_sequence_designer_builds_interaction_request_and_parses_result(
     assert proposal.raw_content == client.result.content
     assert proposal.usage == client.result.usage
     assert proposal.latency_seconds == EXPECTED_ASSERT_PROPOSAL_LATENCY_SECONDS
-
-
