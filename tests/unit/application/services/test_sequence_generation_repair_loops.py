@@ -293,7 +293,7 @@ def test_retries_parsing_failures_and_preserves_repair_context() -> None:
 
     interaction_result = result.scenarios_results["FR-1"]
     assert interaction_result.is_successful
-    assert len(interaction_result.attempts) == EXPECTED_ASSERT_INTERACTION_RESULT_ATTEMPTS_COUNT
+    assert len(interaction_result.attempts) == EXPECTED_ATTEMPT_COUNT
     interaction_repair = designer.interaction_tasks[1]
     assert interaction_repair.mode is DesignTaskMode.REPAIR
     assert interaction_repair.previous_payload == interaction_failure.raw_content
@@ -342,7 +342,9 @@ def test_interaction_validation_feedback_is_sent_to_repair_attempt() -> None:
     )
 
     assert result.is_successful
-    assert len(result.scenarios_results["FR-1"].attempts) == EXPECTED_ASSERT_RESULT_SCENARIOS_RESULTS_FR_1_ATT
+    assert (
+        len(result.scenarios_results["FR-1"].attempts) == EXPECTED_ATTEMPT_COUNT
+    )
     repair = designer.interaction_tasks[1]
     first_payload = result.scenarios_results["FR-1"].attempts[0].payload
     assert first_payload is not None
@@ -394,5 +396,5 @@ def test_aborts_interactions_when_roles_catalog_never_parses() -> None:
     assert result.total_usage == TokenUsage(prompt_tokens=8, completion_tokens=2)
 
 EXPECTED_ASSERT_RESULT_ROLES_ATTEMPTS_COUNT = 2
-EXPECTED_ASSERT_RESULT_SCENARIOS_RESULTS_FR_1_ATT = 2
-EXPECTED_ASSERT_INTERACTION_RESULT_ATTEMPTS_COUNT = 2
+EXPECTED_ATTEMPT_COUNT = 2
+EXPECTED_ATTEMPT_COUNT = 2
