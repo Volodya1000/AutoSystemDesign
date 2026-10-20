@@ -150,8 +150,14 @@ def test_http_renderer_sets_user_agent_and_returns_response_bytes(
     )
 
     assert renderer.render("source", DiagramImageFormat.PNG) == b"rendered-image"
-    assert observed["url"].startswith("https://plantuml.example/")
-    assert "AutoSystemDesign" in observed["headers"]["User-Agent"]
+    observed_url = observed["url"]
+    assert isinstance(observed_url, str)
+    assert observed_url.startswith("https://plantuml.example/")
+    observed_headers = observed["headers"]
+    assert isinstance(observed_headers, dict)
+    user_agent = observed_headers.get("User-Agent")
+    assert isinstance(user_agent, str)
+    assert "AutoSystemDesign" in user_agent
     assert observed["timeout"] == 4.0
     assert observed["follow_redirects"] is False
 
