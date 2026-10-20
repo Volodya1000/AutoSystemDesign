@@ -25,8 +25,6 @@ FUNCTIONAL = "A customer can add one or more products to a shopping cart."
 READ_RATIO = "Read requests account for 0.7 of total traffic."
 
 
-EXPECTED_ASSERT_RESULT_SCENARIO_REQUIREMENTS_COUN = 2
-
 def make_source_requirements() -> req_doc.DocumentRequirements:
     excerpts = [BASELINE, PEAK, READ_RATIO, LATENCY, AVAILABILITY, FUNCTIONAL]
     return req_doc.DocumentRequirements(
@@ -121,7 +119,7 @@ def test_maps_verified_fields_into_pipeline_compatible_scenario() -> None:
     assert result.scenario.workload.baseline_requests_per_second == EXPECTED_BASELINE_RPS
     assert result.scenario.workload.peak_requests_per_second == EXPECTED_PEAK_RPS
     assert result.scenario.workload.read_ratio == EXPECTED_READ_RATIO
-    assert len(result.scenario.requirements) == EXPECTED_ASSERT_RESULT_SCENARIO_REQUIREMENTS_COUN
+    assert len(result.scenario.requirements) == 2
     assert result.scenario.functional_requirements[0].identifier == "FR-001"
     assert result.field_evidence["workload.baseline_requests_per_second"] == BASELINE
     assert result.field_evidence["requirements[0].type_identifier"] == LATENCY
