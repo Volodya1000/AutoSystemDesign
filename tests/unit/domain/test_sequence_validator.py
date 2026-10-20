@@ -20,7 +20,6 @@ from domain.specifications.sequence_validator import (
     SharedClientLifelineError,
 )
 
-
 pytestmark = pytest.mark.unit
 
 _MessageKind = Literal["request", "response", "event", "notification", "user_action"]
