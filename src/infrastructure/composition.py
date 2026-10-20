@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
+from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from application.pipeline.stages.sequence import SequenceStage
 from application.services.api_generation_service import ApiGenerationService
 from application.services.design_generation_service import DesignGenerationService
@@ -163,6 +164,11 @@ def _build_c4_stage(
     )
 
 
+def _build_performance_analysis_stage() -> PerformanceAnalysisStage:
+    """Build the deterministic analysis stage without external dependencies."""
+    return PerformanceAnalysisStage()
+
+
 def _build_sequence_stage(
     settings: AppSettings,
     *,
@@ -201,7 +207,7 @@ def build_pipeline(
     render_diagrams: bool,
     settings: AppSettings | None = None,
 ) -> PipelineWiring:
-    """Build the full C4 + Sequence + REST API design pipeline."""
+    """Build the C4 + performance analysis + Sequence + REST API pipeline."""
     resolved_settings: AppSettings = (
         settings if settings is not None else load_app_settings()
     )
@@ -229,6 +235,7 @@ def build_pipeline(
         _build_c4_stage(
             resolved_settings, renderer=c4_renderer, reporter=generation_reporter
         ),
+        _build_performance_analysis_stage(),
         _build_sequence_stage(
             resolved_settings, renderer=sequence_renderer, reporter=generation_reporter
         ),
