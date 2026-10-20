@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import shutil
 from pathlib import Path
+
+_logger = logging.getLogger(__name__)
 
 
 def tracked_files() -> list[Path]:
@@ -54,10 +57,10 @@ def main() -> int:
                 failures.append(f"{path}:{line_number}: trailing whitespace")
 
     if failures:
-        print("\n".join(failures))
+        _logger.error("%s", "\n".join(failures))
         return 1
 
-    print("Whitespace and EOF checks passed.")
+    _logger.info("Whitespace and EOF checks passed.")
     return 0
 
 
