@@ -51,7 +51,7 @@ class Requirement(BaseModel):
 
     @field_validator("source_evidence", mode="before")
     @classmethod
-    def normalize_single_source_evidence(cls, value: Any) -> Any:
+    def normalize_single_source_evidence(cls, value: object) -> object:
         """Normalize a singleton object to the canonical list representation."""
         return _normalize_source_evidence(value)
 
