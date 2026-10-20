@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
+from application.pipeline.stage import StageId
 from application.results import ApiGenerationResult, GenerationStatus
 from domain.models.topology import ArchitectureGraph
 
@@ -25,8 +26,8 @@ _logger: logging.Logger = logging.getLogger("pipeline.api")
 
 
 class ApiStage:
-    name: str = "api"
-    depends_on: tuple[str, ...] = ("c4", "sequence")
+    name: StageId = StageId.API
+    depends_on: tuple[StageId, ...] = (StageId.C4, StageId.SEQUENCE)
 
     def __init__(
         self,
@@ -55,9 +56,9 @@ class ApiStage:
                 message="No functional requirements provided; skipping API generation.",
             )
 
-        graph: ArchitectureGraph = require_payload(context, "c4", ArchitectureGraph)
+        graph: ArchitectureGraph = require_payload(context, StageId.C4, ArchitectureGraph)
         sequences: Mapping[str, InteractionScenario] = require_payload(
-            context, "sequence", dict
+            context, StageId.SEQUENCE, dict
         )
 
         generation_start: float = time.perf_counter()
