@@ -194,4 +194,3 @@ def test_http_renderer_maps_connection_errors_to_domain_error(
         renderer.render("source", DiagramImageFormat.SVG)
 
 EXPECTED_ASSERT_OBSERVED_TIMEOUT = 4.0
-
