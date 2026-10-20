@@ -8,7 +8,6 @@ from domain.scenario_extraction import EvidenceValue, ExtractedWorkload
 from tests.unit.constants import EXPECTED_BASELINE_RPS, EXPECTED_PEAK_RPS, EXPECTED_READ_RATIO
 
 
-
 @pytest.mark.unit
 def test_resolve_candidate_returns_evidence_without_mutating_inputs() -> None:
     excerpt = "A customer can update a shopping cart."
