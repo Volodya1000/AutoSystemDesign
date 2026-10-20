@@ -27,7 +27,7 @@ from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMappe
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line interface for document-to-scenario generation."""
     parser = argparse.ArgumentParser(
-        description="Extract verified requirements and create a pipeline-ready scenario."
+        description="Extract verified requirements into a pipeline-ready scenario."
     )
     parser.add_argument(
         "--document",
