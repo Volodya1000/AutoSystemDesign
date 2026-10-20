@@ -40,7 +40,7 @@ class ApiStage:
 
     def run(self, context: StageContext) -> StageOutcome[ApiDesign]:
         stage_start: float = time.perf_counter()
-        scenario: DesignScenario = context.scenario
+        scenario = context.scenario
 
         if not scenario.functional_requirements:
             _logger.info(
