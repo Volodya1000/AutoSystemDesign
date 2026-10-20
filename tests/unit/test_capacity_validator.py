@@ -25,6 +25,8 @@ from tests.factories import (
     create_test_node,
 )
 
+EXPECTED_ASSERT_SATURATION_THRESHOLD = 0.98
+
 pytestmark = pytest.mark.unit
 
 
@@ -319,4 +321,3 @@ class TestCycleTolerance:
         assert result.is_successful is True
         assert result.errors == []
 
-EXPECTED_ASSERT_SATURATION_THRESHOLD = 0.98
