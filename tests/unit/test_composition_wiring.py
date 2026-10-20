@@ -64,7 +64,7 @@ def test_build_sequence_stage_depends_on_c4() -> None:
     )
     assert isinstance(stage, SequenceStage)
     assert stage.name is StageId.SEQUENCE
-    assert stage.depends_on == ("c4",)
+    assert stage.depends_on == (StageId.C4,)
 
 
 def test_build_api_stage_depends_on_c4_and_sequence() -> None:
