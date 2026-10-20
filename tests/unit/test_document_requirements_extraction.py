@@ -169,4 +169,3 @@ def test_rejects_ambiguity_note_with_fabricated_evidence(tmp_path: Path) -> None
         RequirementIssueKind.AMBIGUOUS,
         description_contains="biometric login",
     )
-
