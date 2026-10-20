@@ -5,6 +5,8 @@ from domain.models import DesignScenario
 from infrastructure.llm.models import MessageRole
 from infrastructure.prompts.design_generation import build_initial_messages
 
+EXPECTED_ASSERT_MESSAGES_COUNT = 2
+
 pytestmark = pytest.mark.unit
 
 
@@ -28,4 +30,3 @@ class TestBuildInitialMessages:
         assert "client -> load_balancer" in user_content  # allowed connections
         assert "Hard rules" in user_content
 
-EXPECTED_ASSERT_MESSAGES_COUNT = 2
