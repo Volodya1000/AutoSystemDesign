@@ -45,10 +45,11 @@ class PerformanceAnalysisStage:
             report.model_dump_json(indent=2),
         )
 
-        return StageOutcome(
+        duration_seconds: float = time.perf_counter() - stage_start
+        return StageOutcome[PerformanceAnalysisReport](
             name=self.name,
             status=StageStatus.SUCCEEDED,
-            duration_seconds=time.perf_counter() - stage_start,
+            duration_seconds=duration_seconds,
             total_tokens=0,
             artifacts=(artifact_path,),
             payload=report,
