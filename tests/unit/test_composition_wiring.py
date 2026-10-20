@@ -93,7 +93,6 @@ def test_build_pipeline_reuses_provided_settings(
     assert wiring.writer is not None
 
 
-
 class _FakeLlmClient:
     def __init__(self, settings: AppSettings) -> None:
         del settings

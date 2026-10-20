@@ -113,7 +113,6 @@ def create_test_edge(
     )
 
 
-
 def create_test_latency_graph() -> ArchitectureGraph:
     """Build a low-load graph whose mean response time exceeds a tiny p99 target."""
     return ArchitectureGraph(
