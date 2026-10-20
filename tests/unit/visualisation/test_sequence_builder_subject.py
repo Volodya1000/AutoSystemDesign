@@ -27,7 +27,6 @@ from infrastructure.visualisation.plantuml.sequence_builder import (
 )
 from tests.unit.test_structural_validator import create_test_node
 
-MAX_ASSERT_ALL_LINE_COUNT = 36
 
 pytestmark = pytest.mark.unit
 
@@ -225,7 +224,7 @@ def test_long_message_labels_are_wrapped_at_word_boundaries() -> None:
         for line in source.splitlines()
         if "Validate customer" in line
     )
-    assert all(len(line) <= MAX_ASSERT_ALL_LINE_COUNT for line in message_label.split(r"\n"))
+    assert all(len(line) <= 36 for line in message_label.split(r"\n"))
 
 
 def test_long_diagram_title_is_wrapped_at_word_boundaries() -> None:
