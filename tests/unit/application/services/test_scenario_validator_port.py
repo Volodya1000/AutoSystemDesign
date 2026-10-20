@@ -148,7 +148,7 @@ def test_scenario_and_topology_errors_are_aggregated_in_order() -> None:
     assert result.status is GenerationStatus.VALIDATION_FAILED
     validation = result.attempts[0].validation
     assert validation is not None
-    assert len(validation.errors) == 2
+    assert len(validation.errors) == EXPECTED_ASSERT_VALIDATION_ERRORS_COUNT
     assert validation.is_successful is False
     assert [error.error_code for error in validation.errors] == [
         "FAKE_TOPOLOGY_ERROR",
@@ -195,7 +195,7 @@ def test_scenario_validator_failure_drives_repair_feedback() -> None:
 
     result: DesignGenerationResult = service.generate(_port_test_scenario())
 
-    assert len(result.attempts) == 2
+    assert len(result.attempts) == EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT
     for attempt in result.attempts:
         assert attempt.validation is not None
         assert [error.error_code for error in attempt.validation.errors] == [
@@ -218,3 +218,7 @@ def test_scenario_validators_default_empty_keeps_old_behaviour() -> None:
     result: DesignGenerationResult = service.generate(_port_test_scenario())
 
     assert result.status is GenerationStatus.SUCCEEDED
+
+EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 2
+EXPECTED_ASSERT_VALIDATION_ERRORS_COUNT = 2
+
