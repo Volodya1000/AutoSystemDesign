@@ -130,6 +130,6 @@ def load_app_settings() -> AppSettings:
 def with_llm_updates(settings: AppSettings, **updates: object) -> AppSettings:
     """Returns a copy of the settings with LlmSettings fields overridden."""
     updated_llm: LlmSettings = settings.llm.model_copy(
-        update=cast(dict[str, Any], updates)
+        update=cast("dict[str, Any]", updates)
     )
     return settings.model_copy(update={"llm": updated_llm})
