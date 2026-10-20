@@ -77,4 +77,3 @@ def designer(gate_settings: AppSettings) -> ArchitectureDesignerAgent:
 def initial_task(scenario: DesignScenario) -> DesignTask:
     """Create the initial design task for the shared scenario."""
     return DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
-
