@@ -79,4 +79,3 @@ def initial_task(scenario: DesignScenario) -> DesignTask:
     return DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
 
 EXPECTED_IF_RESPONSE_STATUS_CODE = 200
-
