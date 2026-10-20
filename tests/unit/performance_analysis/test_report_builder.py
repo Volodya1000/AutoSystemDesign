@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -11,13 +12,17 @@ from domain.models.enums import NodeType
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import (
-    NodePerformanceMetrics,
-    PerformanceAnalysisReport,
     PerformanceAnalysisStatus,
     PerformanceFindingCode,
     PerformanceFindingSeverity,
 )
 from tests.factories import create_test_compute_node, create_test_edge, create_test_node
+
+if TYPE_CHECKING:
+    from domain.performance_analysis.report import (
+        NodePerformanceMetrics,
+        PerformanceAnalysisReport,
+    )
 
 pytestmark = pytest.mark.unit
 
