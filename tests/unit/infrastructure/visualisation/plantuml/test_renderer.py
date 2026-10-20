@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import httpx
-from typing import TYPE_CHECKING, Literal, Self
-
 import pytest
 
 from infrastructure.visualisation.plantuml import renderer as renderer_module
@@ -16,9 +14,6 @@ from infrastructure.visualisation.plantuml.renderer import (
     PlantumlServerImageRenderer,
     resolve_image_renderer,
 )
-
-if TYPE_CHECKING:
-    from types import TracebackType
 
 pytestmark = pytest.mark.unit
 
@@ -146,7 +141,8 @@ def test_http_renderer_sets_user_agent_and_returns_response_bytes(
     def fake_get(url: str, **kwargs: object) -> httpx.Response:
         observed["url"] = url
         observed.update(kwargs)
-        return httpx.Response(200, content=b"rendered-image", request=httpx.Request("GET", url))
+        request = httpx.Request("GET", url)
+        return httpx.Response(200, content=b"rendered-image", request=request)
 
     monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
     renderer = PlantumlServerImageRenderer(
@@ -167,7 +163,8 @@ def test_http_renderer_maps_http_errors_to_domain_error(
         del kwargs
         request = httpx.Request("GET", url)
         response = httpx.Response(403, request=request)
-        raise httpx.HTTPStatusError("Forbidden", request=request, response=response)
+        message = "Forbidden"
+        raise httpx.HTTPStatusError(message, request=request, response=response)
 
     monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
     renderer = PlantumlServerImageRenderer(server_url="https://plantuml.example")
@@ -181,7 +178,8 @@ def test_http_renderer_maps_connection_errors_to_domain_error(
 ) -> None:
     def fake_get(url: str, **kwargs: object) -> httpx.Response:
         del url, kwargs
-        raise httpx.ConnectError("network down")
+        message = "network down"
+        raise httpx.ConnectError(message)
 
     monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
     renderer = KrokiImageRenderer(server_url="https://kroki.example")
