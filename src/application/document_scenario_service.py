@@ -172,10 +172,7 @@ class DocumentScenarioService:
                     RequirementIssue(
                         kind=RequirementIssueKind.INVALID_VALUE,
                         field="scenario",
-                        description=(
-                            "Mapped values violate the scenario schema: "
-                            f"{error}"
-                        ),
+                        description=f"Scenario schema validation failed: {error}",
                     )
                 )
 
