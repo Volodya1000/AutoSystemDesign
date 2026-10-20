@@ -339,4 +339,3 @@ class TestUnusedLifelines:
         )
 
         assert len(scenario.lifelines) == 2
-
