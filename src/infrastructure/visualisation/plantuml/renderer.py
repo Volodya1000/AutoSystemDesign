@@ -10,9 +10,8 @@ and therefore serve as the automatic fallback in "auto" mode.
 from __future__ import annotations
 
 import logging
-import urllib.error
+import httpx
 import urllib.parse
-import urllib.request
 from typing import TYPE_CHECKING, Final, Protocol
 
 from infrastructure.visualisation.plantuml.encoding import (
@@ -77,20 +76,23 @@ def _fetch(url: str, server_label: str, timeout_seconds: float) -> bytes:
     if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
         raise InvalidDiagramUrlError
 
-    # The scheme and host are checked above, restricting requests to HTTP(S).
-    request = urllib.request.Request(  # noqa: S310
-        url, headers={"User-Agent": _USER_AGENT}, method="GET"
-    )
     try:
-        response_context = urllib.request.urlopen(  # noqa: S310
-            request, timeout=timeout_seconds
+        response = httpx.get(
+            url,
+            headers={"User-Agent": _USER_AGENT},
+            timeout=timeout_seconds,
+            follow_redirects=False,
         )
-        with response_context as response:
-            content: bytes = response.read()
-    except urllib.error.HTTPError as error:
-        raise DiagramRenderingError.rejected(server_label, error.code) from error
-    except OSError as error:
-        raise DiagramRenderingError.unreachable(server_label, error) from error
+        response.raise_for_status()
+        content: bytes = response.content
+    except httpx.HTTPStatusError as error:
+        raise DiagramRenderingError.rejected(
+            server_label, error.response.status_code
+        ) from error
+    except httpx.RequestError as error:
+        raise DiagramRenderingError.unreachable(
+            server_label, OSError(str(error))
+        ) from error
     _logger.info("Diagram image rendered by %s", server_label)
     return content
 
