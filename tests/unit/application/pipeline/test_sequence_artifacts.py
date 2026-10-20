@@ -108,8 +108,8 @@ def test_persist_roles_catalog_is_a_noop_for_missing_catalog(tmp_path: Path) -> 
 
     paths = SequenceArtifactProcessor.persist_roles_catalog(context, None)
 
-    assert paths == ()
-    assert writer.writes == []
+    assert not paths
+    assert not writer.writes
 
 
 def test_persist_roles_catalog_writes_json_to_scenario_output(tmp_path: Path) -> None:
@@ -142,7 +142,7 @@ def test_persist_interaction_writes_ast_without_renderer(tmp_path: Path) -> None
     )
 
     assert result.artifacts == (tmp_path / "output" / "demo_seq_fr_1_ast.json",)
-    assert result.warnings == ()
+    assert not result.warnings
     assert writer.writes[0] == (
         tmp_path / "output" / "demo_seq_fr_1_ast.json",
         interaction.model_dump_json(indent=2),

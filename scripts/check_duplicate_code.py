@@ -15,9 +15,20 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import NamedTuple
 
 DUPLICATE_HEADING = "R0801: Similar lines in"
 MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
+
+
+class DuplicatePair(NamedTuple):
+    """A Pylint duplicate-code finding and both source locations."""
+
+    heading: str
+    first_module: str
+    first_line: int
+    second_module: str
+    second_line: int
 
 
 def git_executable() -> str:
@@ -136,27 +147,35 @@ def module_to_path(module_name: str) -> str:
     return Path(root).joinpath(*parts, filename).as_posix()
 
 
-def duplicate_pairs(output: str) -> list[tuple[str, str, str]]:
-    """Extract file pairs reported by Pylint's duplicate-code checker."""
+def duplicate_pairs(output: str) -> list[DuplicatePair]:
+    """Extract file pairs and line locations reported by Pylint."""
     lines = output.splitlines()
-    pairs: list[tuple[str, str, str]] = []
+    pairs: list[DuplicatePair] = []
 
     for index, line in enumerate(lines):
         if DUPLICATE_HEADING not in line:
             continue
 
-        modules: list[str] = []
+        modules: list[tuple[str, int]] = []
         for candidate in lines[index + 1 :]:
             if "R0801:" in candidate:
                 break
             match = MODULE_LOCATION.match(candidate.strip())
             if match:
-                modules.append(match.group(1))
+                modules.append((match.group(1), int(match.group(2))))
                 if len(modules) == 2:
                     break
 
         if len(modules) == 2:
-            pairs.append((line, modules[0], modules[1]))
+            pairs.append(
+                DuplicatePair(
+                    line,
+                    modules[0][0],
+                    modules[0][1],
+                    modules[1][0],
+                    modules[1][1],
+                )
+            )
 
     return pairs
 
@@ -183,12 +202,29 @@ def pylint_output(cwd: Path | None = None) -> tuple[int, str]:
     return result.returncode, result.stdout + result.stderr
 
 
-def pair_key(pair: tuple[str, str, str]) -> tuple[str, str]:
+def pair_key(pair: DuplicatePair) -> tuple[str, str]:
     """Normalize a duplicate finding to its two repository-relative paths."""
-    _, first_module, second_module = pair
+    _, first_module, _, second_module, _ = pair
     first_path = module_to_path(first_module)
     second_path = module_to_path(second_module)
     return (min(first_path, second_path), max(first_path, second_path))
+
+
+def changed_line_numbers(base: str, path: str) -> set[int]:
+    """Return added or modified line numbers relative to the comparison base."""
+    diff = git_output(
+        [git_executable(), "diff", "--unified=0", base, "HEAD", "--", path]
+    )
+    changed_lines: set[int] = set()
+    hunk_pattern = re.compile(r"^@@ -[0-9]+(?:,[0-9]+)? \+([0-9]+)(?:,([0-9]+))? @@")
+    for line in diff.splitlines():
+        match = hunk_pattern.match(line)
+        if match is None:
+            continue
+        start = int(match.group(1))
+        count = int(match.group(2) or "1")
+        changed_lines.update(range(start, start + count))
+    return changed_lines
 
 
 def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
@@ -230,6 +266,36 @@ def baseline_duplicate_pairs(base: str) -> set[tuple[str, str]]:
             )
 
 
+def new_duplicate_finding(
+    pair: DuplicatePair,
+    changed: set[str],
+    baseline_pairs: set[tuple[str, str]],
+    base: str | None,
+) -> str | None:
+    """Format a duplicate finding only when its changed source line is new."""
+    first_path = module_to_path(pair.first_module)
+    second_path = module_to_path(pair.second_module)
+    if pair_key(pair) in baseline_pairs:
+        return None
+    if first_path not in changed and second_path not in changed:
+        return None
+
+    first_changed = first_path in changed and (
+        base is None or pair.first_line in changed_line_numbers(base, first_path)
+    )
+    second_changed = second_path in changed and (
+        base is None or pair.second_line in changed_line_numbers(base, second_path)
+    )
+    if not (first_changed or second_changed):
+        return None
+
+    return (
+        f"{pair.heading}\n"
+        f"  {first_path}:{pair.first_line}\n"
+        f"  {second_path}:{pair.second_line}"
+    )
+
+
 def main() -> int:
     """Fail only when a changed file introduces a new duplicate-code pair."""
     base_ref = os.environ.get("GITHUB_BASE_REF")
@@ -251,6 +317,7 @@ def main() -> int:
         return 1
 
     current_pairs = duplicate_pairs(output)
+    base: str | None = None
     baseline_pairs: set[tuple[str, str]] = set()
     if base_ref:
         base = git_output(
@@ -260,14 +327,9 @@ def main() -> int:
 
     failures: list[str] = []
     for pair in current_pairs:
-        heading, first_module, second_module = pair
-        first_path = module_to_path(first_module)
-        second_path = module_to_path(second_module)
-        key = pair_key(pair)
-        if (
-            first_path in changed or second_path in changed
-        ) and key not in baseline_pairs:
-            failures.append(f"{heading}\n  {first_path}\n  {second_path}")
+        failure = new_duplicate_finding(pair, changed, baseline_pairs, base)
+        if failure is not None:
+            failures.append(failure)
 
     if failures:
         print("\n".join(failures))
