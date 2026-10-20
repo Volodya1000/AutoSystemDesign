@@ -1,4 +1,4 @@
-"""Define the structured result contract for performance analysis."""
+""""Define the structured result contract for performance analysis."""
 
 from enum import StrEnum
 
@@ -66,16 +66,24 @@ class NodePerformanceMetrics(BaseModel):
 
 
 class PerformanceFinding(BaseModel):
-    """Describe an issue, risk, or observation found during performance analysis.
+    """Represent one finding in the serialized performance report.
 
-    The report builder should populate title and description from deterministic
-    templates selected by finding_code and the calculated metrics. The initial
-    implementation must not ask an LLM to invent findings or recommendations:
-    deterministic output is testable and reproducible.
+    This model intentionally contains both stable machine-readable fields
+    (finding_code, severity, affected nodes) and human-readable report fields
+    (title, description, recommendation). They are not calculations or a second
+    source of metrics: they are two parts of the same JSON report contract.
 
-    Recommendation is optional and should be supplied only when a supported
-    rule provides a justified action. If no reliable action can be inferred,
-    leave it as None rather than suggesting a guess.
+    The application-layer report builder owns the text. It should select a
+    deterministic title template by finding_code and compose the description
+    from calculated values and known model limitations. Recommendations must
+    come from explicit, supported rules; leave recommendation as None when no
+    reliable action is justified. Do not use an LLM to invent these messages.
+
+    Keep this as one serialized finding for KISS. Introduce a separate internal
+    diagnostic model and presentation DTO only if a real need appears, such as
+    multiple locales or distinct output formats with different text structures.
+    A PDF renderer should consume this report rather than recalculate or rewrite
+    the finding independently.
     """
 
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
@@ -118,3 +126,4 @@ class PerformanceAnalysisReport(BaseModel):
     status: PerformanceAnalysisStatus
     nodes: list[NodePerformanceMetrics] = Field(default_factory=list)
     findings: list[PerformanceFinding] = Field(default_factory=list)
+"
