@@ -12,6 +12,7 @@ from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from application.pipeline.stages.sequence import SequenceStage
+from application.pipeline.stage import StageId
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
 from infrastructure.composition import (
@@ -46,15 +47,15 @@ def test_build_c4_stage_without_renderer() -> None:
         _settings(), renderer=None, reporter=LoggingGenerationReporter()
     )
     assert isinstance(stage, C4Stage)
-    assert stage.name == "c4"
+    assert stage.name is StageId.C4
     assert not stage.depends_on
 
 
 def test_build_performance_analysis_stage_depends_on_c4() -> None:
     stage = _build_performance_analysis_stage()
     assert isinstance(stage, PerformanceAnalysisStage)
-    assert stage.name == "performance_analysis"
-    assert stage.depends_on == ("c4",)
+    assert stage.name is StageId.PERFORMANCE_ANALYSIS
+    assert stage.depends_on == (StageId.C4,)
 
 
 def test_build_sequence_stage_depends_on_c4() -> None:
@@ -62,15 +63,15 @@ def test_build_sequence_stage_depends_on_c4() -> None:
         _settings(), renderer=None, reporter=LoggingGenerationReporter()
     )
     assert isinstance(stage, SequenceStage)
-    assert stage.name == "sequence"
+    assert stage.name is StageId.SEQUENCE
     assert stage.depends_on == ("c4",)
 
 
 def test_build_api_stage_depends_on_c4_and_sequence() -> None:
     stage = _build_api_stage(_settings(), reporter=LoggingGenerationReporter())
     assert isinstance(stage, ApiStage)
-    assert stage.name == "api"
-    assert stage.depends_on == ("c4", "sequence")
+    assert stage.name is StageId.API
+    assert stage.depends_on == (StageId.C4, StageId.SEQUENCE)
 
 
 def test_build_pipeline_reuses_provided_settings(
