@@ -80,10 +80,10 @@ class TestArchitectureDesignerAgent:
         proposal: DesignProposal = designer.propose(
             DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
         )
-        assert len(proposal.graph.nodes) == 4
-        assert len(proposal.graph.edges) == 3
+        assert len(proposal.graph.nodes) == EXPECTED_ASSERT_PROPOSAL_GRAPH_NODES_COUNT
+        assert len(proposal.graph.edges) == EXPECTED_ASSERT_PROPOSAL_GRAPH_EDGES_COUNT
         assert proposal.raw_content == _FENCED_CONTENT
-        assert proposal.usage.total_tokens == 18
+        assert proposal.usage.total_tokens == EXPECTED_ASSERT_PROPOSAL_USAGE_TOTAL_TOKENS
 
     def test_propose_raises_parsing_error_on_garbage(
         self, scenario: DesignScenario, settings: AppSettings
@@ -95,7 +95,7 @@ class TestArchitectureDesignerAgent:
         )
         with pytest.raises(DesignProposalParsingError) as exc_info:
             designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
-        assert exc_info.value.usage.total_tokens == 18
+        assert exc_info.value.usage.total_tokens == EXPECTED_ASSERT_EXC_INFO_VALUE_USAGE_TOTAL_TOKENS
         assert exc_info.value.failure_details
 
     def test_propose_propagates_connection_errors(
@@ -123,7 +123,16 @@ class TestArchitectureDesignerAgent:
         )
         designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
         request: CompletionRequest = client.received_requests[0]
-        assert request.temperature == 0.7
-        assert request.max_tokens == 512
-        assert request.timeout_seconds == 12.5
+        assert request.temperature == EXPECTED_ASSERT_REQUEST_TEMPERATURE
+        assert request.max_tokens == EXPECTED_ASSERT_REQUEST_MAX_TOKENS
+        assert request.timeout_seconds == EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS
         assert request.messages
+
+EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS = 12.5
+EXPECTED_ASSERT_REQUEST_MAX_TOKENS = 512
+EXPECTED_ASSERT_REQUEST_TEMPERATURE = 0.7
+EXPECTED_ASSERT_EXC_INFO_VALUE_USAGE_TOTAL_TOKENS = 18
+EXPECTED_ASSERT_PROPOSAL_USAGE_TOTAL_TOKENS = 18
+EXPECTED_ASSERT_PROPOSAL_GRAPH_EDGES_COUNT = 3
+EXPECTED_ASSERT_PROPOSAL_GRAPH_NODES_COUNT = 4
+
