@@ -23,7 +23,6 @@ from domain.models.sequence import ComponentLifeline, InteractionScenario, UserL
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 
-EXPECTED_TOTAL_TOKENS = 45
 
 pytestmark = pytest.mark.unit
 
@@ -213,7 +212,7 @@ def test_generation_returns_catalog_and_scenarios_in_requirement_order() -> None
     assert result.is_successful
     assert result.roles_catalog == _catalog()
     assert list(result.scenarios_results) == ["FR-1", "FR-2"]
-    assert result.total_usage.total_tokens == EXPECTED_TOTAL_TOKENS
+    assert result.total_usage.total_tokens == 45
 
 
 def test_parallel_generation_preserves_requirement_order() -> None:
