@@ -37,7 +37,6 @@ if TYPE_CHECKING:
     from application.results import SequenceGenerationResult
 
 
-from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
 
 pytestmark = pytest.mark.unit
 
@@ -285,7 +284,7 @@ def test_retries_parsing_failures_and_preserves_repair_context() -> None:
 
     assert result.roles_catalog is not None
     assert result.is_successful
-    assert len(result.roles_attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+    assert len(result.roles_attempts) == 2
     assert result.roles_attempts[0].parsed is False
     assert result.roles_attempts[0].usage == role_failure.usage
     assert designer.role_tasks[0].mode is DesignTaskMode.INITIAL
@@ -296,7 +295,7 @@ def test_retries_parsing_failures_and_preserves_repair_context() -> None:
 
     interaction_result = result.scenarios_results["FR-1"]
     assert interaction_result.is_successful
-    assert len(interaction_result.attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+    assert len(interaction_result.attempts) == 2
     interaction_repair = designer.interaction_tasks[1]
     assert interaction_repair.mode is DesignTaskMode.REPAIR
     assert interaction_repair.previous_payload == interaction_failure.raw_content
@@ -319,7 +318,7 @@ def test_catalog_validation_feedback_is_sent_to_repair_attempt() -> None:
     )
 
     assert result.roles_catalog is not None
-    assert len(result.roles_attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+    assert len(result.roles_attempts) == 2
     repair = designer.role_tasks[1]
     first_payload = result.roles_attempts[0].payload
     assert first_payload is not None
@@ -346,7 +345,7 @@ def test_interaction_validation_feedback_is_sent_to_repair_attempt() -> None:
 
     assert result.is_successful
     assert (
-        len(result.scenarios_results["FR-1"].attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+        len(result.scenarios_results["FR-1"].attempts) == 2
     )
     repair = designer.interaction_tasks[1]
     first_payload = result.scenarios_results["FR-1"].attempts[0].payload
@@ -393,7 +392,7 @@ def test_aborts_interactions_when_roles_catalog_never_parses() -> None:
     )
 
     assert result.roles_catalog is None
-    assert len(result.roles_attempts) == EXPECTED_RESULT_ATTEMPTS_COUNT
+    assert len(result.roles_attempts) == 2
     assert result.scenarios_results == {}
     assert not designer.interaction_tasks
     assert result.total_usage == TokenUsage(prompt_tokens=8, completion_tokens=2)
