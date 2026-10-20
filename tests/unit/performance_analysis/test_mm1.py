@@ -86,7 +86,7 @@ def test_invalid_rates_are_rejected(
     arrival_rate: float,
     service_rate: float,
 ) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r".+"):
         compute_mm1_metrics(arrival_rate, service_rate)
 
 

@@ -45,7 +45,10 @@ def compute_mm1_metrics(
     if not isfinite(mean_queue_wait_milliseconds) or not isfinite(
         mean_response_time_milliseconds
     ):
-        message = "The calculated queueing metrics exceed the finite floating-point range."
+        message = (
+            "The calculated queueing metrics exceed the finite floating-point "
+            "range."
+        )
         raise ValueError(message)
 
     return QueueingMetrics(
