@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.stage import StageId
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -20,33 +21,33 @@ class StageContext:
     scenario: DesignScenario
     out_dir: Path
     writer: ArtifactWriter
-    upstream: Mapping[str, StageOutcome[object]]
+    upstream: Mapping[StageId, StageOutcome[object]]
 
 
 class PipelineDependencyError(RuntimeError):
     """Raised when a stage's declared dependency is missing or ill-typed."""
 
     @classmethod
-    def missing_upstream_stage(cls, stage_name: str) -> PipelineDependencyError:
-        return cls(f"Missing upstream stage '{stage_name}'")
+    def missing_upstream_stage(cls, stage_id: StageId) -> PipelineDependencyError:
+        return cls(f"Missing upstream stage '{stage_id}'")
 
     @classmethod
-    def failed_upstream_stage(cls, stage_name: str) -> PipelineDependencyError:
-        return cls(f"Upstream stage '{stage_name}' failed; cannot consume its payload")
+    def failed_upstream_stage(cls, stage_id: StageId) -> PipelineDependencyError:
+        return cls(f"Upstream stage '{stage_id}' failed; cannot consume its payload")
 
     @classmethod
     def unexpected_payload_type(
-        cls, stage_name: str, actual_type: str, expected_type: str
+        cls, stage_id: StageId, actual_type: str, expected_type: str
     ) -> PipelineDependencyError:
         return cls(
-            f"Upstream stage '{stage_name}' payload is {actual_type}, "
+            f"Upstream stage '{stage_id}' payload is {actual_type}, "
             f"expected {expected_type}"
         )
 
 
 def require_payload[PayloadT](
     context: StageContext,
-    stage_name: str,
+    stage_id: StageId,
     expected_type: type[PayloadT],
 ) -> PayloadT:
     """Fetch a typed payload from an upstream stage's outcome.
@@ -54,14 +55,14 @@ def require_payload[PayloadT](
     Runtime-checked via ``isinstance``. PARTIAL outcomes are acceptable:
     the payload was produced successfully, only optional artifacts failed.
     """
-    outcome = context.upstream.get(stage_name)
+    outcome = context.upstream.get(stage_id)
     if outcome is None:
-        raise PipelineDependencyError.missing_upstream_stage(stage_name)
+        raise PipelineDependencyError.missing_upstream_stage(stage_id)
     if outcome.status is StageStatus.FAILED:
-        raise PipelineDependencyError.failed_upstream_stage(stage_name)
+        raise PipelineDependencyError.failed_upstream_stage(stage_id)
     payload = outcome.payload
     if not isinstance(payload, expected_type):
         raise PipelineDependencyError.unexpected_payload_type(
-            stage_name, type(payload).__name__, expected_type.__name__
+            stage_id, type(payload).__name__, expected_type.__name__
         )
     return payload
