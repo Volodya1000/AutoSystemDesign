@@ -23,6 +23,7 @@ _NUMERIC_TOKEN = re.compile(
     r"(?:st|nd|rd|th)?(?!\w)",
     re.IGNORECASE,
 )
+MIN_DISTINCT_EXCERPTS = 2
 
 
 def _contains_number(text: str, expected: float) -> bool:
@@ -182,4 +183,4 @@ def validate_source_backed_notes(
         )
     return tuple(issues)
 
-MIN_DISTINCT_EXCERPTS = 2
+
