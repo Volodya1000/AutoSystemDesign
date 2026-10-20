@@ -110,4 +110,3 @@ def test_scenario_citation_must_match_a_complete_verified_excerpt() -> None:
 
 EXPECTED_ASSERT_RESULT_COUNT = 2
 MAX_ASSERT_ALL_0_CHUNK_COUNT = 50
-
