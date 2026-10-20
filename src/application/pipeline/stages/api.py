@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
-from application.pipeline.stage import StageId
+from application.pipeline.stage import StageId, begin_stage_execution
 from application.results import ApiGenerationResult, GenerationStatus
 from domain.models.topology import ArchitectureGraph
 
