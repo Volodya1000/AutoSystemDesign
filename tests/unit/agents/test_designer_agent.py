@@ -138,4 +138,3 @@ class TestArchitectureDesignerAgent:
         assert request.max_tokens == EXPECTED_ASSERT_REQUEST_MAX_TOKENS
         assert request.timeout_seconds == 12.5
         assert request.messages
-
