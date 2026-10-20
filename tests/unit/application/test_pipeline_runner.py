@@ -213,7 +213,9 @@ def test_require_payload_rejects_missing_failed_and_wrong_type_dependencies() ->
         total_tokens=0,
         payload={"ready": False},
     )
-    with pytest.raises(PipelineDependencyError, match="failed; cannot consume its payload"):
+    with pytest.raises(
+        PipelineDependencyError, match="failed; cannot consume its payload"
+    ):
         require_payload(_context(failed), StageId.C4, dict)
 
     success = StageOutcome(
