@@ -11,10 +11,10 @@ import yaml
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
+from application.pipeline.stage import StageId
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.sequence import SequenceStage
-from application.pipeline.stage import StageId
 from application.results import (
     ApiGenerationResult,
     DesignGenerationResult,
