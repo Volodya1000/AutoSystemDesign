@@ -17,6 +17,10 @@ from domain.specifications.requirement_dispatch import (
     RequirementValidationDispatcher,
 )
 
+EXPECTED_ERROR_COUNT = 2
+EXPECTED_ASSERT_ERROR_BUDGET_LIMIT_USD = 3000.0
+EXPECTED_MONTHLY_COST = 3500.0
+
 pytestmark = pytest.mark.unit
 
 
@@ -189,6 +193,3 @@ class TestRequirementValidationDispatcher:
         )
         assert [e.budget_limit_usd for e in budget_errors] == [3000.0, 4000.0]
 
-EXPECTED_ERROR_COUNT = 2
-EXPECTED_ASSERT_ERROR_BUDGET_LIMIT_USD = 3000.0
-EXPECTED_MONTHLY_COST = 3500.0
