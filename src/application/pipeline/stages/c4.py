@@ -38,7 +38,7 @@ class C4Stage:
 
     def run(self, context: StageContext) -> StageOutcome[ArchitectureGraph]:
         stage_start: float = time.perf_counter()
-        scenario: DesignScenario = context.scenario
+        scenario = context.scenario
 
         generation_start: float = time.perf_counter()
         result = self._service.generate(scenario)
