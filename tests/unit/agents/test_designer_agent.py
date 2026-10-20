@@ -80,10 +80,10 @@ class TestArchitectureDesignerAgent:
         proposal: DesignProposal = designer.propose(
             DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
         )
-        assert len(proposal.graph.nodes) == EXPECTED_ASSERT_PROPOSAL_GRAPH_NODES_COUNT
-        assert len(proposal.graph.edges) == EXPECTED_ASSERT_PROPOSAL_GRAPH_EDGES_COUNT
+        assert len(proposal.graph.nodes) == EXPECTED_NODE_COUNT
+        assert len(proposal.graph.edges) == EXPECTED_EDGE_COUNT
         assert proposal.raw_content == _FENCED_CONTENT
-        assert proposal.usage.total_tokens == EXPECTED_ASSERT_PROPOSAL_USAGE_TOTAL_TOKENS
+        assert proposal.usage.total_tokens == EXPECTED_TOTAL_TOKENS
 
     def test_propose_raises_parsing_error_on_garbage(
         self, scenario: DesignScenario, settings: AppSettings
@@ -94,8 +94,10 @@ class TestArchitectureDesignerAgent:
             settings=settings,
         )
         with pytest.raises(DesignProposalParsingError) as exc_info:
-            designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
-        assert exc_info.value.usage.total_tokens == EXPECTED_ASSERT_EXC_INFO_VALUE_USAGE_TOTAL_TOKENS
+            designer.propose(
+                DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
+            )
+        assert exc_info.value.usage.total_tokens == EXPECTED_TOTAL_TOKENS
         assert exc_info.value.failure_details
 
     def test_propose_propagates_connection_errors(
@@ -131,7 +133,7 @@ class TestArchitectureDesignerAgent:
 EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS = 12.5
 EXPECTED_ASSERT_REQUEST_MAX_TOKENS = 512
 EXPECTED_ASSERT_REQUEST_TEMPERATURE = 0.7
-EXPECTED_ASSERT_EXC_INFO_VALUE_USAGE_TOTAL_TOKENS = 18
-EXPECTED_ASSERT_PROPOSAL_USAGE_TOTAL_TOKENS = 18
-EXPECTED_ASSERT_PROPOSAL_GRAPH_EDGES_COUNT = 3
-EXPECTED_ASSERT_PROPOSAL_GRAPH_NODES_COUNT = 4
+EXPECTED_TOTAL_TOKENS = 18
+EXPECTED_TOTAL_TOKENS = 18
+EXPECTED_EDGE_COUNT = 3
+EXPECTED_NODE_COUNT = 4
