@@ -15,6 +15,7 @@ from config.testing import IntegrationSettings
 from domain.models import DesignScenario
 from domain.specifications.structural_validator import StructuralTopologyValidator
 from infrastructure.agents.designer import ArchitectureDesignerAgent
+from infrastructure.llm.client import LiteLlmClient
 
 _TEST_CONFIG_FILE: str = "config.test.yaml"
 
@@ -67,10 +68,6 @@ def structural_validator() -> StructuralTopologyValidator:
 @pytest.fixture(scope="session")
 def designer(gate_settings: AppSettings) -> ArchitectureDesignerAgent:
     """Real designer wired to the real LLM client."""
-    from infrastructure.llm.client import (
-        LiteLlmClient,  # pylint: disable=import-outside-toplevel
-    )
-
     return ArchitectureDesignerAgent(
         client=LiteLlmClient(settings=gate_settings), settings=gate_settings
     )
