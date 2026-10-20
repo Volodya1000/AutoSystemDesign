@@ -1,0 +1,4 @@
+"""Shared constants for unit tests."""
+
+EXPECTED_RESULT_ATTEMPTS_COUNT = 2
+EXPECTED_REQUEST_MAX_TOKENS = 512
