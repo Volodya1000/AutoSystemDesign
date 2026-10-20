@@ -182,5 +182,3 @@ def validate_source_backed_notes(
             )
         )
     return tuple(issues)
-
-
