@@ -17,9 +17,9 @@ from infrastructure.llm.models import (
     FinishReason,
 )
 from infrastructure.prompts.fragments_schema import FEW_SHOT_GRAPH_JSON
+from tests.unit.constants import EXPECTED_REQUEST_MAX_TOKENS
 
 EXPECTED_ASSERT_REQUEST_TIMEOUT_SECONDS = 12.5
-EXPECTED_ASSERT_REQUEST_MAX_TOKENS = 512
 EXPECTED_ASSERT_REQUEST_TEMPERATURE = 0.7
 EXPECTED_TOTAL_TOKENS = 18
 EXPECTED_EDGE_COUNT = 3
