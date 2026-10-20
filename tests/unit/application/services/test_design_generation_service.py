@@ -257,4 +257,3 @@ class TestDesignGenerationService:
                 max_attempts=11,
             )
 
-EXPECTED_RESULT_ATTEMPTS_COUNT = 2
