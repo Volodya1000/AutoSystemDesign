@@ -157,7 +157,7 @@ def validate_source_backed_notes(
         # multiple independently verified citations keeps this exception narrow.
         synthesized_conflict_supported = (
             issue_kind is RequirementIssueKind.CONFLICTING
-            and len({" ".join(excerpt.split()) for excerpt in excerpts}) >= 2
+            and len({" ".join(excerpt.split()) for excerpt in excerpts}) >= MIN_AND_JOIN_EXCERPT_SPLIT_COUNT_FOR_EXCERPT
         )
         if unsupported or not (description_supported or synthesized_conflict_supported):
             issues.append(
@@ -179,3 +179,6 @@ def validate_source_backed_notes(
             )
         )
     return tuple(issues)
+
+MIN_AND_JOIN_EXCERPT_SPLIT_COUNT_FOR_EXCERPT = 2
+
