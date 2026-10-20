@@ -1,7 +1,7 @@
-"""Capacity utilization: nodes must not exceed the saturation threshold.
+"""Capacity utilization and the configured safety threshold.
 
-Pure module. The 98% threshold is hardcoded by the roadmap (F4): a node at
-or above it has an infinite queue and will collapse at peak load.
+The 98% threshold is a policy margin used to report risky utilization. The
+queue model returns infinite latency only when offered load reaches capacity.
 """
 
 from __future__ import annotations
@@ -23,8 +23,8 @@ if TYPE_CHECKING:
 SATURATION_THRESHOLD: float = 0.98
 
 
-def _node_max_rps(node: CapacityNode) -> float:
-    """Maximum processing rate of one capacity node, requests/sec."""
+def compute_node_capacity_rps(node: CapacityNode) -> float:
+    """Return the estimated maximum processing rate in requests per second."""
     return (
         node.replicas_count
         * node.maximum_concurrency
@@ -56,7 +56,7 @@ def compute_node_utilization(
             continue
         utilization[node.identifier] = incoming.get(
             node.identifier, 0.0
-        ) / _node_max_rps(node)
+        ) / compute_node_capacity_rps(node)
 
     return utilization
 
@@ -87,7 +87,7 @@ class CapacitySaturationValidator(ScenarioValidator):
             if not isinstance(node, CapacityNode):
                 continue
 
-            max_rps = _node_max_rps(node)
+            max_rps = compute_node_capacity_rps(node)
             arrival_rps = incoming.get(node.identifier, 0.0)
             utilization = arrival_rps / max_rps
 
