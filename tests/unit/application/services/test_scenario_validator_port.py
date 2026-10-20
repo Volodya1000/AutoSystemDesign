@@ -28,7 +28,6 @@ from tests.unit.test_structural_validator import create_test_edge, create_test_n
 
 from tests.unit.constants import EXPECTED_RESULT_ATTEMPTS_COUNT
 
-EXPECTED_ASSERT_VALIDATION_ERRORS_COUNT = 2
 
 pytestmark = pytest.mark.unit
 
@@ -152,7 +151,7 @@ def test_scenario_and_topology_errors_are_aggregated_in_order() -> None:
     assert result.status is GenerationStatus.VALIDATION_FAILED
     validation = result.attempts[0].validation
     assert validation is not None
-    assert len(validation.errors) == EXPECTED_ASSERT_VALIDATION_ERRORS_COUNT
+    assert len(validation.errors) == 2
     assert validation.is_successful is False
     assert [error.error_code for error in validation.errors] == [
         "FAKE_TOPOLOGY_ERROR",
