@@ -21,8 +21,6 @@ from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
 
-
-
 pytestmark = pytest.mark.unit
 
 
