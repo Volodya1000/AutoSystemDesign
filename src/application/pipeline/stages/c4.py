@@ -7,7 +7,7 @@ import time
 from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.stage import StageId
+from application.pipeline.stage import StageId, begin_stage_execution
 from application.results import GenerationStatus
 from domain.specifications.metrics import compute_project_metrics, format_metrics_title
 
