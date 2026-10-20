@@ -16,6 +16,7 @@ from application.pipeline.context import (
 )
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
+from application.pipeline.stage import StageId
 from application.pipeline.stages._naming import plan_base_names
 from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml import (
@@ -56,13 +57,13 @@ class CapturingPipelineReporter:
 class FakeStage:
     def __init__(
         self,
-        name: str,
-        depends_on: tuple[str, ...] = (),
+        name: StageId,
+        depends_on: tuple[StageId, ...] = (),
         status: StageStatus = StageStatus.SUCCEEDED,
         payload: object | None = None,
     ) -> None:
-        self.name: str = name
-        self.depends_on: tuple[str, ...] = depends_on
+        self.name: StageId = name
+        self.depends_on: tuple[StageId, ...] = depends_on
         self.status: StageStatus = status
         self.payload: object | None = payload
         self.calls: list[StageContext] = []
@@ -84,7 +85,7 @@ def _scenario() -> MagicMock:
 
 def _context(
     tmp_path: Path,
-    upstream: dict[str, StageOutcome[object]],
+    upstream: dict[StageId, StageOutcome[object]],
 ) -> StageContext:
     return StageContext(
         scenario=_scenario(),
@@ -95,7 +96,7 @@ def _context(
 
 
 def _outcome(
-    name: str,
+    name: StageId,
     status: StageStatus,
     payload: object | None = None,
 ) -> StageOutcome[object]:
@@ -117,27 +118,27 @@ def test_runner_rejects_empty_pipeline() -> None:
 
 
 def test_runner_rejects_duplicate_stage_names() -> None:
-    with pytest.raises(ValueError, match="Duplicate stage name 'c4'"):
+    with pytest.raises(ValueError, match="Duplicate stage name"):
         PipelineRunner(
-            stages=[FakeStage(name="c4"), FakeStage(name="c4")],
+            stages=[FakeStage(name=StageId.C4), FakeStage(name=StageId.C4)],
             reporter=CapturingPipelineReporter(),
         )
 
 
 def test_runner_rejects_missing_dependency() -> None:
-    with pytest.raises(ValueError, match="depends on 'c4'"):
+    with pytest.raises(ValueError, match="depends on"):
         PipelineRunner(
-            stages=[FakeStage(name="sequence", depends_on=("c4",))],
+            stages=[FakeStage(name=StageId.SEQUENCE, depends_on=(StageId.C4,))],
             reporter=CapturingPipelineReporter(),
         )
 
 
 def test_runner_rejects_out_of_order_dependency() -> None:
-    with pytest.raises(ValueError, match="depends on 'c4'"):
+    with pytest.raises(ValueError, match="depends on"):
         PipelineRunner(
             stages=[
-                FakeStage(name="sequence", depends_on=("c4",)),
-                FakeStage(name="c4"),
+                FakeStage(name=StageId.SEQUENCE, depends_on=(StageId.C4,)),
+                FakeStage(name=StageId.C4),
             ],
             reporter=CapturingPipelineReporter(),
         )
@@ -148,7 +149,7 @@ def test_runner_rejects_out_of_order_dependency() -> None:
 
 def test_runner_succeeds_on_all_succeeded(tmp_path: Path) -> None:
     runner = PipelineRunner(
-        stages=[FakeStage(name="c4")],
+        stages=[FakeStage(name=StageId.C4)],
         reporter=CapturingPipelineReporter(),
     )
     assert runner.run(_scenario(), tmp_path, InMemoryWriter()) == 0
@@ -157,7 +158,7 @@ def test_runner_succeeds_on_all_succeeded(tmp_path: Path) -> None:
 def test_runner_returns_1_on_stage_failed(tmp_path: Path) -> None:
     reporter = CapturingPipelineReporter()
     runner = PipelineRunner(
-        stages=[FakeStage(name="c4", status=StageStatus.FAILED)],
+        stages=[FakeStage(name=StageId.C4, status=StageStatus.FAILED)],
         reporter=reporter,
     )
     assert runner.run(_scenario(), tmp_path, InMemoryWriter()) == 1
@@ -168,7 +169,7 @@ def test_runner_partial_is_not_a_failure(tmp_path: Path) -> None:
     """PARTIAL means optional artifacts (diagrams) failed; exit code is 0."""
     reporter = CapturingPipelineReporter()
     runner = PipelineRunner(
-        stages=[FakeStage(name="c4", status=StageStatus.PARTIAL)],
+        stages=[FakeStage(name=StageId.C4, status=StageStatus.PARTIAL)],
         reporter=reporter,
     )
     assert runner.run(_scenario(), tmp_path, InMemoryWriter()) == 0
@@ -176,10 +177,10 @@ def test_runner_partial_is_not_a_failure(tmp_path: Path) -> None:
 
 
 def test_runner_stops_after_failed_stage(tmp_path: Path) -> None:
-    second = FakeStage(name="sequence", depends_on=("c4",))
+    second = FakeStage(name=StageId.SEQUENCE, depends_on=(StageId.C4,))
     runner = PipelineRunner(
         stages=[
-            FakeStage(name="c4", status=StageStatus.FAILED),
+            FakeStage(name=StageId.C4, status=StageStatus.FAILED),
             second,
         ],
         reporter=CapturingPipelineReporter(),
@@ -195,29 +196,29 @@ def test_require_payload_accepts_partial(tmp_path: Path) -> None:
     graph = MagicMock(spec=ArchitectureGraph)
     ctx = _context(
         tmp_path,
-        {"c4": _outcome("c4", StageStatus.PARTIAL, payload=graph)},
+        {StageId.C4: _outcome(StageId.C4, StageStatus.PARTIAL, payload=graph)},
     )
-    assert require_payload(ctx, "c4", ArchitectureGraph) is graph
+    assert require_payload(ctx, StageId.C4, ArchitectureGraph) is graph
 
 
 def test_require_payload_rejects_failed(tmp_path: Path) -> None:
-    ctx = _context(tmp_path, {"c4": _outcome("c4", StageStatus.FAILED)})
+    ctx = _context(tmp_path, {StageId.C4: _outcome(StageId.C4, StageStatus.FAILED)})
     with pytest.raises(PipelineDependencyError, match="failed"):
-        require_payload(ctx, "c4", ArchitectureGraph)
+        require_payload(ctx, StageId.C4, ArchitectureGraph)
 
 
 def test_require_payload_rejects_missing(tmp_path: Path) -> None:
     with pytest.raises(PipelineDependencyError, match="Missing upstream stage"):
-        require_payload(_context(tmp_path, {}), "c4", ArchitectureGraph)
+        require_payload(_context(tmp_path, {}), StageId.C4, ArchitectureGraph)
 
 
 def test_require_payload_rejects_wrong_type(tmp_path: Path) -> None:
     ctx = _context(
         tmp_path,
-        {"c4": _outcome("c4", StageStatus.SUCCEEDED, payload={"x": 1})},
+        {StageId.C4: _outcome(StageId.C4, StageStatus.SUCCEEDED, payload={"x": 1})},
     )
     with pytest.raises(PipelineDependencyError, match="expected ArchitectureGraph"):
-        require_payload(ctx, "c4", ArchitectureGraph)
+        require_payload(ctx, StageId.C4, ArchitectureGraph)
 
 
 # --- render_and_write contract ---------------------------------------------

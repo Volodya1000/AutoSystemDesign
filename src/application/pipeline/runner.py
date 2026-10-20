@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.ports import ArtifactWriter, PipelineReporter
-    from application.pipeline.stage import PipelineStage
+    from application.pipeline.stage import PipelineStage, StageId
     from domain.models import DesignScenario
 
 _logger = logging.getLogger("pipeline.runner")
@@ -34,18 +34,18 @@ class PipelineConfigurationError(ValueError):
         return cls("PipelineRunner requires at least one stage")
 
     @classmethod
-    def duplicate_stage_name(cls, stage_name: str) -> PipelineConfigurationError:
+    def duplicate_stage_id(cls, stage_id: StageId) -> PipelineConfigurationError:
         return cls(
-            f"Duplicate stage name '{stage_name}'; stage names must "
+            f"Duplicate stage name '{stage_id}'; stage names must "
             "be unique because outcomes are keyed by name"
         )
 
     @classmethod
     def dependency_not_scheduled(
-        cls, stage_name: str, dependency: str
+        cls, stage_id: StageId, dependency: StageId
     ) -> PipelineConfigurationError:
         return cls(
-            f"Stage '{stage_name}' depends on '{dependency}', "
+            f"Stage '{stage_id}' depends on '{dependency}', "
             "which is not scheduled before it"
         )
 
@@ -69,7 +69,7 @@ class PipelineRunner:
         out_dir: Path,
         writer: ArtifactWriter,
     ) -> int:
-        upstream: dict[str, StageOutcome[object]] = {}
+        upstream: dict[StageId, StageOutcome[object]] = {}
         outcomes: list[StageOutcome[object]] = []
 
         for stage in self._stages:
@@ -104,10 +104,10 @@ class PipelineRunner:
         would silently overwrite each other; dependencies must reference
         stages scheduled before them.
         """
-        seen: set[str] = set()
+        seen: set[StageId] = set()
         for stage in stages:
             if stage.name in seen:
-                raise PipelineConfigurationError.duplicate_stage_name(stage.name)
+                raise PipelineConfigurationError.duplicate_stage_id(stage.name)
             for dependency in stage.depends_on:
                 if dependency not in seen:
                     raise PipelineConfigurationError.dependency_not_scheduled(

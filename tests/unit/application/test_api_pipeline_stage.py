@@ -7,6 +7,7 @@ import pytest
 
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
+from application.pipeline.stage import StageId
 from application.pipeline.stages.api import ApiStage
 from application.results import ApiGenerationResult, GenerationAttempt
 from application.usage import TokenUsage
@@ -131,15 +132,15 @@ def _context(
         out_dir=tmp_path / "output",
         writer=writer,
         upstream={
-            "c4": StageOutcome[object](
-                name="c4",
+            StageId.C4: StageOutcome[object](
+                name=StageId.C4,
                 status=StageStatus.SUCCEEDED,
                 duration_seconds=0.0,
                 total_tokens=0,
                 payload=ArchitectureGraph(nodes=[], edges=[]),
             ),
-            "sequence": StageOutcome[object](
-                name="sequence",
+            StageId.SEQUENCE: StageOutcome[object](
+                name=StageId.SEQUENCE,
                 status=StageStatus.SUCCEEDED,
                 duration_seconds=0.0,
                 total_tokens=0,

@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Protocol
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
+from application.pipeline.stage import StageId
 from application.pipeline.stages._naming import (
     functional_requirement_ids,
     plan_base_names,
@@ -46,8 +47,8 @@ class _InteractionResult(Protocol):
 
 
 class SequenceStage:
-    name: str = "sequence"
-    depends_on: tuple[str, ...] = ("c4",)
+    name: StageId = StageId.SEQUENCE
+    depends_on: tuple[StageId, ...] = (StageId.C4,)
 
     def __init__(
         self,
@@ -82,7 +83,7 @@ class SequenceStage:
                 ),
             )
 
-        upstream_name: str = self.depends_on[0]
+        upstream_name: StageId = self.depends_on[0]
         graph: ArchitectureGraph = require_payload(
             context, upstream_name, ArchitectureGraph
         )

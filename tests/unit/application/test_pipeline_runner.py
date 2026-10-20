@@ -14,7 +14,7 @@ from application.pipeline.context import (
 )
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
-from application.pipeline.stage import PipelineStage
+from application.pipeline.stage import PipelineStage, StageId
 from domain.models import DesignScenario
 from tests.unit.in_memory_writer import InMemoryWriter
 
@@ -32,10 +32,10 @@ class RecordingReporter:
 class FakeStage:
     def __init__(
         self,
-        name: str,
+        name: StageId,
         status: StageStatus,
         *,
-        depends_on: tuple[str, ...] = (),
+        depends_on: tuple[StageId, ...] = (),
         payload: object | None = None,
     ) -> None:
         self.name = name
@@ -82,19 +82,29 @@ def test_runner_rejects_empty_stage_list() -> None:
     [
         (
             [
-                FakeStage("c4", StageStatus.SUCCEEDED),
-                FakeStage("c4", StageStatus.SUCCEEDED),
+                FakeStage(StageId.C4, StageStatus.SUCCEEDED),
+                FakeStage(StageId.C4, StageStatus.SUCCEEDED),
             ],
             "Duplicate stage name",
         ),
         (
-            [FakeStage("sequence", StageStatus.SUCCEEDED, depends_on=("c4",))],
+            [
+                FakeStage(
+                    StageId.SEQUENCE,
+                    StageStatus.SUCCEEDED,
+                    depends_on=(StageId.C4,),
+                )
+            ],
             "not scheduled before it",
         ),
         (
             [
-                FakeStage("sequence", StageStatus.SUCCEEDED, depends_on=("c4",)),
-                FakeStage("c4", StageStatus.SUCCEEDED),
+                FakeStage(
+                    StageId.SEQUENCE,
+                    StageStatus.SUCCEEDED,
+                    depends_on=(StageId.C4,),
+                ),
+                FakeStage(StageId.C4, StageStatus.SUCCEEDED),
             ],
             "not scheduled before it",
         ),
@@ -109,11 +119,11 @@ def test_runner_rejects_duplicate_or_out_of_order_stages(
 
 
 def test_runner_passes_immutable_snapshot_of_prior_stage_outcomes() -> None:
-    c4 = FakeStage("c4", StageStatus.SUCCEEDED, payload={"architecture": True})
+    c4 = FakeStage(StageId.C4, StageStatus.SUCCEEDED, payload={"architecture": True})
     sequence = FakeStage(
-        "sequence",
+        StageId.SEQUENCE,
         StageStatus.PARTIAL,
-        depends_on=("c4",),
+        depends_on=(StageId.C4,),
         payload={"sequence": True},
     )
     reporter = RecordingReporter()
@@ -125,17 +135,22 @@ def test_runner_passes_immutable_snapshot_of_prior_stage_outcomes() -> None:
     assert sequence.calls == 1
     upstream = sequence.contexts[0].upstream
     assert isinstance(upstream, MappingProxyType)
-    assert upstream["c4"].payload == {"architecture": True}
+    assert upstream[StageId.C4].payload == {"architecture": True}
     with pytest.raises(TypeError):
-        cast("dict[str, StageOutcome[object]]", upstream)["new"] = upstream["c4"]
+        cast("dict[StageId, StageOutcome[object]]", upstream)[StageId.API] = upstream[
+            StageId.C4
+        ]
     assert len(reporter.reports) == 1
-    assert [outcome.name for outcome in reporter.reports[0]] == ["c4", "sequence"]
+    assert [outcome.name for outcome in reporter.reports[0]] == [
+        StageId.C4,
+        StageId.SEQUENCE,
+    ]
 
 
 def test_failed_stage_short_circuits_pipeline_and_reports_partial_history() -> None:
-    c4 = FakeStage("c4", StageStatus.SUCCEEDED, payload={"architecture": True})
-    sequence = FakeStage("sequence", StageStatus.FAILED, depends_on=("c4",))
-    api = FakeStage("api", StageStatus.SUCCEEDED, depends_on=("sequence",))
+    c4 = FakeStage(StageId.C4, StageStatus.SUCCEEDED, payload={"architecture": True})
+    sequence = FakeStage(StageId.SEQUENCE, StageStatus.FAILED, depends_on=(StageId.C4,))
+    api = FakeStage(StageId.API, StageStatus.SUCCEEDED, depends_on=(StageId.SEQUENCE,))
     reporter = RecordingReporter()
 
     exit_code = _run([c4, sequence, api], reporter)
@@ -145,12 +160,15 @@ def test_failed_stage_short_circuits_pipeline_and_reports_partial_history() -> N
     assert sequence.calls == 1
     assert api.calls == 0
     assert len(reporter.reports) == 1
-    assert [outcome.name for outcome in reporter.reports[0]] == ["c4", "sequence"]
+    assert [outcome.name for outcome in reporter.reports[0]] == [
+        StageId.C4,
+        StageId.SEQUENCE,
+    ]
     assert reporter.reports[0][-1].status is StageStatus.FAILED
 
 
 def test_partial_stage_does_not_fail_pipeline() -> None:
-    stage = FakeStage("c4", StageStatus.PARTIAL, payload={"architecture": True})
+    stage = FakeStage(StageId.C4, StageStatus.PARTIAL, payload={"architecture": True})
     reporter = RecordingReporter()
 
     assert _run([stage], reporter) == 0
@@ -172,38 +190,40 @@ def _context(
 def test_require_payload_accepts_succeeded_or_partial_typed_payload() -> None:
     for status in (StageStatus.SUCCEEDED, StageStatus.PARTIAL):
         outcome = StageOutcome(
-            name="c4",
+            name=StageId.C4,
             status=status,
             duration_seconds=0.1,
             total_tokens=0,
             payload={"ready": True},
         )
 
-        payload = require_payload(_context(outcome), "c4", dict)
+        payload = require_payload(_context(outcome), StageId.C4, dict)
 
         assert payload == {"ready": True}
 
 
 def test_require_payload_rejects_missing_failed_and_wrong_type_dependencies() -> None:
     with pytest.raises(PipelineDependencyError, match="Missing upstream stage"):
-        require_payload(_context(), "c4", dict)
+        require_payload(_context(), StageId.C4, dict)
 
     failed = StageOutcome(
-        name="c4",
+        name=StageId.C4,
         status=StageStatus.FAILED,
         duration_seconds=0.1,
         total_tokens=0,
         payload={"ready": False},
     )
-    with pytest.raises(PipelineDependencyError, match="stage 'c4' failed"):
-        require_payload(_context(failed), "c4", dict)
+    with pytest.raises(
+        PipelineDependencyError, match="failed; cannot consume its payload"
+    ):
+        require_payload(_context(failed), StageId.C4, dict)
 
     success = StageOutcome(
-        name="c4",
+        name=StageId.C4,
         status=StageStatus.SUCCEEDED,
         duration_seconds=0.1,
         total_tokens=0,
         payload="wrong-type",
     )
     with pytest.raises(PipelineDependencyError, match="expected dict"):
-        require_payload(_context(success), "c4", dict)
+        require_payload(_context(success), StageId.C4, dict)
