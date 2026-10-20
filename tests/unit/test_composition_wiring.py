@@ -8,26 +8,25 @@ are required.
 import pytest
 from pydantic import SecretStr
 
-from application.results import GenerationStatus
-from application.tasks import DesignProposal, DesignTask
-from application.usage import TokenUsage
-
 from application.pipeline.stage import StageId
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from application.pipeline.stages.sequence import SequenceStage
+from application.results import GenerationStatus
+from application.tasks import DesignProposal, DesignTask
+from application.usage import TokenUsage
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
 from domain.models import DesignScenario, LatencyRequirement, WorkloadProfile
 from domain.models.enums import NodeType
 from domain.models.topology import ArchitectureGraph
 from infrastructure.composition import (
-    build_design_generation_service,
     _build_api_stage,
     _build_c4_stage,
     _build_performance_analysis_stage,
     _build_sequence_stage,
+    build_design_generation_service,
     build_pipeline,
 )
 from infrastructure.reporting import LoggingGenerationReporter
@@ -111,18 +110,13 @@ class _FakeLlmClient:
 
 
 class _FixedArchitectureDesigner:
-    def __init__(self, graph: ArchitectureGraph) -> None:
-        self._graph = graph
-        self.calls = 0
+    def __init__(self, proposal: DesignProposal) -> None:
+        self._proposal = proposal
+        self.received_tasks: list[DesignTask] = []
 
     def propose(self, task: DesignTask) -> DesignProposal:
-        del task
-        self.calls += 1
-        return DesignProposal(
-            graph=self._graph,
-            raw_content="{}",
-            usage=TokenUsage(),
-        )
+        self.received_tasks.append(task)
+        return self._proposal
 
 
 def test_unmodelled_percentile_target_does_not_trigger_repair_attempts(
@@ -149,7 +143,9 @@ def test_unmodelled_percentile_target_does_not_trigger_repair_attempts(
         ),
         requirements=[LatencyRequirement(threshold_value=1.0, percentile=99.0)],
     )
-    designer = _FixedArchitectureDesigner(graph)
+    designer = _FixedArchitectureDesigner(
+        DesignProposal(graph=graph, raw_content="{}", usage=TokenUsage())
+    )
 
     def build_fixed_designer(
         client: _FakeLlmClient,
@@ -169,4 +165,4 @@ def test_unmodelled_percentile_target_does_not_trigger_repair_attempts(
 
     assert result.status is GenerationStatus.SUCCEEDED
     assert len(result.attempts) == 1
-    assert designer.calls == 1
+    assert len(designer.received_tasks) == 1
