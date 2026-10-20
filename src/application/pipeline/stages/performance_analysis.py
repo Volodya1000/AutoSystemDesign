@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 from application.performance_analysis.report_builder import (
     build_performance_analysis_report,
 )
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.stage import StageId
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import PerformanceAnalysisReport
 
@@ -21,8 +23,8 @@ class PerformanceAnalysisStage:
     so an unavailable analysis is still a successful stage result.
     """
 
-    name: str = "performance_analysis"
-    depends_on: tuple[str, ...] = ("c4",)
+    name: StageId = StageId.PERFORMANCE_ANALYSIS
+    depends_on: tuple[StageId, ...] = (StageId.C4,)
 
     def run(self, context: StageContext) -> StageOutcome[PerformanceAnalysisReport]:
         stage_start: float = time.perf_counter()
@@ -35,7 +37,7 @@ class PerformanceAnalysisStage:
         artifact_filename: str = (
             f"{context.scenario.identifier}_performance_analysis.json"
         )
-        artifact_path = context.writer.write_text(
+        artifact_path: Path = context.writer.write_text(
             context.out_dir / artifact_filename,
             report.model_dump_json(indent=2),
         )
