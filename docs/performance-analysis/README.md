@@ -18,6 +18,8 @@
 заранее не добавляем. Тесты фичи находятся в `tests/unit/performance_analysis/`,
 а интеграционные тесты — в `tests/integration/performance_analysis/`.
 
+В приложении `pipeline/stages/` отвечает за orchestration стадий, а `application/services/` — за прикладные операции генерации. Отдельные каталоги `Preparation` и `Internal` не вводятся: сейчас нет самостоятельного этапа подготовки с отдельным контрактом, а `Internal` не обозначает конкретную архитектурную ответственность.
+
 ## Новые файлы фичи
 
 - [Модель отчёта](../../src/domain/performance_analysis/report.py) — JSON-контракт.
@@ -60,6 +62,8 @@
 - [Композиция зависимостей](../../src/infrastructure/composition.py) — подключение новых стадий и адаптеров.
 - [Контекст стадии](../../src/application/pipeline/context.py) — доступ к сценарию и результатам предыдущих стадий.
 - [Контракт стадии](../../src/application/pipeline/stage.py) — интерфейс стадии конвейера.
+- [Общие идентификаторы стадий](../../src/application/pipeline/stage.py) — `StageId`, используемый для зависимостей, контекста и результатов.
+- [Начало выполнения стадии](../../src/application/pipeline/stage_execution.py) — общий захват времени начала и сценария без базового класса или декоратора.
 - [Исполнитель конвейера](../../src/application/pipeline/runner.py) — порядок запуска и зависимости стадий.
 - [Порт записи артефактов](../../src/application/pipeline/ports.py) — граница между приложением и сохранением результатов.
 - [Файловая реализация записи](../../src/infrastructure/persistence/artifact_writer.py) — текущая запись текстовых артефактов.
