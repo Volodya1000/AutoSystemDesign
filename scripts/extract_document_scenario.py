@@ -1,7 +1,6 @@
 """Extract verified requirements into a pipeline-compatible YAML scenario."""
 
 import argparse
-import argparse
 import asyncio
 import json
 import logging
