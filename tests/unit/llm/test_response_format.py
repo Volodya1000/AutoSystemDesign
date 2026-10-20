@@ -8,7 +8,7 @@ and inspect the captured kwargs. This keeps the tests on the public
 
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from pydantic import SecretStr
@@ -38,7 +38,7 @@ def _client(mode: StructuredOutputMode) -> LiteLlmClient:
     return LiteLlmClient(settings=settings)
 
 
-def _request(**kwargs: Any) -> CompletionRequest:
+def _request(**kwargs: object) -> CompletionRequest:
     return CompletionRequest(
         messages=[Message(role=MessageRole.USER, content="hi")],
         **kwargs,
@@ -59,7 +59,7 @@ def _fake_response(content: str = "{}") -> SimpleNamespace:
     )
 
 
-def _captured_kwargs(mock_completion: Any) -> dict[str, Any]:
+def _captured_kwargs(mock_completion: Mock) -> dict[str, Any]:
     """Returns the kwargs of the single call made to ``litellm.completion``."""
     assert mock_completion.call_count == 1
     kwargs: dict[str, Any] = dict(mock_completion.call_args.kwargs)
