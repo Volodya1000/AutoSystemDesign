@@ -14,6 +14,7 @@ from infrastructure.llm.models import (
     MessageRole,
 )
 from infrastructure.llm.protocols import CompletionClient
+
 EXPECTED_IF_LINES_COUNT = 3
 
 
