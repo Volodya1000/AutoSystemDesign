@@ -6,13 +6,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.stage import StageId
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
     from application.pipeline.ports import ArtifactWriter
+    from application.pipeline.stage import StageId
     from domain.models import DesignScenario
 
 
