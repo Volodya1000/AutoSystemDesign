@@ -17,7 +17,6 @@ from domain.performance_analysis.report import PerformanceAnalysisReport
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from domain.models.scenarios import DesignScenario
 
 
 class PerformanceAnalysisStage:
