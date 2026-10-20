@@ -24,6 +24,11 @@ FUNCTIONAL = "A customer can add one or more products to a shopping cart."
 READ_RATIO = "Read requests account for 0.7 of total traffic."
 
 
+EXPECTED_ASSERT_RESULT_SCENARIO_REQUIREMENTS_COUN = 2
+EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_READ_RAT = 0.7
+EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_PEAK_REQ = 400.0
+EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_BASELINE = 120.0
+
 def make_source_requirements() -> req_doc.DocumentRequirements:
     excerpts = [BASELINE, PEAK, READ_RATIO, LATENCY, AVAILABILITY, FUNCTIONAL]
     return req_doc.DocumentRequirements(
@@ -319,7 +324,3 @@ def test_keeps_synthesized_conflict_when_all_source_excerpts_are_verified() -> N
     assert len(conflict_issues) == 1
     assert conflict_issues[0].evidence == [first, second]
 
-EXPECTED_ASSERT_RESULT_SCENARIO_REQUIREMENTS_COUN = 2
-EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_READ_RAT = 0.7
-EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_PEAK_REQ = 400.0
-EXPECTED_ASSERT_RESULT_SCENARIO_WORKLOAD_BASELINE = 120.0
