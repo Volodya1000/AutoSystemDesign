@@ -38,4 +38,3 @@ class TestLlmSettings:
             LlmSettings(**{**_VALID_KWARGS, "max_tokens": 0})
 
 EXPECTED_ASSERT_SETTINGS_TEMPERATURE = 0.2
-
