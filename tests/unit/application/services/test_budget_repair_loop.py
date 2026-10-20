@@ -27,7 +27,6 @@ from domain.specifications.requirement_dispatch import (
 )
 from domain.specifications.structural_validator import StructuralTopologyValidator
 
-
 pytestmark = pytest.mark.unit
 
 
