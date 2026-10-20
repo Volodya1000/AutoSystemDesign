@@ -127,9 +127,14 @@ def test_runner_passes_immutable_snapshot_of_prior_stage_outcomes() -> None:
     assert isinstance(upstream, MappingProxyType)
     assert upstream[StageId.C4].payload == {"architecture": True}
     with pytest.raises(TypeError):
-        cast("dict[StageId, StageOutcome[object]]", upstream)[StageId.API] = upstream[StageId.C4]
+        cast("dict[StageId, StageOutcome[object]]", upstream)[
+            StageId.API
+        ] = upstream[StageId.C4]
     assert len(reporter.reports) == 1
-    assert [outcome.name for outcome in reporter.reports[0]] == [StageId.C4, StageId.SEQUENCE]
+    assert [outcome.name for outcome in reporter.reports[0]] == [
+        StageId.C4,
+        StageId.SEQUENCE,
+    ]
 
 
 def test_failed_stage_short_circuits_pipeline_and_reports_partial_history() -> None:
@@ -195,7 +200,7 @@ def test_require_payload_rejects_missing_failed_and_wrong_type_dependencies() ->
         total_tokens=0,
         payload={"ready": False},
     )
-    with pytest.raises(PipelineDependencyError, match="stage 'c4' failed"):
+    with pytest.raises(PipelineDependencyError, match="failed; cannot consume its payload"):
         require_payload(_context(failed), StageId.C4, dict)
 
     success = StageOutcome(
