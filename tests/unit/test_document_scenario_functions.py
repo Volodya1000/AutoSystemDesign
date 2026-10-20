@@ -7,6 +7,10 @@ from application.document_scenario_functions.evidence import CandidateValidation
 from domain.scenario_extraction import EvidenceValue, ExtractedWorkload
 
 
+EXPECTED_ASSERT_RESULT_VALUE_READ_RATIO = 0.7
+EXPECTED_PEAK_RPS = 400.0
+EXPECTED_BASELINE_RPS = 120.0
+
 @pytest.mark.unit
 def test_resolve_candidate_returns_evidence_without_mutating_inputs() -> None:
     excerpt = "A customer can update a shopping cart."
@@ -62,6 +66,3 @@ def test_build_workload_does_not_mutate_candidates_or_verified_excerpts() -> Non
     assert extracted.model_dump() == original_payload
     assert verified_excerpts == [baseline, peak, ratio]
 
-EXPECTED_ASSERT_RESULT_VALUE_READ_RATIO = 0.7
-EXPECTED_PEAK_RPS = 400.0
-EXPECTED_BASELINE_RPS = 120.0
