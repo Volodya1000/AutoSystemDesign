@@ -9,7 +9,7 @@ content, and the configured model name for token counting).
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import litellm
 
