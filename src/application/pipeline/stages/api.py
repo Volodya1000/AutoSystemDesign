@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
-from application.pipeline.stage import StageId, begin_stage_execution
+from application.pipeline.stage import StageId
 from application.results import ApiGenerationResult, GenerationStatus
 from domain.models.topology import ArchitectureGraph
 
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from application.pipeline.ports import ApiArtifactRenderer, GenerationReporter
     from application.pipeline.services import ApiGenerator
     from domain.models.api import ApiDesign
+    from domain.models.scenarios import DesignScenario
     from domain.models.sequence import InteractionScenario
 
 _logger: logging.Logger = logging.getLogger("pipeline.api")
@@ -39,7 +40,8 @@ class ApiStage:
         self._reporter: GenerationReporter = reporter
 
     def run(self, context: StageContext) -> StageOutcome[ApiDesign]:
-        stage_start, scenario = begin_stage_execution(context)
+        stage_start: float = time.perf_counter()
+        scenario: DesignScenario = context.scenario
 
         if not scenario.functional_requirements:
             _logger.info(
