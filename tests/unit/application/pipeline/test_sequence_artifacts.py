@@ -9,6 +9,7 @@ import pytest
 from application.pipeline.context import StageContext
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome
+from application.pipeline.stage import StageId
 from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
 from application.pipeline.stage import StageId
 from domain.models.ast_steps import MessageStep
