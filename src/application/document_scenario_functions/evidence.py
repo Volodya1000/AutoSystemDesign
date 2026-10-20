@@ -66,10 +66,7 @@ def resolve_candidate[ValueT](
                 RequirementIssue(
                     kind=RequirementIssueKind.MISSING,
                     field=field_path,
-                    description=(
-                        f"Required scenario field '{field_path}' "
-                        "was not established."
-                    ),
+                    description=f"Required field '{field_path}' was not established.",
                 ),
             )
             if required
@@ -81,10 +78,7 @@ def resolve_candidate[ValueT](
         issue = RequirementIssue(
             kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
             field=field_path,
-            description=(
-                f"Scenario field '{field_path}' cites no "
-                "verified source excerpt."
-            ),
+            description=f"Scenario field '{field_path}' lacks verified evidence.",
             evidence=[excerpt] if excerpt else [],
         )
         return MappingOutcome(value=None, issues=(issue,))
@@ -165,9 +159,7 @@ def validate_source_backed_notes(
             issue_kind is RequirementIssueKind.CONFLICTING
             and len({" ".join(excerpt.split()) for excerpt in excerpts}) >= 2
         )
-        if unsupported or not (
-            description_supported or synthesized_conflict_supported
-        ):
+        if unsupported or not (description_supported or synthesized_conflict_supported):
             issues.append(
                 RequirementIssue(
                     kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
