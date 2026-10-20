@@ -1,10 +1,10 @@
 """Static regression tests for diagram source builder subject types."""
 
-import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+from mypy import api as mypy_api
 
 pytestmark = pytest.mark.unit
 
@@ -27,22 +27,15 @@ def test_mypy_rejects_builder_for_the_wrong_subject_type(
         encoding="utf-8",
     )
 
-    # Use the current interpreter with a generated test file and explicit argv.
-    result = subprocess.run(  # noqa: S603
+    stdout, stderr, exit_status = mypy_api.run(
         [
-            sys.executable,
-            "-m",
-            "mypy",
             "--config-file",
             str(repo_root / "pyproject.toml"),
             "--no-incremental",
             str(sample),
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
+        ]
     )
-    diagnostics = result.stdout + result.stderr
+    diagnostics = stdout + stderr
 
-    assert result.returncode != 0, diagnostics
+    assert exit_status != 0, diagnostics
     assert "Incompatible types in assignment" in diagnostics, diagnostics
