@@ -15,7 +15,10 @@ from tests.test_support import has_issue
 
 BASELINE = "During normal operation, checkout should support 120 requests per second."
 PEAK = "During a seasonal sale, traffic may reach 400 requests per second."
-LATENCY = "The checkout API should respond within 300 ms at the 95th percentile under normal load."
+LATENCY = (
+    "The checkout API should respond within 300 ms at the 95th percentile under "
+    "normal load."
+)
 AVAILABILITY = "The service should be available at least 99.9% of each calendar month."
 FUNCTIONAL = "A customer can add one or more products to a shopping cart."
 READ_RATIO = "Read requests account for 0.7 of total traffic."
@@ -280,7 +283,10 @@ def test_uses_verified_functional_requirement_when_description_is_missing() -> N
 def test_keeps_synthesized_conflict_when_all_source_excerpts_are_verified() -> None:
     source = make_source_requirements()
     first = "The confirmation email must be sent within 10 seconds."
-    second = "Confirmation emails may be delayed by up to 2 minutes during peak traffic."
+    second = (
+        "Confirmation emails may be delayed by up to 2 minutes during peak "
+        "traffic."
+    )
     source.requirements.extend(
         [
             req_doc.Requirement(
