@@ -10,7 +10,6 @@ from config.llm import LlmSettings, StructuredOutputMode
 from config.root import CONFIG_FILE_ENV_VAR, AppSettings
 from config.testing import IntegrationSettings
 
-
 pytestmark = pytest.mark.unit
 
 _ENV_ONLY_VALUES: dict[str, str] = {
