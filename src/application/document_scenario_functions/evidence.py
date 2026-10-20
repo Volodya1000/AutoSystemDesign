@@ -66,7 +66,10 @@ def resolve_candidate[ValueT](
                 RequirementIssue(
                     kind=RequirementIssueKind.MISSING,
                     field=field_path,
-                    description=f"Required scenario field '{field_path}' was not established.",
+                    description=(
+                        f"Required scenario field '{field_path}' "
+                        "was not established."
+                    ),
                 ),
             )
             if required
@@ -78,7 +81,10 @@ def resolve_candidate[ValueT](
         issue = RequirementIssue(
             kind=RequirementIssueKind.UNSUPPORTED_EVIDENCE,
             field=field_path,
-            description=f"Scenario field '{field_path}' cites no verified source excerpt.",
+            description=(
+                f"Scenario field '{field_path}' cites no "
+                "verified source excerpt."
+            ),
             evidence=[excerpt] if excerpt else [],
         )
         return MappingOutcome(value=None, issues=(issue,))
@@ -119,7 +125,8 @@ def resolve_candidate[ValueT](
             field=field_path,
             description=(
                 f"The cited excerpt does not contain the literal numeric value "
-                f"for '{field_path}'. Unit conversion and inferred values are not allowed."
+                f"for '{field_path}'. Unit conversion and "
+                "inferred values are not allowed."
             ),
             evidence=[excerpt],
         )
