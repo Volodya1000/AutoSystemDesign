@@ -189,4 +189,3 @@ class TestRequirementValidationDispatcher:
             len(budget_errors) == len(result.errors) == 2
         )
         assert [e.budget_limit_usd for e in budget_errors] == [3000.0, 4000.0]
-
