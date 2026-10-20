@@ -80,9 +80,7 @@ def compute_mmc_metrics(
         for server_index in range(server_count)
     )
     scaled_wait_term = exp(log_waiting_term - largest_log_term)
-    probability_of_waiting = scaled_wait_term / (
-        scaled_no_wait_sum + scaled_wait_term
-    )
+    probability_of_waiting = scaled_wait_term / (scaled_no_wait_sum + scaled_wait_term)
 
     remaining_service_rate = total_service_rate - arrival_rate_requests_per_second
     mean_queue_wait_milliseconds = (

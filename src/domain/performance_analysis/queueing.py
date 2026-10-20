@@ -51,7 +51,6 @@ class QueueingMetrics(BaseModel):
         return self
 
 
-
 def validate_queueing_rates(
     arrival_rate_requests_per_second: float,
     service_rate_requests_per_second: float,
@@ -69,7 +68,6 @@ def validate_queueing_rates(
     ):
         message = "Service rate must be finite and positive."
         raise ValueError(message)
-
 
 
 def create_stable_queueing_metrics(
