@@ -33,7 +33,7 @@ def strip_markdown_json_fence(content: str) -> str:
     """Remove one enclosing Markdown JSON code fence, if present."""
     stripped = content.strip()
     lines = stripped.splitlines()
-    if len(lines) < 3 or lines[-1].strip() != "```":
+    if len(lines) < EXPECTED_IF_LINES_COUNT or lines[-1].strip() != "```":
         return stripped
     if lines[0].strip().lower() not in {"```", "```json"}:
         return stripped
@@ -86,3 +86,6 @@ class StructuredOutputAdapter:
             raise ValueError(f"LLM returned an empty {operation} response")
         content = strip_markdown_json_fence(response.content)
         return response_model.model_validate_json(content)
+
+EXPECTED_IF_LINES_COUNT = 3
+
