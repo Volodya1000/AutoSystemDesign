@@ -10,7 +10,7 @@ from application.performance_analysis.report_builder import (
 )
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.stage import StageId
+from application.pipeline.stage import StageId, begin_stage_execution
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import PerformanceAnalysisReport
 
