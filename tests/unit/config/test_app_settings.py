@@ -11,8 +11,7 @@ from config.root import CONFIG_FILE_ENV_VAR, AppSettings
 from config.testing import IntegrationSettings
 
 EXPECTED_TEMPERATURE = 0.4
-EXPECTED_GENERATION_RUNS = 3
-EXPECTED_MAX_ATTEMPTS = 7
+
 
 pytestmark = pytest.mark.unit
 
@@ -93,9 +92,9 @@ class TestAppSettings:
         settings: AppSettings = AppSettings()  # type: ignore[call-arg]
         assert settings.llm.model == "lm_studio/yaml-model"
         assert settings.llm.temperature == EXPECTED_TEMPERATURE
-        assert settings.generation.max_attempts == EXPECTED_MAX_ATTEMPTS
+        assert settings.generation.max_attempts == 7
         assert (
-            settings.testing.generation_runs == EXPECTED_GENERATION_RUNS
+            settings.testing.generation_runs == 3
         )  # untouched default
 
     def test_environment_overrides_yaml(
