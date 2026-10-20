@@ -98,7 +98,10 @@ def _run_pipeline(args: argparse.Namespace) -> int:
     if args.no_diagram:
         command.append("--no-diagram")
     try:
-        return subprocess.run(command, check=False).returncode
+        # Invoke this Python process with argv, not a shell command string.
+        return subprocess.run(  # noqa: S603
+            command, check=False
+        ).returncode
     except OSError:
         logger.exception("Could not start the design pipeline")
         return 2
