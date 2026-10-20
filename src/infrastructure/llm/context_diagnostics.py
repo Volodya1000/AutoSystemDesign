@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import litellm
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -34,8 +36,6 @@ def context_overflow_diagnostic(
         return None
 
     try:
-        import litellm
-
         prompt_tokens = int(
             litellm.token_counter(
                 model=model,
