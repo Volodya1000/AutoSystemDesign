@@ -98,9 +98,7 @@ def test_report_keeps_load_dependent_metrics_unavailable_without_workload() -> N
     metrics = _metrics_by_node(report)
 
     assert report.status is PerformanceAnalysisStatus.UNAVAILABLE
-    assert metrics["api"].estimated_capacity_requests_per_second == pytest.approx(
-        100.0
-    )
+    assert metrics["api"].estimated_capacity_requests_per_second == pytest.approx(100.0)
     assert metrics["api"].incoming_requests_per_second is None
     assert metrics["api"].utilization_ratio is None
     assert metrics["api"].estimated_mean_queue_wait_milliseconds is None
