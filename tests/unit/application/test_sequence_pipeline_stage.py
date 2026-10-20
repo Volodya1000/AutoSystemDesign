@@ -9,6 +9,7 @@ from application.pipeline.context import StageContext
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
 from application.pipeline.stages.sequence import SequenceStage
+from application.pipeline.stage import StageId
 from application.results import (
     GenerationAttempt,
     SequenceGenerationResult,
@@ -187,9 +188,9 @@ def _failed_result() -> SequenceGenerationResult:
 
 
 def _context(tmp_path: Path, writer: InMemoryWriter) -> StageContext:
-    upstream: Mapping[str, StageOutcome[object]] = {
-        "c4": StageOutcome[object](
-            name="c4",
+    upstream: Mapping[StageId, StageOutcome[object]] = {
+        StageId.C4: StageOutcome[object](
+            name=StageId.C4,
             status=StageStatus.SUCCEEDED,
             duration_seconds=0.0,
             total_tokens=0,
