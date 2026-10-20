@@ -319,4 +319,3 @@ def test_keeps_synthesized_conflict_when_all_source_excerpts_are_verified() -> N
     ]
     assert len(conflict_issues) == 1
     assert conflict_issues[0].evidence == [first, second]
-
