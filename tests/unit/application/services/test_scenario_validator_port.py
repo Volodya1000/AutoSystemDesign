@@ -26,8 +26,6 @@ from domain.specifications.interfaces import (
 )
 from tests.unit.test_structural_validator import create_test_edge, create_test_node
 
-
-
 pytestmark = pytest.mark.unit
 
 
