@@ -26,7 +26,7 @@ class TestLlmSettings:
     def test_accepts_valid_values(self) -> None:
         settings: LlmSettings = LlmSettings(**_VALID_KWARGS)
         assert settings.model == "lm_studio/qwen3-8b"
-        assert settings.temperature == 0.2
+        assert settings.temperature == EXPECTED_ASSERT_SETTINGS_TEMPERATURE
         assert settings.structured_output_mode is StructuredOutputMode.PROMPT
 
     def test_rejects_temperature_out_of_bounds(self) -> None:
@@ -36,3 +36,6 @@ class TestLlmSettings:
     def test_rejects_non_positive_max_tokens(self) -> None:
         with pytest.raises(ValidationError):
             LlmSettings(**{**_VALID_KWARGS, "max_tokens": 0})
+
+EXPECTED_ASSERT_SETTINGS_TEMPERATURE = 0.2
+
