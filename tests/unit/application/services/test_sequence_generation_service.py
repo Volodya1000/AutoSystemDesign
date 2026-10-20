@@ -274,4 +274,3 @@ def test_failed_requirement_does_not_discard_successful_scenarios() -> None:
     assert result.scenarios_results["FR-2"].interaction_scenario is None
 
 EXPECTED_ASSERT_RESULT_TOTAL_USAGE_TOTAL_TOKENS = 45
-
