@@ -37,8 +37,7 @@ class C4Stage:
         self._reporter: GenerationReporter = reporter
 
     def run(self, context: StageContext) -> StageOutcome[ArchitectureGraph]:
-        stage_start: float = time.perf_counter()
-        scenario = context.scenario
+        stage_start, scenario = begin_stage_execution(context)
 
         generation_start: float = time.perf_counter()
         result = self._service.generate(scenario)
