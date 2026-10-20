@@ -51,7 +51,7 @@ class RequirementValidationDispatcher(ScenarioValidator):
     def validate(
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> ValidationResult:
-        """Runs every requirement through its registered validator, in order."""
+        """Run every requirement through its registered validator, in order."""
         errors: list[ArchitectureValidationError] = []
         for requirement in scenario.requirements:
             validator = self._by_type.get(type(requirement))
