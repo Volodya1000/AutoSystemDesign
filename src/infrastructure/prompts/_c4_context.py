@@ -20,7 +20,7 @@ def render_c4_components(
     heading: str,
     footer: str | None = None,
 ) -> str:
-    """Renders a heading, one line per node, and an optional footer.
+    """Render a heading, one line per node, and an optional footer.
 
     When ``footer`` is provided, it is separated from the node list by a
     blank line so callers pass plain prose without a leading newline.
