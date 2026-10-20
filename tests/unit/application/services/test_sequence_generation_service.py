@@ -211,7 +211,7 @@ def test_generation_returns_catalog_and_scenarios_in_requirement_order() -> None
     assert result.is_successful
     assert result.roles_catalog == _catalog()
     assert list(result.scenarios_results) == ["FR-1", "FR-2"]
-    assert result.total_usage.total_tokens == EXPECTED_ASSERT_RESULT_TOTAL_USAGE_TOTAL_TOKENS
+    assert result.total_usage.total_tokens == EXPECTED_TOTAL_TOKENS
 
 
 def test_parallel_generation_preserves_requirement_order() -> None:
@@ -273,4 +273,4 @@ def test_failed_requirement_does_not_discard_successful_scenarios() -> None:
     assert result.scenarios_results["FR-1"].interaction_scenario is not None
     assert result.scenarios_results["FR-2"].interaction_scenario is None
 
-EXPECTED_ASSERT_RESULT_TOTAL_USAGE_TOTAL_TOKENS = 45
+EXPECTED_TOTAL_TOKENS = 45
