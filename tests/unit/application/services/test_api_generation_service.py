@@ -181,4 +181,3 @@ def test_api_generation_returns_failure_after_max_attempts() -> None:
 
 EXPECTED_ASSERT_RESULT_ATTEMPTS_COUNT = 2
 EXPECTED_ASSERT_RESULT_TOTAL_USAGE_TOTAL_TOKENS = 40
-
