@@ -14,7 +14,6 @@ from infrastructure.visualisation.plantuml.encoding import (
 )
 from infrastructure.visualisation.plantuml.models import DiagramImageFormat
 
-
 pytestmark = pytest.mark.unit
 
 
