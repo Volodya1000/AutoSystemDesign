@@ -23,7 +23,6 @@ from domain.models.sequence import ComponentLifeline, InteractionScenario, UserL
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 
-
 pytestmark = pytest.mark.unit
 
 
