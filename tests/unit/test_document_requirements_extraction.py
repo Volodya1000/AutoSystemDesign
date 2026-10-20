@@ -171,4 +171,3 @@ def test_rejects_ambiguity_note_with_fabricated_evidence(tmp_path: Path) -> None
     )
 
 MAX_ASSERT_ALL_CHUNK_COUNT = 40
-
