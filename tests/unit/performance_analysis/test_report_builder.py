@@ -77,16 +77,16 @@ def test_report_reuses_existing_capacity_calculation() -> None:
 
 
 @pytest.mark.parametrize(
-    ("peak_rps", "is_saturated", "expected_utilization"),
+    ("peak_rps", "expected_finding_code", "expected_utilization"),
     [
-        (48.5, False, 0.97),
-        (49.0, True, 0.98),
-        (60.0, True, 1.2),
+        (48.5, None, 0.97),
+        (49.0, PerformanceFindingCode.CAPACITY_SATURATION, 0.98),
+        (60.0, PerformanceFindingCode.CAPACITY_SATURATION, 1.2),
     ],
 )
 def test_saturation_finding_respects_existing_threshold(
     peak_rps: float,
-    is_saturated: bool,
+    expected_finding_code: PerformanceFindingCode | None,
     expected_utilization: float,
 ) -> None:
     graph = _service_graph("service")
@@ -104,13 +104,13 @@ def test_saturation_finding_respects_existing_threshold(
     ]
 
     assert service_metrics.utilization_ratio == pytest.approx(expected_utilization)
-    assert bool(saturation_findings) is is_saturated
-    if is_saturated:
-        finding = next(
-            finding
-            for finding in saturation_findings
-            if "service" in finding.affected_node_identifiers
-        )
+    assert len(saturation_findings) == (
+        0 if expected_finding_code is None else 1
+    )
+    if expected_finding_code is not None:
+        finding = saturation_findings[0]
+        assert finding.finding_code is expected_finding_code
+        assert finding.affected_node_identifiers == ["service"]
         assert finding.severity is PerformanceFindingSeverity.ERROR
 
 
