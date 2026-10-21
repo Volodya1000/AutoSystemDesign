@@ -94,14 +94,14 @@ def _upstream(graph: ArchitectureGraph) -> dict[str, StageOutcome[object]]:
         "c4": StageOutcome(
             name="c4",
             status=StageStatus.SUCCEEDED,
-            duration_seconds=0.0,
+            duration_seconds=0,
             total_tokens=0,
             payload=graph,
         ),
         "sequence": StageOutcome(
             name="sequence",
             status=StageStatus.SUCCEEDED,
-            duration_seconds=0.0,
+            duration_seconds=0,
             total_tokens=0,
             payload={},
         ),

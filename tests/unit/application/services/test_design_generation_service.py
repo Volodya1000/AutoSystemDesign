@@ -55,7 +55,7 @@ def _proposal(
     graph: ArchitectureGraph,
     prompt_tokens: int,
     completion_tokens: int,
-    latency_seconds: float = 0.0,
+    latency_seconds: float = 0,
 ) -> DesignProposal:
     return DesignProposal(
         graph=graph,

@@ -31,7 +31,7 @@ class TestWithLlmUpdates:
         assert updated.llm.model == settings.llm.model
         assert updated.llm.timeout_seconds == settings.llm.timeout_seconds
         assert updated.generation == settings.generation
-        assert settings.llm.temperature == 0.0
+        assert settings.llm.temperature == 0
         assert settings.llm.max_tokens == 1_000
         assert settings.llm.context_window_tokens is None
         assert settings.llm.structured_output_mode is StructuredOutputMode.JSON_SCHEMA
@@ -41,11 +41,11 @@ class TestWithLlmUpdates:
 
         updated: AppSettings = with_llm_updates(
             settings,
-            temperature=0.0,
+            temperature=0,
             structured_output_mode=StructuredOutputMode.JSON_OBJECT,
         )
 
-        assert updated.llm.temperature == 0.0
+        assert updated.llm.temperature == 0
         assert updated.llm.structured_output_mode is StructuredOutputMode.JSON_OBJECT
         assert settings.llm.temperature == 0.7
 
@@ -67,5 +67,5 @@ class TestWithLlmUpdates:
         with pytest.raises(ValidationError):
             with_llm_updates(settings, **updates)
 
-        assert settings.llm.temperature == 0.0
+        assert settings.llm.temperature == 0
         assert settings.llm.max_tokens == 1_000

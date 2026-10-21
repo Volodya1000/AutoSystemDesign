@@ -31,7 +31,7 @@ class NullReporter:
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:
         assert usage.total_tokens >= 0
-        assert generation_seconds >= 0.0
+        assert generation_seconds >= 0
 
 
 class FakeDesignGenerator:

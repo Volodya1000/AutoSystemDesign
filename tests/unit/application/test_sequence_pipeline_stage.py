@@ -43,7 +43,7 @@ class NullReporter:
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:
         assert usage.total_tokens >= 0
-        assert generation_seconds >= 0.0
+        assert generation_seconds >= 0
 
 
 class FakeSequenceGenerator:
@@ -193,7 +193,7 @@ def _context(tmp_path: Path, writer: InMemoryWriter) -> StageContext:
         "c4": StageOutcome[object](
             name="c4",
             status=StageStatus.SUCCEEDED,
-            duration_seconds=0.0,
+            duration_seconds=0,
             total_tokens=0,
             payload=_graph(),
         )

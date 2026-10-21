@@ -29,7 +29,7 @@ def _client(mode: StructuredOutputMode) -> LiteLlmClient:
         api_key=SecretStr("fake"),
         llm=LlmSettings(
             model="lm_studio/fake",
-            temperature=0.0,
+            temperature=0,
             max_tokens=64,
             timeout_seconds=5.0,
             structured_output_mode=mode,

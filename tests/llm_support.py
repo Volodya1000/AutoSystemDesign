@@ -28,7 +28,7 @@ def make_settings() -> AppSettings:
         api_key=SecretStr("unit-test-key"),
         llm=LlmSettings(
             model="openai/test-model",
-            temperature=0.0,
+            temperature=0,
             max_tokens=1_000,
             timeout_seconds=10.0,
             structured_output_mode=StructuredOutputMode.JSON_SCHEMA,

@@ -76,7 +76,7 @@ class FakeStage:
         return StageOutcome(
             name=self.name,
             status=self.status,
-            duration_seconds=0.0,
+            duration_seconds=0,
             total_tokens=0,
             payload=self.payload,
         )
@@ -106,7 +106,7 @@ def _outcome(
     return StageOutcome(
         name=name,
         status=status,
-        duration_seconds=0.0,
+        duration_seconds=0,
         total_tokens=0,
         payload=payload,
     )
