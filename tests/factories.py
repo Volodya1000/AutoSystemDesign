@@ -62,9 +62,7 @@ def create_test_compute_node(
         maximum_concurrency=overrides.get(
             "concurrency", defaults["maximum_concurrency"]
         ),
-        maximum_queue_size=overrides.get(
-            "queue_size", defaults["maximum_queue_size"]
-        ),
+        maximum_queue_size=overrides.get("queue_size", defaults["maximum_queue_size"]),
         service_channels_per_replica=overrides.get("service_channels_per_replica"),
         mean_processing_time_milliseconds=overrides.get(
             "mean_ms", defaults["mean_processing_time_milliseconds"]
