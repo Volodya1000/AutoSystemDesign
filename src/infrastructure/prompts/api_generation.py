@@ -45,8 +45,10 @@ def _render_sequence_context(sequences: list[InteractionScenario]) -> str:
     for seq in sequences:
         lines.extend(
             (
-                f"\n- Scenario: {seq.scenario_id} "
-                f"(Requirement: {seq.requirement_identifier})",
+                (
+                    f"\n- Scenario: {seq.scenario_id} "
+                    f"(Requirement: {seq.requirement_identifier})"
+                ),
                 f"  Description: {seq.description}",
                 "  Interaction steps:",
             )
