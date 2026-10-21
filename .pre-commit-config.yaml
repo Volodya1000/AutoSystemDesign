@@ -57,6 +57,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: wemake-python-styleguide
+        name: Wemake Python Styleguide (full repository, no suppressions)
+        entry: uvx --python 3.13 --from wemake-python-styleguide==1.8.1 flake8 src tests scripts --select=WPS
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: mypy
         name: mypy
         entry: uv run mypy --strict src tests scripts

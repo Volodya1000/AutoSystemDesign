@@ -33,12 +33,15 @@ jobs:
         run: uv sync --locked --all-groups
       - name: Run read-only pre-commit checks
         env:
-          SKIP: trailing-whitespace,end-of-file-fixer,uv-lock,ruff,ruff-format,file-hygiene,uv-lock-check,ruff-check,ruff-format-check,mypy,pylint,duplicate-code,import-linter,pytest
+          SKIP: trailing-whitespace,end-of-file-fixer,uv-lock,ruff,ruff-format,file-hygiene,uv-lock-check,ruff-check,ruff-format-check,wemake-python-styleguide,mypy,pylint,duplicate-code,import-linter,pytest
         run: uv run pre-commit run --all-files
       - name: Check Ruff linting
         run: uv run ruff check .
       - name: Check Ruff formatting
         run: uv run ruff format --check .
+      - name: Check Wemake Python Styleguide (all WPS rules)
+        run: uvx --python 3.13 --from wemake-python-styleguide==1.8.1 flake8 src tests scripts --select=WPS
+
       - name: Run type checking
         run: uv run mypy --strict src tests scripts
       - name: Run pylint
