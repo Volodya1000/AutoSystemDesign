@@ -43,16 +43,16 @@
     {
       "workload_id": "peak",
       "offered_requests_per_second": 60.0,
-      "generated_requests": 1200000,
-      "completed_requests": 1100000,
-      "rejected_requests": 50000,
-      "unfinished_requests": 50000,
+      "generated_requests": 4320000,
+      "completed_requests": 4139000,
+      "rejected_requests": 180000,
+      "unfinished_requests": 1000,
       "client_latency_milliseconds": {
         "p50": 120.0,
         "p95": 350.0,
         "p99": 510.0
       },
-      "throughput_requests_per_second": 15.28,
+      "throughput_requests_per_second": 57.49,
       "nodes": [
         {
           "node_identifier": "orders_db",
@@ -60,7 +60,7 @@
           "mean_queue_length": 8.4,
           "queue_length_time_p95": 21,
           "mean_queue_wait_milliseconds": 37.0,
-          "rejected_requests": 50000
+          "rejected_requests": 180000
         }
       ]
     }
