@@ -42,6 +42,23 @@ class RequirementAssessment(BaseModel):
     validator_identifier: str | None = None
 
 
+    @classmethod
+    def not_evaluated(
+        cls,
+        *,
+        identifier: str,
+        kind: str,
+        reason: RequirementCheckReason,
+    ) -> "RequirementAssessment":
+        """Explicit diagnostic for an unsupported or unavailable check."""
+        return cls(
+            requirement_identifier=identifier,
+            type_identifier=kind,
+            status=RequirementCheckStatus.NOT_EVALUATED,
+            reason=reason,
+        )
+
+
 class RequirementCoverageStatus(StrEnum):
     """A coverage summary, separate from pipeline and generation status."""
 
@@ -61,3 +78,7 @@ class RequirementCoverageReport(BaseModel):
     graph_accepted: bool
     status: RequirementCoverageStatus
     requirements: list[RequirementAssessment] = Field(default_factory=list)
+
+def requirement_identifier(index: int) -> str:
+    """Address a requirement occurrence within one immutable scenario version."""
+    return f"requirements[{index}]"

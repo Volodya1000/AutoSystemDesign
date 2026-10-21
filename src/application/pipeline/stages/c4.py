@@ -7,11 +7,11 @@ import time
 from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.requirement_coverage import build_requirement_coverage_report
 from application.pipeline.stage import StageId
+from application.requirement_coverage import build_requirement_coverage_report
 from application.results import GenerationStatus
-from domain.specifications.metrics import compute_project_metrics, format_metrics_title
 from domain.models.requirement_coverage import RequirementCheckStatus
+from domain.specifications.metrics import compute_project_metrics, format_metrics_title
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -98,6 +98,7 @@ class C4Stage:
                 warnings=tuple(warnings),
             )
 
+        rendering_partial = False
         if self._renderer is not None:
             title = f"C4 Container: {scenario.identifier}"
             metrics = compute_project_metrics(graph, scenario)
@@ -113,8 +114,12 @@ class C4Stage:
             )
             artifacts.extend(render_result.artifacts)
             warnings.extend(render_result.warnings)
+            rendering_partial = bool(render_result.warnings)
 
-        status = StageStatus.PARTIAL if warnings else StageStatus.SUCCEEDED
+        # Unverified NFRs warn the user; they are not optional rendering failures.
+        status = (
+            StageStatus.PARTIAL if rendering_partial else StageStatus.SUCCEEDED
+        )
         return StageOutcome(
             name=self.name,
             status=status,

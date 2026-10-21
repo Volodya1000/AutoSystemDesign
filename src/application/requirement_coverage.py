@@ -7,13 +7,10 @@ from domain.models.requirement_coverage import (
     RequirementCheckStatus,
     RequirementCoverageReport,
     RequirementCoverageStatus,
+    requirement_identifier,
 )
 from domain.models.scenarios import DesignScenario
 
-
-def requirement_identifier(index: int) -> str:
-    """Identify an occurrence, including duplicates of the same NFR type."""
-    return f"requirements[{index}]"
 
 
 def build_requirement_coverage_report(
@@ -24,7 +21,10 @@ def build_requirement_coverage_report(
     accepted = generation.status is GenerationStatus.SUCCEEDED
     validation = generation.attempts[-1].validation
     by_identifier = (
-        {item.requirement_identifier: item for item in validation.requirement_assessments}
+        {
+            item.requirement_identifier: item
+            for item in validation.requirement_assessments
+        }
         if validation is not None
         else {}
     )
@@ -36,10 +36,9 @@ def build_requirement_coverage_report(
         found = by_identifier.get(identifier)
         if found is None or found.type_identifier != kind:
             assessments.append(
-                RequirementAssessment(
-                    requirement_identifier=identifier,
-                    type_identifier=kind,
-                    status=RequirementCheckStatus.NOT_EVALUATED,
+                RequirementAssessment.not_evaluated(
+                    identifier=identifier,
+                    kind=kind,
                     reason=(
                         RequirementCheckReason.GRAPH_UNAVAILABLE
                         if validation is None

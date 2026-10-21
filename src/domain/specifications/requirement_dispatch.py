@@ -17,6 +17,7 @@ from domain.models.requirement_coverage import (
     RequirementAssessment,
     RequirementCheckReason,
     RequirementCheckStatus,
+    requirement_identifier,
 )
 from domain.specifications.interfaces import (
     RequirementValidator,
@@ -59,18 +60,19 @@ class RequirementValidationDispatcher(ScenarioValidator):
         errors: list[ArchitectureValidationError] = []
         assessments: list[RequirementAssessment] = []
         for index, requirement in enumerate(scenario.requirements):
-            identifier = f"requirements[{index}]"
+            identifier = requirement_identifier(index)
             kind = getattr(
                 requirement, "type_identifier", type(requirement).__name__
             )
             validator = self._by_type.get(type(requirement))
             if validator is None:
                 assessments.append(
-                    RequirementAssessment(
-                        requirement_identifier=identifier,
-                        type_identifier=kind,
-                        status=RequirementCheckStatus.NOT_EVALUATED,
-                        reason=_unsupported_reason(kind, scenario.workload is None),
+                    RequirementAssessment.not_evaluated(
+                        identifier=identifier,
+                        kind=kind,
+                        reason=_unsupported_reason(
+                            kind, workload_missing=scenario.workload is None
+                        ),
                     )
                 )
                 continue
@@ -95,7 +97,7 @@ class RequirementValidationDispatcher(ScenarioValidator):
 
 
 def _unsupported_reason(
-    type_identifier: str, workload_missing: bool
+    type_identifier: str, *, workload_missing: bool
 ) -> RequirementCheckReason:
     """Use explicit capability boundaries, not metric-name similarity."""
     workload_dependent = {

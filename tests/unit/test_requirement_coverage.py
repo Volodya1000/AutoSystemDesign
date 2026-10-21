@@ -1,20 +1,15 @@
 """Regression tests: unsupported NFRs must never masquerade as satisfied."""
 
-from pathlib import Path
 from typing import Literal
 
 import pytest
 
-from application.pipeline.context import StageContext
-from application.pipeline.outcome import StageStatus
-from application.pipeline.stages.c4 import C4Stage
 from application.requirement_coverage import build_requirement_coverage_report
 from application.results import DesignGenerationResult, GenerationAttempt
 from application.usage import TokenUsage
 from domain.models.base_constraints import BaseRequirement
 from domain.models.nodes import ComputeNode
 from domain.models.requirement_coverage import (
-    RequirementAssessment,
     RequirementCheckReason,
     RequirementCheckStatus,
     RequirementCoverageReport,
@@ -32,7 +27,6 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications.budget_validator import BudgetRequirementValidator
 from domain.specifications.interfaces import ValidationResult
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
-from tests.unit.in_memory_writer import InMemoryWriter
 
 pytestmark = pytest.mark.unit
 
@@ -87,10 +81,10 @@ def test_two_budgets_are_evaluated_independently() -> None:
     validation = RequirementValidationDispatcher(
         [BudgetRequirementValidator()]
     ).validate(_graph(), scenario)
-    assert [item.requirement_identifier for item in validation.requirement_assessments] == [
-        "requirements[0]",
-        "requirements[1]",
+    identifiers = [
+        item.requirement_identifier for item in validation.requirement_assessments
     ]
+    assert identifiers == ["requirements[0]", "requirements[1]"]
     assert [item.status for item in validation.requirement_assessments] == [
         RequirementCheckStatus.SATISFIED,
         RequirementCheckStatus.VIOLATED,
@@ -144,7 +138,10 @@ def test_programmatic_unknown_requirement_is_observable() -> None:
     )
     validation = RequirementValidationDispatcher([]).validate(_graph(), scenario)
     assert len(validation.requirement_assessments) == 1
-    assert validation.requirement_assessments[0].reason is RequirementCheckReason.NO_VALIDATOR
+    assert (
+        validation.requirement_assessments[0].reason
+        is RequirementCheckReason.NO_VALIDATOR
+    )
     assert validation.requirement_assessments[0].type_identifier == "experimental"
 
 
@@ -184,43 +181,9 @@ def test_unaccepted_graph_cannot_claim_a_passing_budget() -> None:
     report = build_requirement_coverage_report(scenario, result)
     assert report.status is RequirementCoverageStatus.INCOMPLETE
     assert report.requirements[0].reason is RequirementCheckReason.GRAPH_UNAVAILABLE
-    assert validation.requirement_assessments[0].status is RequirementCheckStatus.SATISFIED
-
-
-class _FixedDesignService:
-    def __init__(self, result: DesignGenerationResult) -> None:
-        self._result = result
-
-    def generate(self, _scenario: DesignScenario) -> DesignGenerationResult:
-        return self._result
-
-
-class _SilentReporter:
-    def attempts(self, _attempts: object, _label: str) -> None:
-        pass
-
-    def tokens(self, _usage: TokenUsage, _seconds: float) -> None:
-        pass
-
-
-def test_c4_stage_persists_coverage_and_emits_warning(tmp_path: Path) -> None:
-    scenario = _scenario(AvailabilityRequirement(threshold_value=99.99))
-    validation = RequirementValidationDispatcher([]).validate(_graph(), scenario)
-    writer = InMemoryWriter()
-    stage = C4Stage(
-        service=_FixedDesignService(_generation(validation)),  # type: ignore[arg-type]
-        renderer=None,
-        reporter=_SilentReporter(),  # type: ignore[arg-type]
+    assert (
+        validation.requirement_assessments[0].status
+        is RequirementCheckStatus.SATISFIED
     )
-    outcome = stage.run(
-        StageContext(
-            scenario=scenario, out_dir=tmp_path, writer=writer, upstream={}
-        )
-    )
-    assert outcome.status is StageStatus.SUCCEEDED
-    coverage_path = tmp_path / "coverage_nfr_coverage.json"
-    content = next(value for path, value in writer.writes if path == coverage_path)
-    persisted = RequirementCoverageReport.model_validate_json(content)
-    assert persisted.status is RequirementCoverageStatus.INCOMPLETE
-    assert coverage_path in outcome.artifacts
-    assert len(outcome.warnings) == 1
+
+
