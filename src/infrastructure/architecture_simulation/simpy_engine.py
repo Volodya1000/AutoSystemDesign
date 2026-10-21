@@ -22,19 +22,24 @@ class SimPySingleNodeEngine:
 
     def simulate(self, plan: SingleNodeSimulationPlan) -> SingleNodeSimulationResult:
         """Drain scheduled requests and preserve original input ordering."""
-        environment = simpy.Environment()
-        resource = simpy.Resource(environment, capacity=plan.service_channels)
+        environment: simpy.Environment = simpy.Environment()
+        resource: simpy.Resource = simpy.Resource(
+            environment, capacity=plan.service_channels
+        )
         completed: dict[int, CompletedRequestObservation] = {}
 
+        index: int
+        request: ScheduledRequest
         for index, request in enumerate(plan.requests):
             environment.process(
                 self._serve(environment, resource, index, request, completed)
             )
 
         environment.run()
-        return SingleNodeSimulationResult(
-            observations=[completed[index] for index in range(len(plan.requests))]
-        )
+        observations: list[CompletedRequestObservation] = [
+            completed[index] for index in range(len(plan.requests))
+        ]
+        return SingleNodeSimulationResult(observations=observations)
 
     @staticmethod
     def _serve(
@@ -46,16 +51,17 @@ class SimPySingleNodeEngine:
     ) -> Generator[simpy.events.Event]:
         """Wait for arrival, acquire one channel, serve, and release it."""
         yield environment.timeout(request.arrival_seconds)
-        arrival = environment.now
+        arrival: float = environment.now
 
         with resource.request() as admission:
             yield admission
-            started = environment.now
+            started: float = environment.now
             yield environment.timeout(request.service_seconds)
 
-        completed[request_index] = CompletedRequestObservation(
+        observation: CompletedRequestObservation = CompletedRequestObservation(
             request_index=request_index,
             arrival_seconds=arrival,
             service_start_seconds=started,
             completion_seconds=environment.now,
         )
+        completed[request_index] = observation
