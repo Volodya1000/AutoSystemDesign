@@ -31,7 +31,7 @@ class BaseValidator(ABC):
 
     @abstractmethod
     def validate(self, graph: ArchitectureGraph) -> ValidationResult:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class ScenarioValidator(ABC):
@@ -47,7 +47,7 @@ class ScenarioValidator(ABC):
     def validate(
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> ValidationResult:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class RequirementValidator[ReqT: BaseRequirement](ABC):
@@ -64,4 +64,4 @@ class RequirementValidator[ReqT: BaseRequirement](ABC):
     def validate(
         self, graph: ArchitectureGraph, requirement: ReqT
     ) -> list[ArchitectureValidationError]:
-        raise NotImplementedError()
+        raise NotImplementedError
