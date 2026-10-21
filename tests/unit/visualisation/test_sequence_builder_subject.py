@@ -11,7 +11,7 @@ Covers:
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -29,6 +29,9 @@ from infrastructure.visualisation.plantuml.sequence_builder import (
     SequenceDiagramBuilder,
 )
 from tests.factories import create_test_node
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 pytestmark = pytest.mark.unit
 
