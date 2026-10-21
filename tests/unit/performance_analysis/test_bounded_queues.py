@@ -13,7 +13,12 @@ from domain.performance_analysis.report import (
     PerformanceFindingCode,
     PerformanceFindingSeverity,
 )
-from tests.factories import create_test_compute_node, create_test_edge, create_test_node
+from tests.factories import (
+    create_test_compute_node,
+    create_test_edge,
+    create_test_latency_graph,
+    create_test_node,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -40,19 +45,9 @@ def test_active_finite_queue_has_explicit_diagnostic(
     queue_size: int,
     expected_wait: float | None,
 ) -> None:
-    graph = ArchitectureGraph(
-        nodes=[
-            create_test_node("client", NodeType.CLIENT),
-            create_test_compute_node(
-                "service",
-                concurrency=100,
-                service_channels_per_replica=1,
-                queue_size=queue_size,
-                mean_ms=10.0,
-                std_ms=10.0,
-            ),
-        ],
-        edges=[create_test_edge("client", "service")],
+    graph = create_test_latency_graph(
+        service_channels_per_replica=1,
+        queue_size=queue_size,
     )
 
     report = build_performance_analysis_report(graph, _scenario())
