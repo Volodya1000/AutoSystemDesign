@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 import pytest
 from pypdf import PdfReader
 
-from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stage import StageId
@@ -20,13 +19,17 @@ from domain.performance_analysis.report import (
     PerformanceAnalysisStatus,
     PerformanceFindingCode,
 )
-from infrastructure.performance_analysis.pdf_renderer import PerformanceReportPdfRenderer
+from infrastructure.performance_analysis.pdf_renderer import (
+    PerformanceReportPdfRenderer,
+)
 from infrastructure.persistence.artifact_writer import FileSystemArtifactWriter
 from tests.factories import create_test_compute_node, create_test_edge, create_test_node
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
+
+    from application.pipeline.context import StageContext
 
 pytestmark = pytest.mark.unit
 
@@ -199,7 +202,7 @@ def test_absent_workload_still_produces_json_and_pdf(tmp_path: Path) -> None:
     assert (tmp_path / "no_workload_performance_analysis.pdf").is_file()
 
 
-def test_overload_is_reported_without_invented_steady_state_wait(tmp_path: Path) -> None:
+def test_overload_has_no_invented_steady_state_wait(tmp_path: Path) -> None:
     exit_code, reporter, report = _run(
         tmp_path,
         _scenario("overloaded", 30.0),
