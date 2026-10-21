@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import math
-from operator import itemgetter
 from dataclasses import dataclass
+from operator import itemgetter
 from typing import TYPE_CHECKING
 
 from domain.models.nodes import CapacityNode
