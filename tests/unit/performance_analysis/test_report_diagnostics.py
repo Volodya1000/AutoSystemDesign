@@ -163,3 +163,32 @@ def test_unknown_workload_has_stably_ordered_nodes() -> None:
     assert [finding.finding_code for finding in report.findings] == [
         PerformanceFindingCode.WORKLOAD_MISSING
     ]
+
+def test_fan_out_cache_fallbacks_do_not_claim_equal_split() -> None:
+    """Fan-out database fallbacks duplicate miss traffic, they do not split it."""
+    graph = ArchitectureGraph(
+        nodes=[
+            create_test_node("client", NodeType.CLIENT),
+            create_test_compute_node("router"),
+            create_test_node("cache", NodeType.CACHE),
+            create_test_node("database_a", NodeType.DATABASE),
+            create_test_node("database_b", NodeType.DATABASE),
+        ],
+        edges=[
+            create_test_edge("client", "router"),
+            create_test_edge("router", "cache"),
+            create_test_edge(
+                "router", "database_a", routing_mode=EdgeRoutingMode.FAN_OUT
+            ),
+            create_test_edge(
+                "router", "database_b", routing_mode=EdgeRoutingMode.FAN_OUT
+            ),
+        ],
+    )
+
+    report = build_performance_analysis_report(graph, _scenario())
+
+    assert all(
+        finding.finding_code is not PerformanceFindingCode.UNSUPPORTED_MODEL
+        for finding in report.findings
+    )
