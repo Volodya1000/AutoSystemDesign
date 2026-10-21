@@ -124,9 +124,7 @@ class PerformanceReportPdfRenderer:
                 _metric(node.estimated_mean_queue_wait_milliseconds),
                 _metric(node.estimated_mean_response_time_milliseconds),
             )
-            rows.append(
-                [Paragraph(value, styles["cell"]) for value in values]
-            )
+            rows.append([Paragraph(value, styles["cell"]) for value in values])
         table = LongTable(
             rows,
             colWidths=[
@@ -170,8 +168,10 @@ class PerformanceReportPdfRenderer:
                         styles["finding"],
                     ),
                     Paragraph(
-                        "Код: " + escape(finding.finding_code.value)
-                        + "; узлы: " + escape(affected),
+                        "Код: "
+                        + escape(finding.finding_code.value)
+                        + "; узлы: "
+                        + escape(affected),
                         styles["note"],
                     ),
                     Paragraph(escape(finding.description), styles["body"]),
@@ -222,11 +222,7 @@ class PerformanceReportPdfRenderer:
 
     def _register_font(self) -> str:
         """Register a font capable of embedding Russian and English text."""
-        candidates = (
-            (self._font_path,)
-            if self._font_path is not None
-            else _FONT_PATHS
-        )
+        candidates = (self._font_path,) if self._font_path is not None else _FONT_PATHS
         font_path = next((path for path in candidates if path.is_file()), None)
         if font_path is None:
             message = (
@@ -280,9 +276,7 @@ def _build_styles(font: str) -> dict[str, ParagraphStyle]:
         "finding": ParagraphStyle(
             "ASDFinding", parent=base, fontSize=10, leading=15, spaceBefore=7
         ),
-        "note": ParagraphStyle(
-            "ASDNote", parent=base, fontSize=7, leading=10
-        ),
+        "note": ParagraphStyle("ASDNote", parent=base, fontSize=7, leading=10),
         "cell": ParagraphStyle(
             "ASDCell", parent=base, fontSize=7, leading=10, spaceAfter=0
         ),
