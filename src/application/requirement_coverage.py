@@ -1,6 +1,5 @@
 """Build a per-requirement coverage report from recorded validation evidence."""
 
-from application.results import DesignGenerationResult, GenerationStatus
 from domain.models.requirement_coverage import (
     RequirementAssessment,
     RequirementCheckReason,
@@ -10,16 +9,16 @@ from domain.models.requirement_coverage import (
     requirement_identifier,
 )
 from domain.models.scenarios import DesignScenario
-
-
+from domain.specifications.interfaces import ValidationResult
 
 def build_requirement_coverage_report(
     scenario: DesignScenario,
-    generation: DesignGenerationResult,
+    *,
+    graph_accepted: bool,
+    validation: ValidationResult | None,
 ) -> RequirementCoverageReport:
-    """Never infer an assessment from a successful pipeline exit code."""
-    accepted = generation.status is GenerationStatus.SUCCEEDED
-    validation = generation.attempts[-1].validation
+    """Only explicit validation evidence can establish compliance."""
+    accepted = graph_accepted
     by_identifier = (
         {
             item.requirement_identifier: item

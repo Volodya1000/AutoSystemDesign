@@ -59,8 +59,21 @@ class C4Stage:
         warnings: list[str] = []
         graph: ArchitectureGraph | None = result.graph
 
+        # Persist even an invalid graph: it is the primary diagnostic artifact.
+        if graph is not None:
+            artifacts.append(
+                context.writer.write_text(
+                    context.out_dir / f"{scenario.identifier}_c4.json",
+                    graph.model_dump_json(indent=2),
+                )
+            )
+
         if scenario.requirements:
-            coverage = build_requirement_coverage_report(scenario, result)
+            coverage = build_requirement_coverage_report(
+                scenario,
+                graph_accepted=result.status is GenerationStatus.SUCCEEDED,
+                validation=result.attempts[-1].validation,
+            )
             artifacts.append(
                 context.writer.write_text(
                     context.out_dir / f"{scenario.identifier}_nfr_coverage.json",
@@ -77,14 +90,6 @@ class C4Stage:
                     "see the NFR coverage JSON artifact"
                 )
 
-        # Persist even an invalid graph: it is the primary diagnostic artifact.
-        if graph is not None:
-            artifacts.append(
-                context.writer.write_text(
-                    context.out_dir / f"{scenario.identifier}_c4.json",
-                    graph.model_dump_json(indent=2),
-                )
-            )
 
         if result.status is not GenerationStatus.SUCCEEDED or graph is None:
             return StageOutcome(

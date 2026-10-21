@@ -241,7 +241,12 @@ def test_legacy_pipeline_skips_sequence_and_api_but_keeps_c4_successful(
     assert outcomes[2].payload is None
     assert sequence_service.calls == 0
     assert api_service.calls == 0
-    assert [path.name for path, _ in writer.writes] == ["legacy_project_c4.json"]
+    assert [path.name for path, _ in writer.writes] == [
+        "legacy_project_c4.json",
+        "legacy_project_nfr_coverage.json",
+    ]
+    assert outcomes[0].warnings
+
 
 
 def test_sequence_generation_failure_still_fails_for_functional_scenarios(

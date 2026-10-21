@@ -5,8 +5,6 @@ from typing import Literal
 import pytest
 
 from application.requirement_coverage import build_requirement_coverage_report
-from application.results import DesignGenerationResult, GenerationAttempt
-from application.usage import TokenUsage
 from domain.models.base_constraints import BaseRequirement
 from domain.models.nodes import ComputeNode
 from domain.models.requirement_coverage import (
@@ -56,20 +54,6 @@ def _scenario(*requirements: BaseRequirement, workload: bool = True) -> DesignSc
             if workload
             else None
         ),
-    )
-
-
-def _generation(validation: ValidationResult) -> DesignGenerationResult:
-    return DesignGenerationResult(
-        attempts=[
-            GenerationAttempt[ArchitectureGraph](
-                attempt_number=1,
-                parsed=True,
-                payload=_graph(),
-                validation=validation,
-                usage=TokenUsage(),
-            )
-        ]
     )
 
 
@@ -153,7 +137,9 @@ def test_report_is_incomplete_even_when_graph_generation_succeeds() -> None:
     validation = RequirementValidationDispatcher(
         [BudgetRequirementValidator()]
     ).validate(_graph(), scenario)
-    report = build_requirement_coverage_report(scenario, _generation(validation))
+    report = build_requirement_coverage_report(
+        scenario, graph_accepted=True, validation=validation
+    )
     assert report.graph_accepted
     assert report.status is RequirementCoverageStatus.INCOMPLETE
     assert [item.status for item in report.requirements] == [
@@ -170,20 +156,17 @@ def test_unaccepted_graph_cannot_claim_a_passing_budget() -> None:
     validation = RequirementValidationDispatcher(
         [BudgetRequirementValidator()]
     ).validate(_graph(), scenario)
-    # No parseable final proposal means no validated topology/evidence.
-    result = DesignGenerationResult(
-        attempts=[
-            GenerationAttempt[ArchitectureGraph](
-                attempt_number=1, parsed=False, usage=TokenUsage()
-            )
-        ]
+    report = build_requirement_coverage_report(
+        scenario, graph_accepted=False, validation=validation
     )
-    report = build_requirement_coverage_report(scenario, result)
+    assert report.status is RequirementCoverageStatus.INCOMPLETE
+    assert report.requirements[0].reason is RequirementCheckReason.GRAPH_UNACCEPTED
+
+
+def test_missing_graph_marks_all_requirements_not_evaluated() -> None:
+    scenario = _scenario(BudgetRequirement(threshold_value=200.0))
+    report = build_requirement_coverage_report(
+        scenario, graph_accepted=False, validation=None
+    )
     assert report.status is RequirementCoverageStatus.INCOMPLETE
     assert report.requirements[0].reason is RequirementCheckReason.GRAPH_UNAVAILABLE
-    assert (
-        validation.requirement_assessments[0].status
-        is RequirementCheckStatus.SATISFIED
-    )
-
-
