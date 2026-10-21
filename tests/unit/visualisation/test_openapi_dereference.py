@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from infrastructure.visualisation.openapi.dereference import dereference_internal_refs
 from infrastructure.visualisation.openapi.swagger_ui_renderer import SwaggerUiRenderer
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     import pytest
 
 
-def _chat_spec() -> dict[str, object]:
+def _chat_spec() -> dict[str, Any]:
     """Create a small but realistic OpenAPI document with $refs in several places."""
     return {
         "openapi": "3.1.0",
