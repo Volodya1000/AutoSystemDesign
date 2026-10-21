@@ -265,3 +265,61 @@ def test_infinite_latency_is_reported_as_unavailable_not_serialized() -> None:
         for finding in report.findings
     )
     assert type(report).model_validate_json(report.model_dump_json()) == report
+
+def test_multiple_cache_miss_fallbacks_report_equal_split_assumption() -> None:
+    """Multiple fallback databases have unknown alternative routing weights."""
+    graph = ArchitectureGraph(
+        nodes=[
+            create_test_node("client", NodeType.CLIENT),
+            create_test_compute_node("router"),
+            create_test_node("cache", NodeType.CACHE),
+            create_test_node("database_a", NodeType.DATABASE),
+            create_test_node("database_b", NodeType.DATABASE),
+        ],
+        edges=[
+            create_test_edge("client", "router"),
+            create_test_edge("router", "cache"),
+            create_test_edge("router", "database_a"),
+            create_test_edge("router", "database_b"),
+        ],
+    )
+
+    report = build_performance_analysis_report(graph, _scenario())
+
+    routing_findings = [
+        finding
+        for finding in report.findings
+        if finding.finding_code is PerformanceFindingCode.UNSUPPORTED_MODEL
+    ]
+    assert len(routing_findings) == 1
+    assert routing_findings[0].affected_node_identifiers == ["router"]
+
+
+def test_fan_out_cache_miss_fallbacks_do_not_claim_equal_split() -> None:
+    """Explicit fan-out fallback edges are not alternative routes."""
+    graph = ArchitectureGraph(
+        nodes=[
+            create_test_node("client", NodeType.CLIENT),
+            create_test_compute_node("router"),
+            create_test_node("cache", NodeType.CACHE),
+            create_test_node("database_a", NodeType.DATABASE),
+            create_test_node("database_b", NodeType.DATABASE),
+        ],
+        edges=[
+            create_test_edge("client", "router"),
+            create_test_edge("router", "cache"),
+            create_test_edge(
+                "router", "database_a", routing_mode=EdgeRoutingMode.FAN_OUT
+            ),
+            create_test_edge(
+                "router", "database_b", routing_mode=EdgeRoutingMode.FAN_OUT
+            ),
+        ],
+    )
+
+    report = build_performance_analysis_report(graph, _scenario())
+
+    assert all(
+        finding.finding_code is not PerformanceFindingCode.UNSUPPORTED_MODEL
+        for finding in report.findings
+    )
