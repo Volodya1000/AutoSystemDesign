@@ -28,7 +28,7 @@ class _FakePdfRenderer:
     def __init__(self, *, fail: bool = False) -> None:
         self._fail = fail
 
-    def render(self, report: PerformanceAnalysisReport) -> bytes:
+    def render(self, _report: PerformanceAnalysisReport) -> bytes:
         if self._fail:
             raise PdfRenderingUnavailableError("Font is unavailable")
         return b"%PDF-1.4 test"
