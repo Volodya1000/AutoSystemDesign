@@ -21,8 +21,7 @@ def test_rejects_unknown_scenario_keys(unknown_field: str) -> None:
         )
 
     assert any(
-        detail["loc"] == (unknown_field,)
-        and detail["type"] == "extra_forbidden"
+        detail["loc"] == (unknown_field,) and detail["type"] == "extra_forbidden"
         for detail in captured.value.errors()
     )
 
@@ -65,8 +64,7 @@ def test_rejects_unknown_requirement_keys() -> None:
         )
 
     assert any(
-        detail["type"] == "extra_forbidden"
-        and "thresold_value" in detail["loc"]
+        detail["type"] == "extra_forbidden" and "thresold_value" in detail["loc"]
         for detail in captured.value.errors()
     )
 
