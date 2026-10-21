@@ -107,6 +107,7 @@ max-complexity = 10
 
 [tool.mypy]
 python_version = "3.13"
+strict = true
 mypy_path = "src"
 
 [tool.pylint."messages control"]
