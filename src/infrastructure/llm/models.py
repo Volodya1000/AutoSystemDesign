@@ -44,7 +44,7 @@ class CompletionRequest(BaseModel):
     max_tokens: int = Field(default=2048, gt=0)
     timeout_seconds: float = Field(default=180.0, gt=0)
 
-    response_schema: dict | None = None
+    response_schema: dict[str, object] | None = None
     response_schema_name: str | None = None
 
 
