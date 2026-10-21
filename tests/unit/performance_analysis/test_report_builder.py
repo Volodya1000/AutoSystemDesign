@@ -64,7 +64,7 @@ def test_report_reuses_existing_capacity_calculation() -> None:
     )
 
     assert report.scenario_identifier == "capacity_report"
-    assert report.status is PerformanceAnalysisStatus.COMPLETE
+    assert report.status is PerformanceAnalysisStatus.PARTIAL
     assert client_metrics.node_identifier == "client"
     assert client_metrics.incoming_requests_per_second == pytest.approx(25.0)
     assert client_metrics.estimated_capacity_requests_per_second is None
