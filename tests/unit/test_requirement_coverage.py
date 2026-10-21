@@ -112,6 +112,11 @@ def test_missing_workload_is_not_silent_for_dependent_requirements() -> None:
 class _UnregisteredRequirement(BaseRequirement):
     type_identifier: Literal["experimental"] = "experimental"
 
+    def is_met_requirement(self, actual_value: float) -> bool:
+        """An unknown NFR cannot claim compliance."""
+        del actual_value
+        return False
+
 
 def test_programmatic_unknown_requirement_is_observable() -> None:
     scenario = DesignScenario.model_construct(

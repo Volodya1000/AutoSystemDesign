@@ -6,7 +6,7 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
 from application.pipeline.stage import StageId
 from application.requirement_coverage import build_requirement_coverage_report
 from application.results import GenerationStatus
@@ -102,26 +102,12 @@ class C4Stage:
                 warnings=tuple(warnings),
             )
 
-        rendering_partial = False
-        if self._renderer is not None:
-            title = f"C4 Container: {scenario.identifier}"
-            metrics = compute_project_metrics(graph, scenario)
-            summary = format_metrics_title(metrics)
-            if summary:
-                title = f"{title}\n{summary}"
+        render_result = self._render(graph, scenario, context.out_dir)
+        artifacts.extend(render_result.artifacts)
+        warnings.extend(render_result.warnings)
 
-            render_result = self._renderer.render(
-                graph,
-                title=title,
-                base_name=f"{scenario.identifier}_c4",
-                out_dir=context.out_dir,
-            )
-            artifacts.extend(render_result.artifacts)
-            warnings.extend(render_result.warnings)
-            rendering_partial = bool(render_result.warnings)
-
-        # Unverified NFRs warn the user; they are not optional rendering failures.
-        status = StageStatus.PARTIAL if rendering_partial else StageStatus.SUCCEEDED
+        # Unverified NFRs warn; only optional rendering errors make C4 partial.
+        status = StageStatus.PARTIAL if render_result.warnings else StageStatus.SUCCEEDED
         return StageOutcome(
             name=self.name,
             status=status,
@@ -130,4 +116,25 @@ class C4Stage:
             artifacts=tuple(artifacts),
             payload=graph,
             warnings=tuple(warnings),
+        )
+
+    def _render(
+        self,
+        graph: ArchitectureGraph,
+        scenario: DesignScenario,
+        out_dir: Path,
+    ) -> DiagramRenderResult:
+        """Render an optional diagram independently of NFR coverage warnings."""
+        if self._renderer is None:
+            return DiagramRenderResult()
+        title = f"C4 Container: {scenario.identifier}"
+        metrics = compute_project_metrics(graph, scenario)
+        summary = format_metrics_title(metrics)
+        if summary:
+            title = f"{title}\n{summary}"
+        return self._renderer.render(
+            graph,
+            title=title,
+            base_name=f"{scenario.identifier}_c4",
+            out_dir=out_dir,
         )
