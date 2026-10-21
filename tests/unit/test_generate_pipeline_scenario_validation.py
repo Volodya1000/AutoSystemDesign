@@ -1,4 +1,4 @@
-"""Validate useful CLI errors for malformed YAML scenarios."""
+"""Test CLI diagnostics for invalid YAML scenarios."""
 
 import argparse
 import logging
@@ -32,7 +32,7 @@ def test_cli_reports_invalid_yaml_field_before_generation(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Validation exits with code 2 and identifies the offending YAML path."""
+    """Reject invalid scenarios with code 2 and report the field path."""
     scenario_path = tmp_path / "broken.yaml"
     scenario_path.write_text(
         f"description: A valid scenario\n{yaml_body}\n",
