@@ -39,7 +39,7 @@ def _run(
 
 
 def test_one_channel_serves_simultaneous_requests_in_input_order() -> None:
-    result = _run([(0, 2), (0, 1), (0, 1)])
+    result: SingleNodeSimulationResult = _run([(0, 2), (0, 1), (0, 1)])
 
     assert [item.service_start_seconds for item in result.observations] == [
         0.0,
@@ -60,7 +60,7 @@ def test_one_channel_serves_simultaneous_requests_in_input_order() -> None:
 
 
 def test_two_channels_start_two_simultaneous_requests_without_waiting() -> None:
-    result = _run([(0, 2), (0, 2), (0, 1)], channels=2)
+    result: SingleNodeSimulationResult = _run([(0, 2), (0, 2), (0, 1)], channels=2)
 
     assert [item.service_start_seconds for item in result.observations] == [
         0.0,
@@ -75,14 +75,14 @@ def test_two_channels_start_two_simultaneous_requests_without_waiting() -> None:
 
 
 def test_later_idle_arrival_does_not_incur_queue_time() -> None:
-    result = _run([(0, 1), (3, 1)])
+    result: SingleNodeSimulationResult = _run([(0, 1), (3, 1)])
 
     assert [item.wait_seconds for item in result.observations] == [0.0, 0.0]
     assert [item.response_seconds for item in result.observations] == [1.0, 1.0]
 
 
 def test_out_of_order_schedule_returns_observations_in_original_order() -> None:
-    result = _run([(3, 1), (0, 2)])
+    result: SingleNodeSimulationResult = _run([(3, 1), (0, 2)])
 
     assert [item.request_index for item in result.observations] == [0, 1]
     assert [item.arrival_seconds for item in result.observations] == [3.0, 0.0]
@@ -94,8 +94,8 @@ def test_empty_schedule_has_no_observations() -> None:
 
 
 def test_each_run_is_independent_of_the_previous_run() -> None:
-    engine = SimPySingleNodeEngine()
-    plan = SingleNodeSimulationPlan(
+    engine: SimPySingleNodeEngine = SimPySingleNodeEngine()
+    plan: SingleNodeSimulationPlan = SingleNodeSimulationPlan(
         service_channels=1,
         requests=[
             ScheduledRequest(arrival_seconds=0, service_seconds=1),
@@ -103,21 +103,21 @@ def test_each_run_is_independent_of_the_previous_run() -> None:
         ],
     )
 
-    first = engine.simulate(plan)
+    first: SingleNodeSimulationResult = engine.simulate(plan)
     engine.simulate(SingleNodeSimulationPlan(service_channels=2))
-    second = engine.simulate(plan)
+    second: SingleNodeSimulationResult = engine.simulate(plan)
 
     assert first == second
     assert [item.completion_seconds for item in second.observations] == [1.0, 2.0]
 
 
 def test_scheduled_requests_can_round_trip_through_json() -> None:
-    plan = SingleNodeSimulationPlan(
+    plan: SingleNodeSimulationPlan = SingleNodeSimulationPlan(
         service_channels=2,
         requests=[ScheduledRequest(arrival_seconds=1.5, service_seconds=2.5)],
     )
 
-    restored = SingleNodeSimulationPlan.model_validate_json(plan.model_dump_json())
+    restored: SingleNodeSimulationPlan = SingleNodeSimulationPlan.model_validate_json(plan.model_dump_json())
 
     assert restored == plan
 
@@ -144,9 +144,9 @@ def test_time_travel_in_observations_is_rejected() -> None:
 
 
 def test_observation_round_trip_preserves_elapsed_times() -> None:
-    result = _run([(0, 2), (0, 1)])
+    result: SingleNodeSimulationResult = _run([(0, 2), (0, 1)])
 
-    restored = SingleNodeSimulationResult.model_validate_json(result.model_dump_json())
+    restored: SingleNodeSimulationResult = SingleNodeSimulationResult.model_validate_json(result.model_dump_json())
 
     assert restored == result
     assert restored.observations[1].wait_seconds == 2.0
