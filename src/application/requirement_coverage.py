@@ -25,8 +25,6 @@ def _resolve_assessment(
         reason = RequirementCheckReason.NO_VALIDATOR
         if not validation_available:
             reason = RequirementCheckReason.GRAPH_UNAVAILABLE
-        elif len(matches) > 1:
-            reason = RequirementCheckReason.INVALID_EVIDENCE
         elif matches:
             reason = RequirementCheckReason.INVALID_EVIDENCE
         return RequirementAssessment.not_evaluated(

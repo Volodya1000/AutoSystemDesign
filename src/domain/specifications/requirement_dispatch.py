@@ -64,15 +64,12 @@ class RequirementValidationDispatcher(ScenarioValidator):
             kind = getattr(requirement, "type_identifier", type(requirement).__name__)
             validator = self._by_type.get(type(requirement))
             if validator is None:
+                reason = RequirementCheckReason.NO_VALIDATOR
+                if scenario.workload is None and requirement.requires_workload:
+                    reason = RequirementCheckReason.MISSING_WORKLOAD
                 assessments.append(
                     RequirementAssessment.not_evaluated(
-                        identifier=identifier,
-                        kind=kind,
-                        reason=(
-                            RequirementCheckReason.MISSING_WORKLOAD
-                            if scenario.workload is None and requirement.requires_workload
-                            else RequirementCheckReason.NO_VALIDATOR
-                        ),
+                        identifier=identifier, kind=kind, reason=reason
                     )
                 )
                 continue
@@ -92,4 +89,3 @@ class RequirementValidationDispatcher(ScenarioValidator):
                 )
             )
         return ValidationResult(errors=errors, requirement_assessments=assessments)
-
