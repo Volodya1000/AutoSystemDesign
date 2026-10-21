@@ -1,5 +1,7 @@
 """Pure transformations from evidence-bearing candidates into scenario models."""
 
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import cast
 
 from pydantic import ValidationError
