@@ -194,7 +194,7 @@ def test_run_result_is_immutable_without_copying_stage_payload() -> None:
     assert result.failed_stage is None
     assert result.outcomes[0].payload is payload
     with pytest.raises(FrozenInstanceError):
-        setattr(result, "outcomes", ())
+        result.__setattr__("outcomes", ())
 
 
 def _context(

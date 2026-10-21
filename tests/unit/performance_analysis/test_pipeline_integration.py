@@ -8,7 +8,6 @@ import pytest
 from pypdf import PdfReader
 
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.result import PipelineRunResult
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stage import StageId
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
@@ -31,6 +30,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.context import StageContext
+    from application.pipeline.result import PipelineRunResult
 
 pytestmark = pytest.mark.unit
 
