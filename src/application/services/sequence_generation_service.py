@@ -14,7 +14,7 @@ from application.generation_limits import (
     MAX_ATTEMPTS,
     MIN_ATTEMPTS,
 )
-from application.protocols import SequenceDesigner
+from application.protocols import SequenceDesignerProtocol
 from application.results import (
     GenerationAttempt,
     SequenceGenerationResult,
@@ -32,8 +32,8 @@ from domain.models.scenarios import DesignScenario
 from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.sequence_validator import (
-    SequenceCatalogValidator,
-    SequenceScenarioValidator,
+    SequenceCatalogValidatorProtocol,
+    SequenceScenarioValidatorProtocol,
 )
 
 
@@ -55,9 +55,9 @@ class SequenceGenerationService:
 
     def __init__(
         self,
-        designer: SequenceDesigner,
-        catalog_validators: Sequence[SequenceCatalogValidator],
-        scenario_validators: Sequence[SequenceScenarioValidator],
+        designer: SequenceDesignerProtocol,
+        catalog_validators: Sequence[SequenceCatalogValidatorProtocol],
+        scenario_validators: Sequence[SequenceScenarioValidatorProtocol],
         max_attempts: int,
         *,
         max_parallel_workers: int = DEFAULT_SEQUENCE_PARALLELISM,
@@ -70,14 +70,14 @@ class SequenceGenerationService:
             raise GenerationConfigurationError.max_parallel_workers_too_small(
                 max_parallel_workers
             )
-        catalog_validator_tuple: tuple[SequenceCatalogValidator, ...] = tuple(
+        catalog_validator_tuple: tuple[SequenceCatalogValidatorProtocol, ...] = tuple(
             catalog_validators
         )
         if not catalog_validator_tuple:
             raise GenerationConfigurationError.required_validators_missing(
                 CATALOG_VALIDATOR_KIND
             )
-        scenario_validator_tuple: tuple[SequenceScenarioValidator, ...] = tuple(
+        scenario_validator_tuple: tuple[SequenceScenarioValidatorProtocol, ...] = tuple(
             scenario_validators
         )
         if not scenario_validator_tuple:

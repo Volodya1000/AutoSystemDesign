@@ -1,4 +1,4 @@
-"""Filesystem implementation of application.pipeline.ports.ArtifactWriter."""
+"""Filesystem adapter implementing ArtifactWriterProtocol."""
 
 from __future__ import annotations
 

@@ -8,7 +8,7 @@ from application.exceptions.configuration_errors import (
 )
 from application.exceptions.generation_exceptions import DesignProposalParsingError
 from application.generation_limits import MAX_ATTEMPTS, MIN_ATTEMPTS
-from application.protocols import ArchitectureDesigner
+from application.protocols import ArchitectureDesignerProtocol
 from application.results import DesignGenerationResult, GenerationAttempt
 from application.tasks import (
     DesignProposal,
@@ -67,7 +67,7 @@ class DesignGenerationService:
 
     def __init__(
         self,
-        designer: ArchitectureDesigner,
+        designer: ArchitectureDesignerProtocol,
         validators: Sequence[BaseValidator],
         max_attempts: int,
         scenario_validators: Sequence[ScenarioValidator] = (),

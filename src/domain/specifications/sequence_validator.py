@@ -11,18 +11,18 @@ from domain.exceptions.sequence_errors import (
 from domain.specifications.sequence_validation import (
     ClientOwnershipValidator,
     DeliveryModeValidator,
-    SequenceCatalogValidator,
+    SequenceCatalogValidatorProtocol,
     SequenceIntegrityValidator,
-    SequenceScenarioValidator,
+    SequenceScenarioValidatorProtocol,
 )
 
 __all__ = [
     "AsyncDeliveryModeError",
     "ClientOwnershipValidator",
     "DeliveryModeValidator",
-    "SequenceCatalogValidator",
+    "SequenceCatalogValidatorProtocol",
     "SequenceIntegrityError",
     "SequenceIntegrityValidator",
-    "SequenceScenarioValidator",
+    "SequenceScenarioValidatorProtocol",
     "SharedClientLifelineError",
 ]

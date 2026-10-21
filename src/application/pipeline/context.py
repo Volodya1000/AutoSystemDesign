@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from application.pipeline.ports import ArtifactWriter
+    from application.pipeline.protocols import ArtifactWriterProtocol
     from application.pipeline.stage import StageId
     from domain.models import DesignScenario
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class StageContext:
     scenario: DesignScenario
     out_dir: Path
-    writer: ArtifactWriter
+    writer: ArtifactWriterProtocol
     upstream: Mapping[StageId, StageOutcome[object]]
 
 

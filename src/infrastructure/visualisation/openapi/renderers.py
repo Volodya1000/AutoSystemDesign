@@ -1,4 +1,4 @@
-"""Infrastructure implementation of ApiArtifactRenderer port."""
+"""Infrastructure implementation of ApiArtifactRendererProtocol port."""
 
 from __future__ import annotations
 

@@ -5,7 +5,7 @@ from typing import Protocol
 from infrastructure.llm.models import CompletionRequest, CompletionResult
 
 
-class CompletionClient(Protocol):
+class CompletionClientProtocol(Protocol):
     """Port exposing a single structured or unstructured completion call."""
 
     def complete(self, request: CompletionRequest) -> CompletionResult: ...

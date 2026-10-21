@@ -20,8 +20,9 @@ def test_mypy_rejects_builder_for_the_wrong_subject_type(
         "from application.pipeline.diagram_subjects import SequenceDiagramSubject\n"
         "from infrastructure.visualisation.plantuml.c4_container_builder "
         "import C4ContainerDiagramBuilder\n"
-        "from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder\n"
-        "builder: DiagramSourceBuilder[SequenceDiagramSubject] = "
+        "from infrastructure.visualisation.plantuml.protocols "
+        "import DiagramSourceBuilderProtocol\n"
+        "builder: DiagramSourceBuilderProtocol[SequenceDiagramSubject] = "
         "C4ContainerDiagramBuilder()\n",
         encoding="utf-8",
     )
