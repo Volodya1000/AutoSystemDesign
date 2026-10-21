@@ -13,17 +13,17 @@ _SCENARIOS_DIR = Path(__file__).resolve().parents[3] / "scenarios" / "performanc
 
 
 @pytest.mark.parametrize(
-    ("filename", "expected_workload"),
+    ("filename", "workload_state"),
     [
-        ("checkout_baseline.yaml", True),
-        ("catalog_read_heavy.yaml", True),
-        ("notifications_spiky.yaml", True),
-        ("helpdesk_no_workload.yaml", False),
+        ("checkout_baseline.yaml", "present"),
+        ("catalog_read_heavy.yaml", "present"),
+        ("notifications_spiky.yaml", "present"),
+        ("helpdesk_no_workload.yaml", "absent"),
     ],
 )
 def test_manual_acceptance_scenarios_match_contract(
     filename: str,
-    expected_workload: bool,
+    workload_state: str,
 ) -> None:
     payload = yaml.safe_load((_SCENARIOS_DIR / filename).read_text(encoding="utf-8"))
     scenario = DesignScenario.model_validate(payload)
@@ -31,7 +31,7 @@ def test_manual_acceptance_scenarios_match_contract(
     assert scenario.identifier == filename.removesuffix(".yaml")
     assert len(scenario.functional_requirements) >= 2
     assert scenario.requirements
-    assert (scenario.workload is not None) is expected_workload
+    assert (scenario.workload is not None) is (workload_state == "present")
     assert len({item.identifier for item in scenario.functional_requirements}) == len(
         scenario.functional_requirements
     )
