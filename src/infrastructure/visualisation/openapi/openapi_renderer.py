@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from domain.models.api import ApiDesign, ApiParameter, DataType
 
 
 class OpenApiRenderer:
     """Converts domain ApiDesign model to OpenAPI 3.1.0 specification dictionary."""
 
-    def render_spec(self, api: ApiDesign) -> dict[str, object]:
+    def render_spec(self, api: ApiDesign) -> dict[str, Any]:
         paths: dict[str, dict[str, object]] = {}
 
         for op in api.operations:
