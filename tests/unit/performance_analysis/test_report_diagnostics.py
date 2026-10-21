@@ -180,9 +180,7 @@ def test_fan_out_cache_fallbacks_do_not_claim_equal_split() -> None:
             create_test_edge("client", "router"),
             create_test_edge("router", "cache"),
             *[
-                create_test_edge(
-                    "router", target, routing_mode=EdgeRoutingMode.FAN_OUT
-                )
+                create_test_edge("router", target, routing_mode=EdgeRoutingMode.FAN_OUT)
                 for target in ("db_a", "db_b")
             ],
         ],
