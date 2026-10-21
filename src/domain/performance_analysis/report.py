@@ -126,3 +126,15 @@ class PerformanceAnalysisReport(BaseModel):
     status: PerformanceAnalysisStatus
     nodes: list[NodePerformanceMetrics] = Field(default_factory=list)
     findings: list[PerformanceFinding] = Field(default_factory=list)
+    estimated_longest_synchronous_path_mean_milliseconds: float | None = Field(
+        default=None,
+        ge=0.0,
+        description=(
+            "Maximum of per-path mean estimates over synchronous client paths. "
+            "Not the mean completion time of a parallel fan-out request."
+        ),
+    )
+    critical_path_node_identifiers: list[str] = Field(
+        default_factory=list,
+        description="Node identifiers of the path producing the maximum mean.",
+    )
