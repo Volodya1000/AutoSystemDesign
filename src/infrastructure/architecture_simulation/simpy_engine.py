@@ -53,7 +53,8 @@ class SimPySingleNodeEngine:
         yield environment.timeout(request.arrival_seconds)
         arrival: float = environment.now
 
-        with resource.request() as admission:
+        admission: simpy.resources.resource.Request = resource.request()
+        with admission:
             yield admission
             started: float = environment.now
             yield environment.timeout(request.service_seconds)
