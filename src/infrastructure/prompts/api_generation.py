@@ -43,12 +43,14 @@ def _render_sequence_context(sequences: list[InteractionScenario]) -> str:
     """Summarizes sequence diagram interactions to guide endpoint and payload design."""
     lines: list[str] = ["Sequence Diagram Scenarios (User & Service interactions):"]
     for seq in sequences:
-        lines.append(
-            f"\n- Scenario: {seq.scenario_id} "
-            f"(Requirement: {seq.requirement_identifier})"
+        lines.extend(
+            (
+                f"\n- Scenario: {seq.scenario_id} "
+                f"(Requirement: {seq.requirement_identifier})",
+                f"  Description: {seq.description}",
+                "  Interaction steps:",
+            )
         )
-        lines.append(f"  Description: {seq.description}")
-        lines.append("  Interaction steps:")
         for step in seq.steps:
             if isinstance(step, MessageStep):
                 mode = f"[{step.delivery_mode}]" if step.delivery_mode else ""
