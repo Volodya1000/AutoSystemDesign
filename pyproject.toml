@@ -101,6 +101,9 @@ allowed-confusables = ["а", "е", "о", "р", "с", "С"]
     "S101",    # Allow assertions in tests.
     "PLR2004", # Keep readable literal expectations in tests.
 ]
+"property_tests/**/*.py" = [
+    "S101",    # Property tests also use pytest assertions.
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
