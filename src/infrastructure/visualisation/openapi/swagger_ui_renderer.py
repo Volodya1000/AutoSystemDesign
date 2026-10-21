@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import html
 import json
+from typing import Any
 
 from infrastructure.visualisation.openapi.dereference import (
     dereference_internal_refs,
 )
 
 
-def safe_json_for_script(data: dict[str, object]) -> str:
+def safe_json_for_script(data: dict[str, Any]) -> str:
     """Escapes JSON string to be safely embedded inside HTML script tags."""
     return (
         json.dumps(data, indent=None)
@@ -38,8 +39,8 @@ class SwaggerUiRenderer:
     array.
     """
 
-    def render_html(self, spec_dict: dict[str, object], title: str) -> str:
-        embedded_spec: dict[str, object] = dereference_internal_refs(spec_dict)
+    def render_html(self, spec_dict: dict[str, Any], title: str) -> str:
+        embedded_spec: dict[str, Any] = dereference_internal_refs(spec_dict)
         safe_spec: str = safe_json_for_script(embedded_spec)
         escaped_title: str = html.escape(title)
 
