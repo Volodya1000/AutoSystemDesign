@@ -1,4 +1,4 @@
-"""Build a per-requirement coverage report from recorded validation evidence."""
+"""Build an NFR coverage report only from typed, recorded evidence."""
 
 from domain.models.requirement_coverage import (
     RequirementAssessment,
@@ -12,68 +12,84 @@ from domain.models.scenarios import DesignScenario
 from domain.specifications.interfaces import ValidationResult
 
 
+def _resolve_assessment(
+    identifier: str,
+    kind: str,
+    matches: list[RequirementAssessment],
+    *,
+    graph_accepted: bool,
+    validation_available: bool,
+) -> RequirementAssessment:
+    """Reject missing, conflicting, or unrelated validation evidence."""
+    if len(matches) != 1 or matches[0].type_identifier != kind:
+        reason = RequirementCheckReason.NO_VALIDATOR
+        if not validation_available:
+            reason = RequirementCheckReason.GRAPH_UNAVAILABLE
+        elif len(matches) > 1:
+            reason = RequirementCheckReason.AMBIGUOUS_EVIDENCE
+        elif matches:
+            reason = RequirementCheckReason.EVIDENCE_TYPE_MISMATCH
+        return RequirementAssessment.not_evaluated(
+            identifier=identifier, kind=kind, reason=reason
+        )
+
+    found = matches[0]
+    if graph_accepted or found.status is not RequirementCheckStatus.SATISFIED:
+        return found
+    # Passing one check does not approve a structurally rejected topology.
+    return found.model_copy(
+        update={
+            "status": RequirementCheckStatus.NOT_EVALUATED,
+            "reason": RequirementCheckReason.GRAPH_UNACCEPTED,
+        }
+    )
+
+
+def _coverage_status(
+    assessments: list[RequirementAssessment], *, graph_accepted: bool
+) -> RequirementCoverageStatus:
+    """Keep unknown coverage separate from reported violations."""
+    if not assessments:
+        return RequirementCoverageStatus.NOT_APPLICABLE
+    if any(item.status is RequirementCheckStatus.VIOLATED for item in assessments):
+        return RequirementCoverageStatus.VIOLATED
+    if not graph_accepted or any(
+        item.status is RequirementCheckStatus.NOT_EVALUATED
+        for item in assessments
+    ):
+        return RequirementCoverageStatus.INCOMPLETE
+    return RequirementCoverageStatus.SATISFIED
+
+
 def build_requirement_coverage_report(
     scenario: DesignScenario,
     *,
     graph_accepted: bool,
     validation: ValidationResult | None,
 ) -> RequirementCoverageReport:
-    """Only explicit validation evidence can establish compliance."""
-    accepted = graph_accepted
+    """Preserve one assessment per scenario occurrence, never assume success."""
     by_identifier: dict[str, list[RequirementAssessment]] = {}
     if validation is not None:
         for assessment in validation.requirement_assessments:
             by_identifier.setdefault(assessment.requirement_identifier, []).append(
                 assessment
             )
-    assessments: list[RequirementAssessment] = []
 
-    for index, requirement in enumerate(scenario.requirements):
-        identifier = requirement_identifier(index)
-        kind = requirement.type_identifier
-        matches = by_identifier.get(identifier, [])
-        if len(matches) != 1 or matches[0].type_identifier != kind:
-            reason = RequirementCheckReason.NO_VALIDATOR
-            if validation is None:
-                reason = RequirementCheckReason.GRAPH_UNAVAILABLE
-            elif len(matches) > 1:
-                reason = RequirementCheckReason.AMBIGUOUS_EVIDENCE
-            elif matches:
-                reason = RequirementCheckReason.EVIDENCE_TYPE_MISMATCH
-            assessments.append(
-                RequirementAssessment.not_evaluated(
-                    identifier=identifier, kind=kind, reason=reason
-                )
-            )
-            continue
-
-        found = matches[0]
-        if not accepted and found.status is RequirementCheckStatus.SATISFIED:
-            # A passing check on a rejected candidate is not an accepted design.
-            found = found.model_copy(
-                update={
-                    "status": RequirementCheckStatus.NOT_EVALUATED,
-                    "reason": RequirementCheckReason.GRAPH_UNACCEPTED,
-                }
-            )
-        assessments.append(found)
-
-    if not assessments:
-        status = RequirementCoverageStatus.NOT_APPLICABLE
-    elif any(
-        item.status is RequirementCheckStatus.VIOLATED for item in assessments
-    ):
-        status = RequirementCoverageStatus.VIOLATED
-    elif not accepted or any(
-        item.status is RequirementCheckStatus.NOT_EVALUATED for item in assessments
-    ):
-        status = RequirementCoverageStatus.INCOMPLETE
-    else:
-        status = RequirementCoverageStatus.SATISFIED
+    assessments = [
+        _resolve_assessment(
+            identifier,
+            requirement.type_identifier,
+            by_identifier.get(identifier, []),
+            graph_accepted=graph_accepted,
+            validation_available=validation is not None,
+        )
+        for index, requirement in enumerate(scenario.requirements)
+        if (identifier := requirement_identifier(index))
+    ]
 
     return RequirementCoverageReport(
         scenario_identifier=scenario.identifier,
-        graph_accepted=accepted,
-        status=status,
+        graph_accepted=graph_accepted,
+        status=_coverage_status(assessments, graph_accepted=graph_accepted),
         requirements=assessments,
     )
