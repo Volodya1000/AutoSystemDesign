@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from pydantic import ValidationError
 from pypdf import PdfReader
@@ -16,6 +16,9 @@ from domain.performance_analysis.report import (
     PerformanceAnalysisStatus,
     PerformanceFindingCode,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 _logger = logging.getLogger("performance.acceptance")
 
