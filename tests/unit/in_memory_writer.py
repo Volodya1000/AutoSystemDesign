@@ -13,3 +13,7 @@ class InMemoryWriter:
     def write_text(self, path: Path, content: str) -> Path:
         self.writes.append((path, content))
         return path
+
+    def write_bytes(self, path: Path, content: bytes) -> Path:
+        self.binary_writes.append((path, content))
+        return path
