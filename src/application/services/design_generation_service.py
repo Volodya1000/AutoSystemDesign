@@ -84,7 +84,7 @@ class DesignGenerationService:
         self._scenario_validators: tuple[ScenarioValidator, ...] = tuple(
             scenario_validators
         )
-        self._designer: ArchitectureDesigner = designer
+        self._designer = designer
         self._max_attempts: int = max_attempts
 
     def generate(self, scenario: DesignScenario) -> DesignGenerationResult:

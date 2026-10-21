@@ -20,8 +20,8 @@ from domain.models.requirements import (
     BudgetRequirement,
     LatencyRequirement,
     QueueSizePercentileRequirement,
-    ResourceUtilizationRequirement,
     Requirement,
+    ResourceUtilizationRequirement,
 )
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
@@ -86,7 +86,9 @@ def test_known_unsupported_types_receive_explicit_reasons() -> None:
         QueueSizePercentileRequirement(threshold_value=10.0),
         ResourceUtilizationRequirement(minimum_value=10.0, maximum_value=85.0),
     )
-    validation: ValidationResult = RequirementValidationDispatcher([]).validate(_graph(), scenario)
+    validation: ValidationResult = RequirementValidationDispatcher([]).validate(
+        _graph(), scenario
+    )
     assert not validation.errors
     assert [item.reason for item in validation.requirement_assessments] == [
         RequirementCheckReason.NO_VALIDATOR,
@@ -107,7 +109,9 @@ def test_missing_workload_is_not_silent_for_dependent_requirements() -> None:
         ResourceUtilizationRequirement(minimum_value=0.0, maximum_value=80.0),
         workload=False,
     )
-    validation: ValidationResult = RequirementValidationDispatcher([]).validate(_graph(), scenario)
+    validation: ValidationResult = RequirementValidationDispatcher([]).validate(
+        _graph(), scenario
+    )
     assert [item.reason for item in validation.requirement_assessments] == [
         RequirementCheckReason.MISSING_WORKLOAD
     ] * 3
@@ -128,7 +132,9 @@ def test_programmatic_unknown_requirement_is_observable() -> None:
         description="Injected type outside discriminated union",
         requirements=[_UnregisteredRequirement()],
     )
-    validation: ValidationResult = RequirementValidationDispatcher([]).validate(_graph(), scenario)
+    validation: ValidationResult = RequirementValidationDispatcher([]).validate(
+        _graph(), scenario
+    )
     assert len(validation.requirement_assessments) == 1
     assert (
         validation.requirement_assessments[0].reason
