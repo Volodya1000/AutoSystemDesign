@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from application.pipeline.outcome import DiagramRenderResult
 from infrastructure.visualisation.openapi.openapi_renderer import OpenApiRenderer
@@ -41,7 +41,7 @@ class DefaultApiArtifactRenderer:
         warnings: list[str] = []
 
         try:
-            spec_dict: dict[str, object] = self._openapi_renderer.render_spec(subject)
+            spec_dict: dict[str, Any] = self._openapi_renderer.render_spec(subject)
             json_path: Path = out_dir / f"{base_name}_openapi.json"
             json_path.write_text(json.dumps(spec_dict, indent=2), encoding="utf-8")
             artifacts.append(json_path)
