@@ -22,7 +22,7 @@ def _write_report(tmp_path: Path, report: PerformanceAnalysisReport) -> None:
     path.write_text(report.model_dump_json(), encoding="utf-8")
 
 
-def test_valid_partial_report_passes_without_requiring_optional_pdf(tmp_path: Path) -> None:
+def test_valid_partial_report_without_optional_pdf(tmp_path: Path) -> None:
     _write_report(
         tmp_path,
         PerformanceAnalysisReport(
