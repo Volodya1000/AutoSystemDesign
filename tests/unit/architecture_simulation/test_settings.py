@@ -1,7 +1,7 @@
 """Check that simulation configuration is integrated into Pydantic Settings."""
 
 import pytest
-from pydantic import ValidationError
+from pydantic import SecretStr, ValidationError
 
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
@@ -13,7 +13,7 @@ pytestmark = pytest.mark.unit
 def _app_settings() -> AppSettings:
     return AppSettings(
         base_url="http://localhost:1234/v1",
-        api_key="test",
+        api_key=SecretStr("test"),
         llm=LlmSettings(
             model="lm_studio/example",
             temperature=0.3,
