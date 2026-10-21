@@ -16,6 +16,7 @@ pytestmark = pytest.mark.unit
     [
         ("requrements: []", "requrements"),
         ("worklod: {}", "worklod"),
+        ("project_name: deprecated_project", "project_name"),
         (
             """workload:
   baseline_requests_per_second: 10
