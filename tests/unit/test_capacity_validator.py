@@ -320,6 +320,7 @@ class TestCycleTolerance:
         assert result.is_successful is True
         assert result.errors == []
 
+
 def test_explicit_service_channels_determine_capacity() -> None:
     """A concurrency limit is not a count of independent service channels."""
     node = create_test_compute_node(
