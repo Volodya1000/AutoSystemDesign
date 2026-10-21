@@ -9,8 +9,8 @@ from infrastructure.llm.context_diagnostics import (
 from infrastructure.llm.models import CompletionRequest, Message, MessageRole
 
 
-@pytest.fixture
-def completion_request() -> CompletionRequest:
+@pytest.fixture(name="completion_request")
+def _completion_request_fixture() -> CompletionRequest:
     return CompletionRequest(
         messages=[Message(role=MessageRole.USER, content="Generate an architecture.")],
         max_tokens=16_000,
