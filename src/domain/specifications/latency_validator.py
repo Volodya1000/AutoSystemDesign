@@ -157,7 +157,13 @@ def _node_sojourn_ms(node: CapacityNode, incoming_rps: float) -> float:
     c_s = std / mean
     c_a_squared = 1.0  # Poisson arrivals
     exponent = math.sqrt(2.0 * (c + 1.0)) - 1.0
-    e_wq = (c_a_squared + c_s * c_s) / 2.0 * (rho**exponent) / (c * (1.0 - rho)) * mean
+    e_wq: float = (
+        (c_a_squared + c_s * c_s)
+        / 2.0
+        * math.pow(rho, exponent)
+        / (c * (1.0 - rho))
+        * mean
+    )
     return e_wq + mean
 
 
