@@ -122,11 +122,14 @@ def _topological_order(node_ids: list[str], edges: list[Edge]) -> list[str]:
 
 
 def _reachable_sync_node_ids(
-    node_ids: list[str],
-    client_ids: list[str],
+    graph: ArchitectureGraph,
     sync_edges: list[Edge],
 ) -> list[str]:
     """Return nodes reachable from a client through synchronous edges only."""
+    node_ids = [node.identifier for node in graph.nodes]
+    client_ids = [
+        node.identifier for node in graph.nodes if isinstance(node, ClientNode)
+    ]
     valid_node_ids = set(node_ids)
     outgoing: dict[str, list[str]] = {}
     for edge in sync_edges:
@@ -225,15 +228,11 @@ def _compute_synchronous_critical_path(
     graph: ArchitectureGraph,
     node_latencies: dict[str, float | None],
 ) -> tuple[float | None, tuple[str, ...], tuple[float, ...]]:
-    node_ids = [node.identifier for node in graph.nodes]
-    if not node_ids:
+    if not graph.nodes:
         return 0.0, (), ()
 
     sync_edges = [edge for edge in graph.edges if not edge.protocol.is_asynchronous]
-    client_ids = [
-        node.identifier for node in graph.nodes if isinstance(node, ClientNode)
-    ]
-    reachable_node_ids = _reachable_sync_node_ids(node_ids, client_ids, sync_edges)
+    reachable_node_ids = _reachable_sync_node_ids(graph, sync_edges)
     if not reachable_node_ids:
         return None, (), ()
 
