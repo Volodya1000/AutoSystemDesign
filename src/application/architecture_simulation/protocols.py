@@ -14,4 +14,6 @@ if TYPE_CHECKING:
 class SimulationEngineProtocol(Protocol):
     """Execute a reproducible trace for one service node."""
 
-    def simulate(self, plan: SingleNodeSimulationPlan) -> SingleNodeSimulationResult: ...
+    def simulate(
+        self, plan: SingleNodeSimulationPlan
+    ) -> SingleNodeSimulationResult: ...
