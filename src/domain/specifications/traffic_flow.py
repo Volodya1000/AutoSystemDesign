@@ -64,7 +64,7 @@ def _topological_order(graph: ArchitectureGraph) -> list[str]:
     validation normally guarantees a DAG; this is a defensive contract check.
     """
     node_ids: list[str] = [node.identifier for node in graph.nodes]
-    in_degree: dict[str, int] = {identifier: 0 for identifier in node_ids}
+    in_degree: dict[str, int] = dict.fromkeys(node_ids, 0)
     adjacency: dict[str, list[str]] = {identifier: [] for identifier in node_ids}
 
     for edge in graph.edges:
