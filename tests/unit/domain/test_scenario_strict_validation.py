@@ -11,7 +11,6 @@ from domain.models.scenarios import DesignScenario
 pytestmark = pytest.mark.unit
 
 
-
 @pytest.mark.parametrize("unknown_field", ["requrements", "worklod"])
 def test_rejects_unknown_scenario_keys(unknown_field: str) -> None:
     """Reject misspelled top-level keys instead of dropping them."""
