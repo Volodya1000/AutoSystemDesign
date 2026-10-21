@@ -12,7 +12,8 @@ pytestmark = pytest.mark.unit
 
 
 class TestWithLlmUpdates:
-    def test_valid_overrides_keep_other_fields_and_original_unchanged(self) -> None:
+    @staticmethod
+    def test_valid_overrides_keep_other_fields_and_original_unchanged() -> None:
         settings: AppSettings = make_settings()
 
         updated: AppSettings = with_llm_updates(
@@ -37,7 +38,8 @@ class TestWithLlmUpdates:
         assert settings.llm.context_window_tokens is None
         assert settings.llm.structured_output_mode is StructuredOutputMode.JSON_SCHEMA
 
-    def test_accepts_temperature_zero_and_enum_override(self) -> None:
+    @staticmethod
+    def test_accepts_temperature_zero_and_enum_override() -> None:
         settings: AppSettings = with_llm_updates(make_settings(), temperature=0.7)
 
         updated: AppSettings = with_llm_updates(
@@ -60,8 +62,9 @@ class TestWithLlmUpdates:
             {"structured_output_mode": "not_a_mode"},
         ],
     )
+    @staticmethod
     def test_invalid_overrides_raise_validation_error(
-        self, updates: dict[str, object]
+        updates: dict[str, object]
     ) -> None:
         settings: AppSettings = make_settings()
 

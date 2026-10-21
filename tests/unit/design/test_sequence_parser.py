@@ -60,7 +60,8 @@ def _graph(*node_ids: tuple[str, NodeType]) -> ArchitectureGraph:
 
 
 class TestParseInteractionScenario:
-    def test_adds_missing_backend_lifeline_used_in_nested_steps(self) -> None:
+    @staticmethod
+    def test_adds_missing_backend_lifeline_used_in_nested_steps() -> None:
         payload = _payload(
             lifelines=[_component_lifeline("orders_api", "orders_api")],
             steps=[
@@ -94,7 +95,8 @@ class TestParseInteractionScenario:
             "orders_db",
         }
 
-    def test_maps_c4_reference_to_its_unique_declared_lifeline(self) -> None:
+    @staticmethod
+    def test_maps_c4_reference_to_its_unique_declared_lifeline() -> None:
         payload = _payload(
             lifelines=[
                 _component_lifeline("orders_api", "orders_api"),
@@ -116,7 +118,8 @@ class TestParseInteractionScenario:
         assert isinstance(step, MessageStep)
         assert step.to_lifeline == "database"
 
-    def test_rejects_ambiguous_mapping_to_multiple_lifelines(self) -> None:
+    @staticmethod
+    def test_rejects_ambiguous_mapping_to_multiple_lifelines() -> None:
         payload = _payload(
             lifelines=[
                 _component_lifeline("orders_api", "orders_api"),
@@ -142,7 +145,8 @@ class TestParseInteractionScenario:
 
         assert exc_info.value.failure_details
 
-    def test_does_not_infer_a_missing_client_lifeline(self) -> None:
+    @staticmethod
+    def test_does_not_infer_a_missing_client_lifeline() -> None:
         payload = _payload(
             lifelines=[_component_lifeline("orders_api", "orders_api")],
             steps=[_message("orders_api", "web_client")],

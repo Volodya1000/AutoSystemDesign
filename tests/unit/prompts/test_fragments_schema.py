@@ -22,12 +22,14 @@ pytestmark = pytest.mark.unit
 
 
 class TestFragments:
-    def test_render_allowed_connections_covers_default_rule_set(self) -> None:
+    @staticmethod
+    def test_render_allowed_connections_covers_default_rule_set() -> None:
         rendered: str = render_allowed_connections()
         for connection in DEFAULT_ALLOWED_CONNECTION_TYPES:
             assert f"{connection.source.value} -> {connection.target.value}" in rendered
 
-    def test_schema_lists_all_domain_protocol_singletons(self) -> None:
+    @staticmethod
+    def test_schema_lists_all_domain_protocol_singletons() -> None:
         schema_text: str = render_output_schema()
         for protocol in (
             SYNCHRONOUS_REST_HTTP,
@@ -37,7 +39,8 @@ class TestFragments:
         ):
             assert protocol.name in schema_text
 
-    def test_few_shot_example_is_a_valid_graph(self) -> None:
+    @staticmethod
+    def test_few_shot_example_is_a_valid_graph() -> None:
         graph: ArchitectureGraph = ArchitectureGraph.model_validate(
             json.loads(FEW_SHOT_GRAPH_JSON)
         )

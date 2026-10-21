@@ -97,7 +97,8 @@ def _graph(*nodes: AnyNode, edges: list[Edge]) -> ArchitectureGraph:
 
 
 class TestCacheWithReadAndFallback:
-    def test_sync_read_and_compute_fallback_is_accepted(self) -> None:
+    @staticmethod
+    def test_sync_read_and_compute_fallback_is_accepted() -> None:
         """Canonical pattern: compute reads cache, misses go to database."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -116,7 +117,8 @@ class TestCacheWithReadAndFallback:
         assert result.is_successful is True
         assert result.errors == []
 
-    def test_mixed_sync_and_async_incoming_is_accepted(self) -> None:
+    @staticmethod
+    def test_mixed_sync_and_async_incoming_is_accepted() -> None:
         """Read-through plus write-behind: both edges present, no error."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -140,7 +142,8 @@ class TestCacheWithReadAndFallback:
 
 
 class TestWriteOnlySink:
-    def test_async_only_incoming_is_rejected(self) -> None:
+    @staticmethod
+    def test_async_only_incoming_is_rejected() -> None:
         """Exactly the live-run defect: processor -> cache (async), nothing else."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -164,7 +167,8 @@ class TestWriteOnlySink:
         assert "'processor'" in error.message
         assert "cache_hit_rate" in error.message
 
-    def test_write_only_sink_does_not_also_report_miss_path(self) -> None:
+    @staticmethod
+    def test_write_only_sink_does_not_also_report_miss_path() -> None:
         """Mutual exclusion: write-only takes precedence."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -185,7 +189,8 @@ class TestWriteOnlySink:
 
 
 class TestMissPathMissing:
-    def test_sync_read_without_fallback_is_rejected(self) -> None:
+    @staticmethod
+    def test_sync_read_without_fallback_is_rejected() -> None:
         """Compute reads cache, but its only outgoing edge IS the cache edge."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -208,7 +213,8 @@ class TestMissPathMissing:
         assert "processor" in error.message
         assert "miss" in error.message.lower()
 
-    def test_only_non_cache_outgoing_counts_as_fallback(self) -> None:
+    @staticmethod
+    def test_only_non_cache_outgoing_counts_as_fallback() -> None:
         """A second edge to the SAME cache is not a fallback."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -231,7 +237,8 @@ class TestMissPathMissing:
 
 
 class TestMultipleSyncReaders:
-    def test_only_compute_without_fallback_is_reported(self) -> None:
+    @staticmethod
+    def test_only_compute_without_fallback_is_reported() -> None:
         """Report only the reader without a database fallback.
 
         Two compute nodes read the same cache; one has a DB fallback, and the other does
@@ -269,7 +276,8 @@ class TestMultipleSyncReaders:
 
 
 class TestScopeBoundaries:
-    def test_isolated_cache_is_not_double_reported(self) -> None:
+    @staticmethod
+    def test_isolated_cache_is_not_double_reported() -> None:
         """Fully isolated caches are IsolatedNodeError's job."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -286,7 +294,8 @@ class TestScopeBoundaries:
         assert our_result.is_successful is True
         assert structural_result.is_successful is False
 
-    def test_graph_without_caches_is_accepted(self) -> None:
+    @staticmethod
+    def test_graph_without_caches_is_accepted() -> None:
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             _compute("processor"),
@@ -299,7 +308,8 @@ class TestScopeBoundaries:
 
         assert result.is_successful is True
 
-    def test_cyclic_graph_does_not_crash(self) -> None:
+    @staticmethod
+    def test_cyclic_graph_does_not_crash() -> None:
         """Set-based rule: cycles are StructuralTopologyValidator's concern."""
         graph = _graph(
             _compute("compute_a"),

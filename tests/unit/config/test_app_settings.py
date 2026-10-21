@@ -42,8 +42,9 @@ def _set_env_only(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 class TestAppSettings:
+    @staticmethod
     def test_environment_provides_connection_fields(
-        self, monkeypatch: pytest.MonkeyPatch
+        monkeypatch: pytest.MonkeyPatch
     ) -> None:
         _set_env_only(monkeypatch)
         monkeypatch.setenv("ASD_LLM__MODEL", "lm_studio/env-model")
@@ -58,7 +59,8 @@ class TestAppSettings:
         assert settings.llm.temperature == 0.4
         assert settings.llm.structured_output_mode is StructuredOutputMode.JSON_SCHEMA
 
-    def test_env_file_provides_connection_fields(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_env_file_provides_connection_fields(tmp_path: Path) -> None:
         _write_env_file(
             tmp_path,
             "ASD_BASE_URL=http://localhost:9999/v1\nASD_API_KEY=envfile-key\n",
@@ -69,8 +71,9 @@ class TestAppSettings:
         assert settings.api_key.get_secret_value() == "envfile-key"
         assert settings.llm.model == "lm_studio/yaml-model"
 
+    @staticmethod
     def test_real_environment_overrides_env_file(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         _write_env_file(
             tmp_path,
@@ -82,8 +85,9 @@ class TestAppSettings:
         assert settings.base_url == "http://localhost:1234/v1"
         assert settings.api_key.get_secret_value() == "envfile-key"
 
+    @staticmethod
     def test_yaml_provides_llm_section(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, _LLM_YAML + "generation:\n  max_attempts: 7\n")
@@ -93,8 +97,9 @@ class TestAppSettings:
         assert settings.generation.max_attempts == 7
         assert settings.testing.generation_runs == 3  # untouched default
 
+    @staticmethod
     def test_environment_overrides_yaml(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, _LLM_YAML)
@@ -103,8 +108,9 @@ class TestAppSettings:
         assert settings.llm.model == "lm_studio/env-model"
         assert settings.llm.temperature == 0.4
 
+    @staticmethod
     def test_config_file_env_var_redirects_yaml(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         _set_env_only(monkeypatch)
         (tmp_path / "custom.yaml").write_text(_LLM_YAML, encoding="utf-8")
@@ -112,8 +118,9 @@ class TestAppSettings:
         settings: AppSettings = AppSettings()  # type: ignore[call-arg]
         assert settings.llm.model == "lm_studio/yaml-model"
 
+    @staticmethod
     def test_base_url_in_yaml_is_rejected(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, "base_url: http://localhost:1234/v1\n" + _LLM_YAML)
@@ -121,8 +128,9 @@ class TestAppSettings:
         with pytest.raises(ValueError, match="must not contain"):
             AppSettings()  # type: ignore[call-arg]
 
+    @staticmethod
     def test_base_url_inside_llm_section_is_rejected(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         _set_env_only(monkeypatch)
         _write_config_file(
@@ -138,8 +146,9 @@ class TestAppSettings:
         with pytest.raises(ValidationError):
             AppSettings()  # type: ignore[call-arg]
 
+    @staticmethod
     def test_unknown_environment_variable_is_rejected(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, _LLM_YAML)
@@ -147,15 +156,17 @@ class TestAppSettings:
         with pytest.raises(ValidationError):
             AppSettings()  # type: ignore[call-arg]
 
+    @staticmethod
     def test_unknown_yaml_key_is_rejected(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, _LLM_YAML + "  tiemout: 60\n")
         with pytest.raises(ValidationError):
             AppSettings()  # type: ignore[call-arg]
 
-    def test_full_init_kwargs(self) -> None:
+    @staticmethod
+    def test_full_init_kwargs() -> None:
         settings: AppSettings = AppSettings(
             base_url="http://localhost:1234/v1",
             api_key=SecretStr("fake"),

@@ -49,12 +49,14 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
         def __init__(self, requirements_service: object, mapper: object) -> None:
             pass
 
-        def extract_file(self, path: Path) -> DocumentScenarioResult:
+        @staticmethod
+        def extract_file(path: Path) -> DocumentScenarioResult:
             assert path == document
             return expected
 
     class FakeProcess:
-        async def wait(self) -> int:
+        @staticmethod
+        async def wait() -> int:
             return 0
 
     async def fake_create_subprocess_exec(*command: str) -> FakeProcess:
@@ -123,7 +125,8 @@ def test_main_does_not_write_scenario_without_validated_result(
         def __init__(self, requirements_service: object, mapper: object) -> None:
             pass
 
-        def extract_file(self, _path: Path) -> DocumentScenarioResult:
+        @staticmethod
+        def extract_file(_path: Path) -> DocumentScenarioResult:
             return result
 
     monkeypatch.setattr(cli, "load_app_settings", object)

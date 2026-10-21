@@ -63,7 +63,8 @@ def test_discards_requirement_without_source_grounded_evidence(tmp_path: Path) -
     path.write_text("The system can process orders.", encoding="utf-8")
 
     class HallucinatingExtractor:
-        def extract(self, _text: str, _source_name: str) -> ExtractionChunk:
+        @staticmethod
+        def extract(_text: str, _source_name: str) -> ExtractionChunk:
             requirement = Requirement(
                 statement="The system supports biometric login.",
                 kind=RequirementKind.FUNCTIONAL,
@@ -98,7 +99,8 @@ def test_rejects_paraphrased_claim_even_when_its_citation_exists(
     path.write_text(source_excerpt, encoding="utf-8")
 
     class ParaphrasingExtractor:
-        def extract(self, _text: str, _source_name: str) -> ExtractionChunk:
+        @staticmethod
+        def extract(_text: str, _source_name: str) -> ExtractionChunk:
             return ExtractionChunk(
                 requirements=[
                     Requirement(
@@ -133,7 +135,8 @@ def test_rejects_ambiguity_note_with_fabricated_evidence(tmp_path: Path) -> None
     path.write_text(source_excerpt, encoding="utf-8")
 
     class HallucinatingNoteExtractor:
-        def extract(self, _text: str, _source_name: str) -> ExtractionChunk:
+        @staticmethod
+        def extract(_text: str, _source_name: str) -> ExtractionChunk:
             return ExtractionChunk(
                 requirements=[
                     Requirement(

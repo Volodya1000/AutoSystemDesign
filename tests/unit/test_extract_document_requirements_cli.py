@@ -45,7 +45,8 @@ def test_main_writes_serialized_extraction_result(
         def __init__(self, reader: object, extractor: object) -> None:
             pass
 
-        def extract_file(self, path: Path) -> DocumentRequirements:
+        @staticmethod
+        def extract_file(path: Path) -> DocumentRequirements:
             assert path == document
             return expected
 

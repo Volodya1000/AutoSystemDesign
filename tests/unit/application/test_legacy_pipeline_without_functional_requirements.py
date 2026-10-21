@@ -50,12 +50,14 @@ requirements:
 
 
 class NullGenerationReporter:
+    @staticmethod
     def attempts[PayloadT](
-        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+        attempts: Sequence[GenerationAttempt[PayloadT]], label: str
     ) -> None:
         del attempts, label
 
-    def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:
+    @staticmethod
+    def tokens(usage: TokenUsage, generation_seconds: float) -> None:
         del usage, generation_seconds
 
 
@@ -161,7 +163,8 @@ def test_api_stage_skips_generation_without_functional_requirements(
 
 
 class SuccessfulDesignGenerator:
-    def generate(self, scenario: DesignScenario) -> DesignGenerationResult:
+    @staticmethod
+    def generate(scenario: DesignScenario) -> DesignGenerationResult:
         del scenario
         graph = ArchitectureGraph(nodes=[], edges=[])
         return DesignGenerationResult(

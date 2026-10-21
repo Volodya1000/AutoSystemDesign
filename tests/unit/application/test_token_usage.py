@@ -7,11 +7,13 @@ pytestmark = pytest.mark.unit
 
 
 class TestTokenUsage:
-    def test_total_tokens_sums_components(self) -> None:
+    @staticmethod
+    def test_total_tokens_sums_components() -> None:
         usage: TokenUsage = TokenUsage(prompt_tokens=10, completion_tokens=5)
         assert usage.total_tokens == 15
 
-    def test_aggregate_sums_all_usages(self) -> None:
+    @staticmethod
+    def test_aggregate_sums_all_usages() -> None:
         aggregate: TokenUsage = TokenUsage.aggregate(
             [
                 TokenUsage(prompt_tokens=10, completion_tokens=5),
@@ -21,7 +23,8 @@ class TestTokenUsage:
         assert aggregate == TokenUsage(prompt_tokens=11, completion_tokens=7)
         assert aggregate.estimated is False
 
-    def test_aggregate_marks_estimated_when_any_input_is_estimated(self) -> None:
+    @staticmethod
+    def test_aggregate_marks_estimated_when_any_input_is_estimated() -> None:
         aggregate: TokenUsage = TokenUsage.aggregate(
             [
                 TokenUsage(prompt_tokens=10, completion_tokens=5),
@@ -30,7 +33,8 @@ class TestTokenUsage:
         )
         assert aggregate.estimated is True
 
-    def test_aggregate_of_nothing_is_zero(self) -> None:
+    @staticmethod
+    def test_aggregate_of_nothing_is_zero() -> None:
         assert TokenUsage.aggregate([]) == TokenUsage(
             prompt_tokens=0, completion_tokens=0
         )

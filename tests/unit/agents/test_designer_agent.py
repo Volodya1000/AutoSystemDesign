@@ -70,8 +70,9 @@ _FENCED_CONTENT: str = "model reasoning\n```json\n" + FEW_SHOT_GRAPH_JSON + "\n`
 
 
 class TestArchitectureDesignerAgent:
+    @staticmethod
     def test_propose_parses_fenced_output_with_think_block(
-        self, scenario: DesignScenario, settings: AppSettings
+        scenario: DesignScenario, settings: AppSettings
     ) -> None:
         client: FakeLlmClient = FakeLlmClient(content=_FENCED_CONTENT)
         designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(
@@ -86,8 +87,9 @@ class TestArchitectureDesignerAgent:
         assert proposal.raw_content == _FENCED_CONTENT
         assert proposal.usage.total_tokens == 18
 
+    @staticmethod
     def test_propose_raises_parsing_error_on_garbage(
-        self, scenario: DesignScenario, settings: AppSettings
+        scenario: DesignScenario, settings: AppSettings
     ) -> None:
         client: FakeLlmClient = FakeLlmClient(content="I cannot answer in JSON, sorry.")
         designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(
@@ -99,8 +101,9 @@ class TestArchitectureDesignerAgent:
         assert exc_info.value.usage.total_tokens == 18
         assert exc_info.value.failure_details
 
+    @staticmethod
     def test_propose_propagates_connection_errors(
-        self, scenario: DesignScenario, settings: AppSettings
+        scenario: DesignScenario, settings: AppSettings
     ) -> None:
         connection_error: LlmConnectionError = LlmConnectionError(
             base_url="http://localhost:1234/v1",
@@ -114,8 +117,9 @@ class TestArchitectureDesignerAgent:
         with pytest.raises(LlmConnectionError):
             designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
 
+    @staticmethod
     def test_completion_request_carries_settings(
-        self, scenario: DesignScenario, settings: AppSettings
+        scenario: DesignScenario, settings: AppSettings
     ) -> None:
         client: FakeLlmClient = FakeLlmClient(content=_FENCED_CONTENT)
         designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(

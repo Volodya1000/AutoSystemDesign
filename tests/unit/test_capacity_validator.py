@@ -56,7 +56,8 @@ def _chain_graph(*nodes: AnyNode) -> ArchitectureGraph:
 
 
 class TestSaturationThresholdConstant:
-    def test_threshold_is_98_percent(self) -> None:
+    @staticmethod
+    def test_threshold_is_98_percent() -> None:
         """Roadmap F4 pins the threshold at 98%: no config, no tuning."""
         assert SATURATION_THRESHOLD == 0.98
 
@@ -65,7 +66,8 @@ class TestSaturationThresholdConstant:
 
 
 class TestBelowThreshold:
-    def test_low_utilization_yields_no_errors(self) -> None:
+    @staticmethod
+    def test_low_utilization_yields_no_errors() -> None:
         """Manual: max_rps = 1 x 100 x 1000 / 10 = 10_000.
 
         peak = 1_000 → util = 0.10 = 10%. Well under 98% → no error.
@@ -78,7 +80,8 @@ class TestBelowThreshold:
         assert result.is_successful is True
         assert result.errors == []
 
-    def test_utilization_is_reported_even_below_threshold(self) -> None:
+    @staticmethod
+    def test_utilization_is_reported_even_below_threshold() -> None:
         """compute_node_utilization always reports every capacity node."""
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
@@ -92,7 +95,8 @@ class TestBelowThreshold:
 
 
 class TestBoundaryAt98Percent:
-    def test_just_below_threshold_passes(self) -> None:
+    @staticmethod
+    def test_just_below_threshold_passes() -> None:
         """Manual: max_rps = 10_000. peak = 9_799 → util = 0.9799 → OK.
 
         This is the last integer peak that is strictly below the 98% bar.
@@ -104,7 +108,8 @@ class TestBoundaryAt98Percent:
         result = CapacitySaturationValidator().validate(graph, _scenario(9_799.0))
         assert result.is_successful is True
 
-    def test_exactly_at_threshold_fails(self) -> None:
+    @staticmethod
+    def test_exactly_at_threshold_fails() -> None:
         """Manual: max_rps = 10_000. peak = 9_800 → util = 0.98 exactly.
 
         The comparison is `>=`, so equality already counts as saturation:
@@ -133,7 +138,8 @@ class TestBoundaryAt98Percent:
 
 
 class TestAboveThreshold:
-    def test_overload_reports_arrival_and_maximum(self) -> None:
+    @staticmethod
+    def test_overload_reports_arrival_and_maximum() -> None:
         """Manual: max_rps = 10_000. peak = 10_500 → util = 1.05 = 105%.
 
         arrival_rate_rps ≈ 10_500, maximum_capacity_rps ≈ 10_000.
@@ -160,7 +166,8 @@ class TestAboveThreshold:
 
 
 class TestReplicasMultiplyCapacity:
-    def test_two_replicas_double_max_rps(self) -> None:
+    @staticmethod
+    def test_two_replicas_double_max_rps() -> None:
         """Manual: replicas = 2 → max_rps = 2 x 100 x 1000 / 10 = 20_000.
 
         peak = 15_000 → util = 0.75 → no error.
@@ -184,7 +191,8 @@ class TestReplicasMultiplyCapacity:
 
 
 class TestMultipleNodes:
-    def test_only_overloaded_node_is_reported(self) -> None:
+    @staticmethod
+    def test_only_overloaded_node_is_reported() -> None:
         """Manual: peak = 120_000 split equally across two clients → 60_000 each.
 
         compute_1: c = 1_200, mean = 10 ms → max = 120_000,
@@ -225,7 +233,8 @@ class TestMultipleNodes:
 
 
 class TestMissingWorkload:
-    def test_compute_node_utilization_returns_empty_dict(self) -> None:
+    @staticmethod
+    def test_compute_node_utilization_returns_empty_dict() -> None:
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
             create_test_compute_node("compute_1"),
@@ -237,7 +246,8 @@ class TestMissingWorkload:
         )
         assert not compute_node_utilization(graph, scenario)
 
-    def test_validator_returns_empty_result(self) -> None:
+    @staticmethod
+    def test_validator_returns_empty_result() -> None:
         graph = _chain_graph(
             create_test_node("client", NodeType.CLIENT),
             create_test_compute_node("compute_1"),
@@ -256,7 +266,8 @@ class TestMissingWorkload:
 
 
 class TestClientNodeExclusion:
-    def test_client_not_present_in_utilization_dict(self) -> None:
+    @staticmethod
+    def test_client_not_present_in_utilization_dict() -> None:
         """Exclude client nodes from capacity utilization.
 
         ClientNode has no capacity fields and must never be the target of a
@@ -270,7 +281,8 @@ class TestClientNodeExclusion:
         assert "client" not in utilization
         assert set(utilization) == {"compute_1"}
 
-    def test_client_does_not_trigger_saturation(self) -> None:
+    @staticmethod
+    def test_client_does_not_trigger_saturation() -> None:
         """Never flag a client node, even at a huge flow.
 
         ClientNode has no capacity or queue and must not produce an error.
@@ -287,7 +299,8 @@ class TestClientNodeExclusion:
 
 
 class TestCycleTolerance:
-    def test_cyclic_graph_is_skipped_without_crashing(self) -> None:
+    @staticmethod
+    def test_cyclic_graph_is_skipped_without_crashing() -> None:
         """The workload validator must not raise on a cyclic graph.
 
         Cycles are reported by StructuralTopologyValidator, which runs in

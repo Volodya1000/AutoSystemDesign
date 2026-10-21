@@ -66,7 +66,8 @@ def _graph(*nodes: AnyNode, edges_pairs: list[tuple[str, str]]) -> ArchitectureG
 
 
 class TestBrokerWithConsumer:
-    def test_broker_with_outgoing_edge_is_accepted(self) -> None:
+    @staticmethod
+    def test_broker_with_outgoing_edge_is_accepted() -> None:
         """The canonical pattern: producer -> broker -> consumer."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -85,7 +86,8 @@ class TestBrokerWithConsumer:
         assert result.is_successful is True
         assert result.errors == []
 
-    def test_no_brokers_in_graph_is_accepted(self) -> None:
+    @staticmethod
+    def test_no_brokers_in_graph_is_accepted() -> None:
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             create_test_node("compute", NodeType.COMPUTE),
@@ -101,7 +103,8 @@ class TestBrokerWithConsumer:
 
 
 class TestDanglingBroker:
-    def test_broker_with_incoming_but_no_outgoing_is_rejected(self) -> None:
+    @staticmethod
+    def test_broker_with_incoming_but_no_outgoing_is_rejected() -> None:
         """Reproduce the exact pattern the LLM produced on the
 
         social_network_chat run: processor -> broker (async), but the
@@ -131,7 +134,8 @@ class TestDanglingBroker:
         assert "consumer" in message
         assert "compute" in message
 
-    def test_multiple_dangling_brokers_each_get_their_own_error(self) -> None:
+    @staticmethod
+    def test_multiple_dangling_brokers_each_get_their_own_error() -> None:
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             create_test_node("processor", NodeType.COMPUTE),
@@ -158,7 +162,8 @@ class TestDanglingBroker:
 
 
 class TestScopeBoundaries:
-    def test_isolated_broker_is_structural_not_ours(self) -> None:
+    @staticmethod
+    def test_isolated_broker_is_structural_not_ours() -> None:
         """Avoid double-reporting a broker with neither incoming nor outgoing edges.
 
         Such a broker is handled by IsolatedNodeError (empty incoming means no fire).
@@ -177,7 +182,8 @@ class TestScopeBoundaries:
         # Sanity: the structural validator is responsible for the case.
         assert structural_result.is_successful is False
 
-    def test_broker_with_only_outgoing_edges_is_flagged_as_phantom_source(self) -> None:
+    @staticmethod
+    def test_broker_with_only_outgoing_edges_is_flagged_as_phantom_source() -> None:
         """A broker with outgoing edges but no incoming edge is a phantom
 
         source: consumers receive messages that no one published. It must
@@ -202,7 +208,8 @@ class TestScopeBoundaries:
         assert len(producer_errors) == 1
         assert producer_errors[0].affected_node_identifiers == ["orphan_broker"]
 
-    def test_broker_with_disallowed_outgoing_edge_is_not_flagged_here(self) -> None:
+    @staticmethod
+    def test_broker_with_disallowed_outgoing_edge_is_not_flagged_here() -> None:
         """Broker -> non-consumer edge is a connection-whitelist error
 
         (DisallowedConnectionTypeError), not ours. The broker DOES have an
@@ -228,7 +235,8 @@ class TestScopeBoundaries:
 
 
 class TestCycleTolerance:
-    def test_cyclic_graph_does_not_crash(self) -> None:
+    @staticmethod
+    def test_cyclic_graph_does_not_crash() -> None:
         """The rule is set-based, so cycles are irrelevant to it.
 
         Cycle reporting is owned by StructuralTopologyValidator; this
@@ -252,7 +260,8 @@ class TestCycleTolerance:
 
 
 class TestPhantomSourceBroker:
-    def test_broker_with_outgoing_but_no_incoming_is_rejected(self) -> None:
+    @staticmethod
+    def test_broker_with_outgoing_but_no_incoming_is_rejected() -> None:
         """The regression the second live run exposed: the model removed
 
         the producer edge and added a consumer edge, so the broker became
@@ -281,7 +290,8 @@ class TestPhantomSourceBroker:
         assert "producer" in message
         assert "compute" in message
 
-    def test_phantom_source_does_not_also_report_missing_consumer(self) -> None:
+    @staticmethod
+    def test_phantom_source_does_not_also_report_missing_consumer() -> None:
         """Keep the error directional.
 
         A missing producer must not also be reported as a missing consumer.
@@ -304,7 +314,8 @@ class TestPhantomSourceBroker:
 
 
 class TestFullyIsolatedBroker:
-    def test_isolated_broker_is_not_double_reported(self) -> None:
+    @staticmethod
+    def test_isolated_broker_is_not_double_reported() -> None:
         """Fully isolated brokers belong to StructuralTopologyValidator
 
         (IsolatedNodeError). The linkage validator must skip them so the
@@ -324,7 +335,8 @@ class TestFullyIsolatedBroker:
 
 
 class TestSelfLoopBroker:
-    def test_same_node_as_producer_and_consumer_is_rejected(self) -> None:
+    @staticmethod
+    def test_same_node_as_producer_and_consumer_is_rejected() -> None:
         """The exact pattern the third live run produced:
 
         processor -> broker -> processor. Structurally this is a cycle
@@ -358,7 +370,8 @@ class TestSelfLoopBroker:
         assert "DIFFERENT" in message
         assert "worker" in message.lower()
 
-    def test_different_producer_and_consumer_accepted(self) -> None:
+    @staticmethod
+    def test_different_producer_and_consumer_accepted() -> None:
         """Canonical pattern: producer -> broker -> worker (distinct nodes)."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
@@ -376,7 +389,8 @@ class TestSelfLoopBroker:
 
         assert result.is_successful is True
 
-    def test_self_loop_does_not_also_report_missing_ends(self) -> None:
+    @staticmethod
+    def test_self_loop_does_not_also_report_missing_ends() -> None:
         """One error per broker: the self-loop check subsumes both ends."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),

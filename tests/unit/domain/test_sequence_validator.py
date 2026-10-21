@@ -97,7 +97,8 @@ def _message(
 
 
 class TestSequenceIntegrityValidator:
-    def test_catches_unknown_architecture_nodes(self) -> None:
+    @staticmethod
+    def test_catches_unknown_architecture_nodes() -> None:
         catalog = _catalog("buyer")
         graph = ArchitectureGraph(nodes=[ClientNode(identifier="web_client")], edges=[])
         lifeline = _component("l1", "non_existent_db")
@@ -133,7 +134,8 @@ class TestSequenceIntegrityValidator:
 
 
 class TestClientOwnershipValidator:
-    def test_shared_client_between_two_roles_is_rejected(self) -> None:
+    @staticmethod
+    def test_shared_client_between_two_roles_is_rejected() -> None:
         graph = _graph_with_client_and_compute()
         catalog = _catalog("sender", "recipient")
         scenario = InteractionScenario(
@@ -166,7 +168,8 @@ class TestClientOwnershipValidator:
         assert errors[0].client_lifeline_id == "social_client"
         assert errors[0].business_role_ids == ["recipient", "sender"]
 
-    def test_client_used_by_one_role_is_accepted(self) -> None:
+    @staticmethod
+    def test_client_used_by_one_role_is_accepted() -> None:
         graph = _graph_with_client_and_compute()
         catalog = _catalog("buyer")
         scenario = InteractionScenario(
@@ -189,7 +192,8 @@ class TestClientOwnershipValidator:
 
         assert result.is_successful is True
 
-    def test_same_role_with_two_lifelines_of_one_client_is_accepted(self) -> None:
+    @staticmethod
+    def test_same_role_with_two_lifelines_of_one_client_is_accepted() -> None:
         """Two tabs of the same buyer are still one actor: no violation."""
         graph = _graph_with_client_and_compute()
         catalog = _catalog("buyer")
@@ -224,7 +228,8 @@ class TestClientOwnershipValidator:
 
 
 class TestDeliveryModeValidator:
-    def test_event_without_async_is_rejected(self) -> None:
+    @staticmethod
+    def test_event_without_async_is_rejected() -> None:
         catalog = _catalog("buyer")
         graph = _graph_with_client_and_compute()
         scenario = InteractionScenario(
@@ -254,7 +259,8 @@ class TestDeliveryModeValidator:
         assert len(errors) == 1
         assert errors[0].message_kind == "event"
 
-    def test_event_with_async_is_accepted(self) -> None:
+    @staticmethod
+    def test_event_with_async_is_accepted() -> None:
         catalog = _catalog("buyer")
         graph = _graph_with_client_and_compute()
         scenario = InteractionScenario(
@@ -281,7 +287,8 @@ class TestDeliveryModeValidator:
 
         assert result.is_successful is True
 
-    def test_request_without_async_is_accepted(self) -> None:
+    @staticmethod
+    def test_request_without_async_is_accepted() -> None:
         """Sync request/response pairs are the normal case."""
         catalog = _catalog("buyer")
         graph = _graph_with_client_and_compute()
@@ -310,7 +317,8 @@ class TestDeliveryModeValidator:
 
 
 class TestUnusedLifelines:
-    def test_declared_lifeline_without_messages_is_rejected(self) -> None:
+    @staticmethod
+    def test_declared_lifeline_without_messages_is_rejected() -> None:
         with pytest.raises(ValidationError, match="never participate"):
             InteractionScenario(
                 scenario_id="s1",
@@ -323,7 +331,8 @@ class TestUnusedLifelines:
                 steps=[_message("buyer_1", "buyer_1")],
             )
 
-    def test_scenario_where_every_lifeline_participates_is_accepted(self) -> None:
+    @staticmethod
+    def test_scenario_where_every_lifeline_participates_is_accepted() -> None:
         scenario = InteractionScenario(
             scenario_id="s1",
             requirement_identifier="req_1",

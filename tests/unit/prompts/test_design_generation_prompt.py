@@ -10,7 +10,8 @@ pytestmark = pytest.mark.unit
 
 
 class TestBuildInitialMessages:
-    def test_structure_and_content(self, scenario: DesignScenario) -> None:
+    @staticmethod
+    def test_structure_and_content(scenario: DesignScenario) -> None:
         task: DesignTask = DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
         messages = build_initial_messages(task)
         assert len(messages) == 2

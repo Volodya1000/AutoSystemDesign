@@ -27,7 +27,8 @@ pytestmark = pytest.mark.unit
 class TestStructuralTopologyValidator:
     """Test observable behavior and business rules of structural validation."""
 
-    def test_should_pass_validation_when_topology_is_valid_dag(self) -> None:
+    @staticmethod
+    def test_should_pass_validation_when_topology_is_valid_dag() -> None:
         # Arrange
         client_node: AnyNode = create_test_node("client_1", NodeType.CLIENT)
         load_balancer_node: AnyNode = create_test_node("lb_1", NodeType.LOAD_BALANCER)
@@ -55,8 +56,8 @@ class TestStructuralTopologyValidator:
         assert result.is_successful is True
         assert len(result.errors) == 0
 
+    @staticmethod
     def test_should_fail_validation_when_duplicate_node_identifiers_exist(
-        self,
     ) -> None:
         # Arrange
         node_original: AnyNode = create_test_node("duplicate_id", NodeType.COMPUTE)
@@ -80,8 +81,8 @@ class TestStructuralTopologyValidator:
             for error in result.errors
         )
 
+    @staticmethod
     def test_should_fail_validation_when_edge_points_to_non_existent_node(
-        self,
     ) -> None:
         # Arrange
         existing_node: AnyNode = create_test_node("client_1", NodeType.CLIENT)
@@ -105,8 +106,8 @@ class TestStructuralTopologyValidator:
             for error in result.errors
         )
 
+    @staticmethod
     def test_should_fail_validation_when_connection_violates_architectural_rules(
-        self,
     ) -> None:
         # Arrange: Direct Load Balancer -> Database connection is forbidden
         load_balancer_node: AnyNode = create_test_node("lb_1", NodeType.LOAD_BALANCER)
@@ -131,8 +132,8 @@ class TestStructuralTopologyValidator:
             for error in result.errors
         )
 
+    @staticmethod
     def test_should_fail_validation_when_topology_contains_cyclic_dependency(
-        self,
     ) -> None:
         # Arrange: compute_1 -> compute_2 -> compute_1 (cycle)
         compute_node_1: AnyNode = create_test_node("compute_1", NodeType.COMPUTE)
@@ -161,8 +162,8 @@ class TestStructuralTopologyValidator:
             for error in result.errors
         )
 
+    @staticmethod
     def test_should_fail_validation_when_node_is_completely_isolated(
-        self,
     ) -> None:
         # Arrange
         client_node: AnyNode = create_test_node("client_1", NodeType.CLIENT)
@@ -188,8 +189,8 @@ class TestStructuralTopologyValidator:
             for error in result.errors
         )
 
+    @staticmethod
     def test_should_pass_validation_when_graph_consists_of_single_node(
-        self,
     ) -> None:
         # Arrange
         single_node: AnyNode = create_test_node("standalone_worker", NodeType.COMPUTE)

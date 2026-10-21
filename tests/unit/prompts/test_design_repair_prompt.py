@@ -15,8 +15,9 @@ pytestmark = pytest.mark.unit
 
 
 class TestBuildRepairMessages:
+    @staticmethod
     def test_includes_feedback_previous_payload_and_repeated_schema(
-        self, scenario: DesignScenario
+        scenario: DesignScenario
     ) -> None:
         task: DesignTask = DesignTask(
             scenario=scenario,

@@ -65,7 +65,8 @@ def _scenario(*requirements: Requirement) -> DesignScenario:
 class TestBudgetRequirementValidator:
     """Numeric cases: normal / boundary / exceeded."""
 
-    def test_no_errors_when_total_cost_is_below_limit(self) -> None:
+    @staticmethod
+    def test_no_errors_when_total_cost_is_below_limit() -> None:
         graph: ArchitectureGraph = _graph(
             _compute_node("compute_1", 500.0),
             _compute_node("compute_2", 500.0),
@@ -75,7 +76,8 @@ class TestBudgetRequirementValidator:
         )
         assert not errors
 
-    def test_no_errors_when_total_cost_equals_limit(self) -> None:
+    @staticmethod
+    def test_no_errors_when_total_cost_equals_limit() -> None:
         """Boundary: <= operator accepts exact equality."""
         graph: ArchitectureGraph = _graph(
             _compute_node("compute_1", 1000.0),
@@ -86,7 +88,8 @@ class TestBudgetRequirementValidator:
         )
         assert not errors
 
-    def test_budget_exceeded_reports_total_and_limit(self) -> None:
+    @staticmethod
+    def test_budget_exceeded_reports_total_and_limit() -> None:
         graph: ArchitectureGraph = _graph(
             _compute_node("compute_1", 1500.0),
             _database_node("database_1", 2000.0),
@@ -104,7 +107,8 @@ class TestBudgetRequirementValidator:
         assert "3500.00" in error.message
         assert "3000.00" in error.message
 
-    def test_client_nodes_are_excluded_from_total_cost(self) -> None:
+    @staticmethod
+    def test_client_nodes_are_excluded_from_total_cost() -> None:
         """ClientNode has no monthly_cost_usd: it must not contribute."""
         graph: ArchitectureGraph = _graph(
             ClientNode(identifier="web_client"),
@@ -133,14 +137,16 @@ class _RecordingRequirementValidator(RequirementValidator[BudgetRequirement]):
 
 
 class TestRequirementValidationDispatcher:
-    def test_dispatches_requirement_to_matching_validator(self) -> None:
+    @staticmethod
+    def test_dispatches_requirement_to_matching_validator() -> None:
         validator = _RecordingRequirementValidator()
         dispatcher = RequirementValidationDispatcher([validator])
         requirement = BudgetRequirement(threshold_value=1000.0)
         dispatcher.validate(_graph(_compute_node("c", 100.0)), _scenario(requirement))
         assert validator.received == [requirement]
 
-    def test_requirements_without_registered_validator_are_skipped(self) -> None:
+    @staticmethod
+    def test_requirements_without_registered_validator_are_skipped() -> None:
         dispatcher = RequirementValidationDispatcher([_RecordingRequirementValidator()])
         # LatencyRequirement has no registered validator: no error, no crash.
         result = dispatcher.validate(
@@ -149,7 +155,8 @@ class TestRequirementValidationDispatcher:
         )
         assert not result.errors
 
-    def test_multiple_same_type_requirements_dispatch_each_time(self) -> None:
+    @staticmethod
+    def test_multiple_same_type_requirements_dispatch_each_time() -> None:
         validator = _RecordingRequirementValidator()
         dispatcher = RequirementValidationDispatcher([validator])
         first = BudgetRequirement(threshold_value=1000.0)
@@ -157,7 +164,8 @@ class TestRequirementValidationDispatcher:
         dispatcher.validate(_graph(_compute_node("c", 100.0)), _scenario(first, second))
         assert validator.received == [first, second]
 
-    def test_empty_validator_set_is_a_no_op(self) -> None:
+    @staticmethod
+    def test_empty_validator_set_is_a_no_op() -> None:
         dispatcher = RequirementValidationDispatcher([])
         result = dispatcher.validate(
             _graph(_compute_node("c", 100.0)),
@@ -165,13 +173,15 @@ class TestRequirementValidationDispatcher:
         )
         assert not result.errors
 
-    def test_duplicate_validator_for_same_type_is_rejected(self) -> None:
+    @staticmethod
+    def test_duplicate_validator_for_same_type_is_rejected() -> None:
         with pytest.raises(ValueError, match="Duplicate RequirementValidator"):
             RequirementValidationDispatcher(
                 [_RecordingRequirementValidator(), _RecordingRequirementValidator()]
             )
 
-    def test_errors_are_aggregated_in_requirement_order(self) -> None:
+    @staticmethod
+    def test_errors_are_aggregated_in_requirement_order() -> None:
         """Dispatcher must run every requirement and collect all errors."""
         validator = BudgetRequirementValidator()
         dispatcher = RequirementValidationDispatcher([validator])

@@ -64,7 +64,8 @@ def _chat_spec() -> dict[str, Any]:
 
 
 class TestInlining:
-    def test_inlines_refs_at_every_usage_site(self) -> None:
+    @staticmethod
+    def test_inlines_refs_at_every_usage_site() -> None:
         result = dereference_internal_refs(_chat_spec())
         request_schema = result["paths"]["/messages"]["post"]["requestBody"]["content"][
             "application/json"
@@ -75,10 +76,12 @@ class TestInlining:
             "required": ["body"],
         }
 
-    def test_no_ref_key_remains_in_output(self) -> None:
+    @staticmethod
+    def test_no_ref_key_remains_in_output() -> None:
         assert "$ref" not in json.dumps(dereference_internal_refs(_chat_spec()))
 
-    def test_repeated_usage_produces_independent_copies(self) -> None:
+    @staticmethod
+    def test_repeated_usage_produces_independent_copies() -> None:
         result = dereference_internal_refs(_chat_spec())
         request_schema = result["paths"]["/messages"]["post"]["requestBody"]["content"][
             "application/json"
@@ -91,7 +94,8 @@ class TestInlining:
 
 
 class TestCycles:
-    def test_self_reference_collapses_to_stub(self) -> None:
+    @staticmethod
+    def test_self_reference_collapses_to_stub() -> None:
         spec = {
             "components": {
                 "schemas": {
@@ -116,7 +120,8 @@ class TestCycles:
         assert "Recursive" in nested_items["description"]
         assert "$ref" not in json.dumps(result)
 
-    def test_mutual_cycle_collapses_to_stub(self) -> None:
+    @staticmethod
+    def test_mutual_cycle_collapses_to_stub() -> None:
         spec = {
             "components": {
                 "schemas": {
@@ -137,7 +142,8 @@ class TestCycles:
         inner_b = inner_a["properties"]["b"]
         assert "Recursive" in inner_b["properties"]["a"]["description"]
 
-    def test_root_pointer_terminates(self) -> None:
+    @staticmethod
+    def test_root_pointer_terminates() -> None:
         # "$ref": "#" points at the whole document; pathological input, but
         # it must not recurse forever.
         spec = {
@@ -162,7 +168,8 @@ class TestCycles:
 
 
 class TestDanglingRefs:
-    def test_missing_schema_becomes_descriptive_stub(self) -> None:
+    @staticmethod
+    def test_missing_schema_becomes_descriptive_stub() -> None:
         spec = {
             "paths": {
                 "/x": {
@@ -188,13 +195,15 @@ class TestDanglingRefs:
         ]["content"]["application/json"]["schema"]
         assert "Unresolved reference" in schema["description"]
 
-    def test_malformed_pointer_becomes_stub(self) -> None:
+    @staticmethod
+    def test_malformed_pointer_becomes_stub() -> None:
         # "components" (no leading slash) is not a valid JSON pointer.
         spec = {"a": {"$ref": "#components"}}
         result = dereference_internal_refs(spec)
         assert "Unresolved reference" in result["a"]["description"]
 
-    def test_pointer_to_absent_empty_key(self) -> None:
+    @staticmethod
+    def test_pointer_to_absent_empty_key() -> None:
         # RFC 6901: "/" addresses the root key "" -- absent here, so the
         # reference resolves to a stub, not to the whole document.
         spec = {"a": {"$ref": "#/"}}
@@ -203,7 +212,8 @@ class TestDanglingRefs:
 
 
 class TestRefSiblings:
-    def test_sibling_overrides_target_field(self) -> None:
+    @staticmethod
+    def test_sibling_overrides_target_field() -> None:
         spec = {
             "paths": {
                 "/x": {
@@ -243,7 +253,8 @@ class TestRefSiblings:
             "properties": {},
         }
 
-    def test_siblings_survive_on_unresolved_stub(self) -> None:
+    @staticmethod
+    def test_siblings_survive_on_unresolved_stub() -> None:
         # A sibling "description" would REPLACE the stub's diagnostic text
         # (sibling-wins semantics), so use a non-clashing sibling key here.
         spec = {"a": {"$ref": "#/components/schemas/Missing", "title": "Kept"}}
@@ -253,7 +264,8 @@ class TestRefSiblings:
 
 
 class TestStructureTraversal:
-    def test_refs_inside_arrays_and_allof_are_inlined(self) -> None:
+    @staticmethod
+    def test_refs_inside_arrays_and_allof_are_inlined() -> None:
         spec = {
             "components": {
                 "schemas": {
@@ -272,7 +284,8 @@ class TestStructureTraversal:
         assert result["schema"]["allOf"][0] == {"type": "object"}
         assert result["schema"]["allOf"][1] == {"type": "string"}
 
-    def test_escaped_pointer_segments_are_resolved(self) -> None:
+    @staticmethod
+    def test_escaped_pointer_segments_are_resolved() -> None:
         # RFC 6901: "~1" encodes "/", "~0" encodes "~" within a segment.
         spec = {
             "components": {
@@ -288,25 +301,29 @@ class TestStructureTraversal:
         assert result["slash"] == {"type": "object"}
         assert result["tilde"] == {"type": "string"}
 
-    def test_pointer_to_list_index(self) -> None:
+    @staticmethod
+    def test_pointer_to_list_index() -> None:
         spec = {
             "a": {"$ref": "#/items/1"},
             "items": [{"type": "null"}, {"type": "boolean"}],
         }
         assert dereference_internal_refs(spec)["a"] == {"type": "boolean"}
 
-    def test_external_refs_are_preserved_verbatim(self) -> None:
+    @staticmethod
+    def test_external_refs_are_preserved_verbatim() -> None:
         spec = {"a": {"$ref": "other.yaml#/components/schemas/Foo"}}
         assert dereference_internal_refs(spec) == spec
 
 
 class TestNonObjectTargets:
-    def test_ref_to_scalar_returns_scalar(self) -> None:
+    @staticmethod
+    def test_ref_to_scalar_returns_scalar() -> None:
         spec = {"info": {"version": "1.2.3"}, "a": {"$ref": "#/info/version"}}
         assert dereference_internal_refs(spec)["a"] == "1.2.3"
 
+    @staticmethod
     def test_dropped_siblings_on_scalar_target_log_warning(
-        self, caplog: pytest.LogCaptureFixture
+        caplog: pytest.LogCaptureFixture
     ) -> None:
         spec = {
             "info": {"version": "1.2.3"},
@@ -319,13 +336,15 @@ class TestNonObjectTargets:
 
 
 class TestPurity:
-    def test_input_document_is_not_mutated(self) -> None:
+    @staticmethod
+    def test_input_document_is_not_mutated() -> None:
         spec = _chat_spec()
         before = json.dumps(spec, sort_keys=True)
         dereference_internal_refs(spec)
         assert json.dumps(spec, sort_keys=True) == before
 
-    def test_aliased_nodes_become_independent_copies(self) -> None:
+    @staticmethod
+    def test_aliased_nodes_become_independent_copies() -> None:
         inner = {"$ref": "#/components/schemas/Foo"}
         spec = {
             "components": {"schemas": {"Foo": {"type": "object"}}},
@@ -340,18 +359,21 @@ class TestPurity:
 
 
 class TestSwaggerUiRenderer:
-    def test_html_is_self_contained(self) -> None:
+    @staticmethod
+    def test_html_is_self_contained() -> None:
         page = SwaggerUiRenderer().render_html(_chat_spec(), "Chat <API>")
         assert "spec: spec" in page  # inline spec, never url:
         assert '"$ref"' not in page  # fully dereferenced
         assert "&lt;API&gt;" in page  # title is HTML-escaped
 
-    def test_html_embeds_spec_content(self) -> None:
+    @staticmethod
+    def test_html_embeds_spec_content() -> None:
         page = SwaggerUiRenderer().render_html(_chat_spec(), "Chat")
         assert '"openapi"' in page
         assert "SendMessage" in page
 
-    def test_standalone_preset_is_guarded(self) -> None:
+    @staticmethod
+    def test_standalone_preset_is_guarded() -> None:
         # Pins the regression: a possibly-undefined global must never be
         # pushed into the presets array unconditionally.
         page = SwaggerUiRenderer().render_html(_chat_spec(), "Chat")

@@ -32,7 +32,8 @@ class NullReporter:
         self.labels.append(label)
         assert attempts
 
-    def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:
+    @staticmethod
+    def tokens(usage: TokenUsage, generation_seconds: float) -> None:
         assert usage.total_tokens >= 0
         assert generation_seconds >= 0.0
 

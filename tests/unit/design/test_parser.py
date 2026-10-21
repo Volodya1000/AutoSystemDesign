@@ -60,28 +60,35 @@ VALID_GRAPH_JSON: str = json.dumps(_VALID_GRAPH)
 
 
 class TestExtractJsonPayload:
-    def test_plain_json(self) -> None:
+    @staticmethod
+    def test_plain_json() -> None:
         assert extract_json_payload('{"nodes": []}') == '{"nodes": []}'
 
-    def test_json_code_fence(self) -> None:
+    @staticmethod
+    def test_json_code_fence() -> None:
         assert extract_json_payload('```json\n{"nodes": []}\n```') == '{"nodes": []}'
 
-    def test_plain_code_fence(self) -> None:
+    @staticmethod
+    def test_plain_code_fence() -> None:
         assert extract_json_payload('```\n{"nodes": []}\n```') == '{"nodes": []}'
 
-    def test_think_block_is_removed(self) -> None:
+    @staticmethod
+    def test_think_block_is_removed() -> None:
         raw: str = 'Let me think.\n{"nodes": []}'
         assert extract_json_payload(raw) == '{"nodes": []}'
 
-    def test_think_block_with_fence(self) -> None:
+    @staticmethod
+    def test_think_block_with_fence() -> None:
         raw: str = 'reasoning\n```json\n{"nodes": []}\n```'
         assert extract_json_payload(raw) == '{"nodes": []}'
 
-    def test_prose_around_json(self) -> None:
+    @staticmethod
+    def test_prose_around_json() -> None:
         raw: str = 'Here is your graph:\n{"nodes": []}\nHope this helps!'
         assert extract_json_payload(raw) == '{"nodes": []}'
 
-    def test_combined_noise(self) -> None:
+    @staticmethod
+    def test_combined_noise() -> None:
         raw: str = (
             "deep reasoning\n"
             'Sure! Here you go:\n```json\n{"nodes": []}\n```\nAnything else?'
@@ -90,7 +97,8 @@ class TestExtractJsonPayload:
 
 
 class TestParseArchitectureGraph:
-    def test_valid_payload_maps_to_concrete_node_classes(self) -> None:
+    @staticmethod
+    def test_valid_payload_maps_to_concrete_node_classes() -> None:
         graph = parse_architecture_graph(VALID_GRAPH_JSON, usage=USAGE)
         assert [type(node) for node in graph.nodes] == [
             ClientNode,
@@ -101,7 +109,8 @@ class TestParseArchitectureGraph:
             name="sync_rest_http", is_asynchronous=False
         )
 
-    def test_unknown_node_type_reports_location(self) -> None:
+    @staticmethod
+    def test_unknown_node_type_reports_location() -> None:
         payload: str = json.dumps(
             {"nodes": [{"identifier": "x", "node_type": "mainframe"}], "edges": []}
         )
@@ -112,7 +121,8 @@ class TestParseArchitectureGraph:
         assert details[0].location.startswith("$.nodes[0]")
         assert details[0].error_type
 
-    def test_broken_json_reports_decode_error_type(self) -> None:
+    @staticmethod
+    def test_broken_json_reports_decode_error_type() -> None:
         with pytest.raises(DesignProposalParsingError) as exc_info:
             parse_architecture_graph('{"nodes": [', usage=USAGE)
         details = exc_info.value.failure_details
@@ -120,7 +130,8 @@ class TestParseArchitectureGraph:
         assert details[0].error_type == JSON_DECODE_ERROR_TYPE
         assert details[0].location == "$"
 
-    def test_missing_required_field_reports_field_path(self) -> None:
+    @staticmethod
+    def test_missing_required_field_reports_field_path() -> None:
         broken: dict[str, object] = {
             "nodes": [
                 {"identifier": "web_client", "node_type": "client"},
@@ -153,7 +164,8 @@ class TestParseArchitectureGraph:
         )
         assert "missing" in error_types
 
-    def test_usage_and_raw_content_are_propagated_into_error(self) -> None:
+    @staticmethod
+    def test_usage_and_raw_content_are_propagated_into_error() -> None:
         usage: TokenUsage = TokenUsage(prompt_tokens=42, completion_tokens=17)
         with pytest.raises(DesignProposalParsingError) as exc_info:
             parse_architecture_graph("not json at all", usage=usage)

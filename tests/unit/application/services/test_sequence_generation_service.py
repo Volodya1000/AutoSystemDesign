@@ -28,14 +28,15 @@ pytestmark = pytest.mark.unit
 
 
 class ValidCatalogValidator:
-    def validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult:
+    @staticmethod
+    def validate_catalog(catalog: ProjectRolesCatalog) -> ValidationResult:
         del catalog
         return ValidationResult()
 
 
 class ValidScenarioValidator:
+    @staticmethod
     def validate_scenario(
-        self,
         scenario: InteractionScenario,
         catalog: ProjectRolesCatalog,
         graph: ArchitectureGraph,
