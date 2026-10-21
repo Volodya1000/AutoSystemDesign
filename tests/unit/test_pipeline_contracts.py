@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import TYPE_CHECKING
+from typing import Never, TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -302,12 +302,12 @@ def test_render_and_write_saving_failure_returns_warning(
 def test_render_and_write_propagates_unexpected_error() -> None:
     """Programming errors (e.g. ValueError) are not swallowed."""
 
-    def bad_factory() -> object:
+    def bad_factory() -> Never:
         raise ProgrammingError
 
     with pytest.raises(ValueError, match="programming error"):
         renderers_mod.render_and_write(
-            service_factory=bad_factory,  # type: ignore[arg-type]
+            service_factory=bad_factory,
             subject=MagicMock(),
             title="t",
             base_name="b",

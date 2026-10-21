@@ -21,7 +21,7 @@ _VALID_KWARGS: dict[str, Any] = {
 class TestLlmSettings:
     def test_all_fields_are_required(self) -> None:
         with pytest.raises(ValidationError):
-            LlmSettings()  # type: ignore[call-arg]  # deliberately invalid
+            LlmSettings.model_validate({})
 
     def test_accepts_valid_values(self) -> None:
         settings: LlmSettings = LlmSettings(**_VALID_KWARGS)
