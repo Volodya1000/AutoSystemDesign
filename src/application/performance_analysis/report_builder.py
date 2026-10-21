@@ -86,8 +86,15 @@ def build_performance_analysis_report(
             node.identifier for node in graph.nodes if isinstance(node, CapacityNode)
         ),
     )
+    bounded_queue_nodes = [
+        node.identifier
+        for node in graph.nodes
+        if isinstance(node, CapacityNode) and incoming_by_node[node.identifier] > 0.0
+    ]
     findings = _capacity_findings(graph, utilization_by_node)
     findings.extend(_branching_findings(graph))
+    if bounded_queue_nodes:
+        findings.append(_bounded_queue_unmodeled_finding(bounded_queue_nodes))
     if latency_slo_finding is not None:
         findings.append(latency_slo_finding)
     if unavailable_latency_nodes:
@@ -99,6 +106,7 @@ def build_performance_analysis_report(
             PerformanceAnalysisStatus.PARTIAL
             if (
                 unavailable_latency_nodes
+                or bounded_queue_nodes
                 or latency_slo_finding is not None
                 or critical_path is None
                 or critical_path.total_latency_ms is None
@@ -283,6 +291,25 @@ def _latency_slo_not_evaluated_finding(
             "остаётся доступной отдельно и не интерпретируется как процентиль."
         ),
         affected_node_identifiers=list(critical_path_node_identifiers),
+    )
+
+
+def _bounded_queue_unmodeled_finding(
+    node_identifiers: list[str],
+) -> PerformanceFinding:
+    """Identify finite waiting rooms unsupported by infinite-buffer estimates."""
+    return PerformanceFinding(
+        finding_code=PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED,
+        severity=PerformanceFindingSeverity.WARNING,
+        title="Ограниченная очередь не моделируется точно",
+        description=(
+            "В узлах задан конечный буфер ожидания. Средняя задержка, когда "
+            "она доступна, рассчитана в предположении неограниченной очереди "
+            "и не описывает вероятность отказа, потери запросов или backpressure. "
+            "Для очереди нулевой длины при положительной нагрузке время "
+            "ожидания не оценивается."
+        ),
+        affected_node_identifiers=node_identifiers,
     )
 
 
