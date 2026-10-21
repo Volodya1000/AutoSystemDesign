@@ -129,6 +129,14 @@ def test_longest_mean_path_rejects_invalid_estimates(invalid_value: float) -> No
         )
 
 
+def test_schema_version_defaults_for_legacy_reports() -> None:
+    legacy_json = '{"scenario_identifier":"legacy","status":"complete"}'
+    restored = PerformanceAnalysisReport.model_validate_json(legacy_json)
+
+    assert restored.schema_version == "1.0"
+    assert '"schema_version":"1.0"' in restored.model_dump_json()
+
+
 def test_old_report_json_defaults_new_optional_path_fields() -> None:
     """Adding the path estimate must not break existing stored JSON."""
     legacy_json = '{"scenario_identifier":"legacy","status":"complete"}'
