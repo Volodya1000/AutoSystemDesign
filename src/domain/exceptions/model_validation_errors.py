@@ -25,6 +25,7 @@ class ModelValidationCode(StrEnum):
     UNKNOWN_MESSAGE_RECIPIENT = "sequence.unknown_message_recipient"
     UNUSED_LIFELINES = "sequence.unused_lifelines"
     TOPOLOGY_CYCLE = "topology.cycle"
+    AMBIGUOUS_CACHE_MISS_PATH = "topology.ambiguous_cache_miss_path"
     DUPLICATE_REQUIREMENT_VALIDATOR = "requirements.duplicate_validator"
 
 
@@ -95,6 +96,10 @@ class ModelValidationError(ValueError):
         ),
         ModelValidationCode.TOPOLOGY_CYCLE: (
             "Graph contains a cycle; topology must be a DAG"
+        ),
+        ModelValidationCode.AMBIGUOUS_CACHE_MISS_PATH: (
+            "Compute node '{node_identifier}' reads from multiple caches, so "
+            "database fallback traffic cannot be assigned unambiguously."
         ),
         ModelValidationCode.DUPLICATE_REQUIREMENT_VALIDATOR: (
             "Duplicate RequirementValidator for {requirement_type}"

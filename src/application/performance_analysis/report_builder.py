@@ -6,7 +6,8 @@ from collections import Counter
 from math import isfinite
 from typing import TYPE_CHECKING
 
-from domain.models.nodes import CapacityNode
+from domain.models.enums import EdgeRoutingMode
+from domain.models.nodes import CacheNode, CapacityNode, DatabaseNode
 from domain.performance_analysis.report import (
     NodePerformanceMetrics,
     PerformanceAnalysisReport,
@@ -137,14 +138,32 @@ def _build_node_metrics(
 
 
 def _branching_findings(graph: ArchitectureGraph) -> list[PerformanceFinding]:
-    """Report the traffic-distribution assumption for branching nodes."""
-    outgoing_edge_counts: Counter[str] = Counter(
-        edge.source_identifier for edge in graph.edges
-    )
+    """Report unresolved traffic distribution for alternative outgoing routes."""
+    node_by_id = {node.identifier: node for node in graph.nodes}
+    cache_reader_sources = {
+        edge.source_identifier
+        for edge in graph.edges
+        if not edge.protocol.is_asynchronous
+        and isinstance(node_by_id.get(edge.target_identifier), CacheNode)
+    }
+    alternative_edge_counts: Counter[str] = Counter()
+    fallback_edge_counts: Counter[str] = Counter()
+    for edge in graph.edges:
+        if edge.routing_mode is not EdgeRoutingMode.ALTERNATIVE:
+            continue
+        is_fallback = (
+            edge.source_identifier in cache_reader_sources
+            and not edge.protocol.is_asynchronous
+            and isinstance(node_by_id.get(edge.target_identifier), DatabaseNode)
+        )
+        counts = fallback_edge_counts if is_fallback else alternative_edge_counts
+        counts[edge.source_identifier] += 1
+
     branching_nodes: list[str] = [
         node.identifier
         for node in graph.nodes
-        if outgoing_edge_counts[node.identifier] > 1
+        if alternative_edge_counts[node.identifier] > 1
+        or fallback_edge_counts[node.identifier] > 1
     ]
     if not branching_nodes:
         return []
@@ -240,9 +259,9 @@ def _traffic_distribution_limitation(
         severity=PerformanceFindingSeverity.WARNING,
         title="Допущение о распределении трафика",
         description=(
-            "Исходящий поток равномерно распределяется между рёбрами узла. "
-            "Текущая модель не выражает веса маршрутизации и кратность вызовов "
-            "зависимостей; фактическая нагрузка на ветви может отличаться."
+            "Трафик между альтернативными исходящими маршрутами распределяется "
+            "поровну. Отдельные веса маршрутизации пока не задаются, поэтому "
+            "фактическая нагрузка на эти маршруты может отличаться."
         ),
         affected_node_identifiers=branching_node_identifiers,
     )

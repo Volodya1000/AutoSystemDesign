@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
+from domain.models.enums import EdgeRoutingMode
 from domain.models.protocols import ConnectionProtocol
 
 
@@ -9,6 +10,13 @@ class Edge(BaseModel):
     source_identifier: str
     target_identifier: str
     protocol: ConnectionProtocol
+    routing_mode: EdgeRoutingMode = Field(
+        default=EdgeRoutingMode.ALTERNATIVE,
+        description=(
+            "Alternative edges split source traffic equally; fan_out edges each "
+            "receive the full traffic rate."
+        ),
+    )
     description: str = Field(
         default="",
         description=(
