@@ -2,11 +2,11 @@
 
 from enum import StrEnum
 from math import isfinite
-
-MAX_SUPPORTED_SERVER_COUNT = 10_000
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+MAX_SUPPORTED_SERVER_COUNT = 10_000
 
 
 class QueueingStatus(StrEnum):
