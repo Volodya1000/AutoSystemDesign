@@ -267,6 +267,7 @@ def test_infinite_latency_is_reported_as_unavailable_not_serialized() -> None:
     )
     assert type(report).model_validate_json(report.model_dump_json()) == report
 
+
 def test_saturated_service_channels_do_not_claim_capacity_headroom() -> None:
     """Explicitly modeled channels must drive capacity and queue diagnosis."""
     graph = ArchitectureGraph(
@@ -288,9 +289,7 @@ def test_saturated_service_channels_do_not_claim_capacity_headroom() -> None:
     )
     codes = {finding.finding_code for finding in report.findings}
 
-    assert service_metrics.estimated_capacity_requests_per_second == pytest.approx(
-        10.0
-    )
+    assert service_metrics.estimated_capacity_requests_per_second == pytest.approx(10.0)
     assert service_metrics.utilization_ratio == pytest.approx(5.0)
     assert service_metrics.estimated_mean_response_time_milliseconds is None
     assert PerformanceFindingCode.CAPACITY_SATURATION in codes
