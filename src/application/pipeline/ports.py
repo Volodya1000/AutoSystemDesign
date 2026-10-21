@@ -41,7 +41,9 @@ class DiagramRenderer[SubjectT](Protocol):
 class GenerationReporter(Protocol):
     """Per-stage reporting of attempts and token usage."""
 
-    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None: ...
+    def attempts[PayloadT](
+        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+    ) -> None: ...
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None: ...
 
