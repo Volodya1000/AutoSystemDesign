@@ -108,7 +108,7 @@ uv run python scripts/generate_pipeline.py \\
 Запуск модульных тестов:
 
 ```bash
-uv run pytest -m unit
+uv run pytest tests/unit
 ```
 
 Основные статические проверки:
