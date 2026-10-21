@@ -146,9 +146,7 @@ def test_time_travel_in_observations_is_rejected() -> None:
 def test_observation_round_trip_preserves_elapsed_times() -> None:
     result = _run([(0, 2), (0, 1)])
 
-    restored = SingleNodeSimulationResult.model_validate_json(
-        result.model_dump_json()
-    )
+    restored = SingleNodeSimulationResult.model_validate_json(result.model_dump_json())
 
     assert restored == result
     assert restored.observations[1].wait_seconds == 2.0
