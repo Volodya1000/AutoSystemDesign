@@ -42,7 +42,7 @@ class CapacityNode(BaseNode):
         ge=1,
         description=(
             "Optional number of independent service channels per replica. "
-            "Leave unset when unknown; do not infer it from maximum_concurrency."
+            "Leave unset when unknown; the count cannot exceed maximum_concurrency."
         ),
     )
 
@@ -62,6 +62,15 @@ class CapacityNode(BaseNode):
     def _reject_direct_capacity_instantiation(self) -> "CapacityNode":
         if self.__class__ is CapacityNode:  # pylint: disable=unidiomatic-typecheck
             raise ModelValidationError(ModelValidationCode.ABSTRACT_CAPACITY_NODE)
+        if (
+            self.service_channels_per_replica is not None
+            and self.service_channels_per_replica > self.maximum_concurrency
+        ):
+            raise ModelValidationError(
+                ModelValidationCode.SERVICE_CHANNELS_EXCEED_CONCURRENCY,
+                channels=self.service_channels_per_replica,
+                concurrency=self.maximum_concurrency,
+            )
         return self
 
 
