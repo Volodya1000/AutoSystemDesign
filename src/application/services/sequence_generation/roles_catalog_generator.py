@@ -13,10 +13,10 @@ from domain.specifications.interfaces import ValidationResult
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from application.protocols import SequenceDesigner
+    from application.protocols import SequenceDesignerProtocol
     from domain.exceptions.architecture_errors import ArchitectureValidationError
     from domain.models.scenarios import DesignScenario
-    from domain.specifications.sequence_validator import SequenceCatalogValidator
+    from domain.specifications.sequence_validator import SequenceCatalogValidatorProtocol
 
 
 class RolesCatalogGenerator:
@@ -24,8 +24,8 @@ class RolesCatalogGenerator:
 
     def __init__(
         self,
-        designer: SequenceDesigner,
-        validators: Sequence[SequenceCatalogValidator],
+        designer: SequenceDesignerProtocol,
+        validators: Sequence[SequenceCatalogValidatorProtocol],
         max_attempts: int,
     ) -> None:
         self._designer = designer

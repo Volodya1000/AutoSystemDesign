@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.context import StageContext
-    from application.pipeline.ports import DiagramRenderer, GenerationReporter
-    from application.pipeline.services import DesignGenerator
+    from application.pipeline.protocols import DiagramRendererProtocol, GenerationReporterProtocol
+    from application.pipeline.services import DesignGeneratorProtocol
     from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph
 
@@ -29,13 +29,13 @@ class C4Stage:
 
     def __init__(
         self,
-        service: DesignGenerator,
-        renderer: DiagramRenderer[ArchitectureGraph] | None,
-        reporter: GenerationReporter,
+        service: DesignGeneratorProtocol,
+        renderer: DiagramRendererProtocol[ArchitectureGraph] | None,
+        reporter: GenerationReporterProtocol,
     ) -> None:
-        self._service: DesignGenerator = service
-        self._renderer: DiagramRenderer[ArchitectureGraph] | None = renderer
-        self._reporter: GenerationReporter = reporter
+        self._service: DesignGeneratorProtocol = service
+        self._renderer: DiagramRendererProtocol[ArchitectureGraph] | None = renderer
+        self._reporter: GenerationReporterProtocol = reporter
 
     def run(self, context: StageContext) -> StageOutcome[ArchitectureGraph]:
         stage_start: float = time.perf_counter()

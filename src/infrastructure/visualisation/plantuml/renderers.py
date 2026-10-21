@@ -1,4 +1,4 @@
-"""PlantUML implementation of the DiagramRenderer port.
+"""PlantUML implementation of the DiagramRendererProtocol port.
 
 Contract: expected visualization errors (DiagramRenderingError,
 DiagramSavingError) are converted to warnings. Any other exception is a
@@ -6,7 +6,7 @@ programming error and is propagated.
 
 The renderer is diagram-type agnostic: ``source_builder`` decides what is
 rendered. Adding a new diagram type only requires a new
-``DiagramSourceBuilder`` implementation and one wiring line in
+``DiagramSourceBuilderProtocol`` implementation and one wiring line in
 ``infrastructure.composition``.
 """
 
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
+    from infrastructure.visualisation.plantuml.protocols import DiagramSourceBuilderProtocol
 
 _logger = logging.getLogger("pipeline.diagram")
 
@@ -40,11 +40,11 @@ class PlantUmlDiagramRenderer[SubjectT]:
     def __init__(
         self,
         *,
-        source_builder: DiagramSourceBuilder[SubjectT],
+        source_builder: DiagramSourceBuilderProtocol[SubjectT],
         server: str,
         image_format: DiagramImageFormat,
     ) -> None:
-        self._source_builder: DiagramSourceBuilder[SubjectT] = source_builder
+        self._source_builder: DiagramSourceBuilderProtocol[SubjectT] = source_builder
         self._server: str = server
         self._image_format: DiagramImageFormat = image_format
 

@@ -16,8 +16,8 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from application.pipeline.ports import ApiArtifactRenderer, GenerationReporter
-    from application.pipeline.services import ApiGenerator
+    from application.pipeline.protocols import ApiArtifactRendererProtocol, GenerationReporterProtocol
+    from application.pipeline.services import ApiGeneratorProtocol
     from domain.models.api import ApiDesign
     from domain.models.scenarios import DesignScenario
     from domain.models.sequence import InteractionScenario
@@ -31,13 +31,13 @@ class ApiStage:
 
     def __init__(
         self,
-        service: ApiGenerator,
-        renderer: ApiArtifactRenderer | None,
-        reporter: GenerationReporter,
+        service: ApiGeneratorProtocol,
+        renderer: ApiArtifactRendererProtocol | None,
+        reporter: GenerationReporterProtocol,
     ) -> None:
-        self._service: ApiGenerator = service
-        self._renderer: ApiArtifactRenderer | None = renderer
-        self._reporter: GenerationReporter = reporter
+        self._service: ApiGeneratorProtocol = service
+        self._renderer: ApiArtifactRendererProtocol | None = renderer
+        self._reporter: GenerationReporterProtocol = reporter
 
     def run(self, context: StageContext) -> StageOutcome[ApiDesign]:
         stage_start: float = time.perf_counter()
