@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.protocols import ApiArtifactRendererProtocol, GenerationReporterProtocol
-    from application.pipeline.services import ApiGeneratorProtocol
+    from application.pipeline.service_protocols import ApiGeneratorProtocol
     from domain.models.api import ApiDesign
     from domain.models.scenarios import DesignScenario
     from domain.models.sequence import InteractionScenario

@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from application.pipeline.diagram_subjects import SequenceDiagramSubject
     from application.pipeline.protocols import DiagramRendererProtocol, GenerationReporterProtocol
     from application.pipeline.sequence_artifact_models import SequenceArtifactResult
-    from application.pipeline.services import SequenceGeneratorProtocol
+    from application.pipeline.service_protocols import SequenceGeneratorProtocol
     from application.results import GenerationAttempt, SequenceGenerationResult
     from domain.models import DesignScenario
     from domain.models.sequence import InteractionScenario
