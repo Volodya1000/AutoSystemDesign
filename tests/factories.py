@@ -13,7 +13,9 @@ from domain.models.nodes import (
     MessageBrokerNode,
 )
 from domain.models.protocols import SYNCHRONOUS_REST_HTTP
-from domain.models.topology import AnyNode
+from domain.models.requirements import LatencyRequirement
+from domain.models.scenarios import DesignScenario, WorkloadProfile
+from domain.models.topology import AnyNode, ArchitectureGraph
 
 
 def _capacity_fields(replicas_count: int) -> dict[str, Any]:
@@ -108,4 +110,33 @@ def create_test_edge(
         protocol=SYNCHRONOUS_REST_HTTP,
         routing_mode=routing_mode,
         network_latency_milliseconds=1.0,
+    )
+
+
+def create_test_latency_graph() -> ArchitectureGraph:
+    """Build a low-load graph whose mean response time exceeds a tiny p99 target."""
+    return ArchitectureGraph(
+        nodes=[
+            create_test_node("client", NodeType.CLIENT),
+            create_test_compute_node(
+                "service",
+                concurrency=1,
+                mean_ms=10.0,
+                std_ms=10.0,
+            ),
+        ],
+        edges=[create_test_edge("client", "service")],
+    )
+
+
+def create_test_latency_scenario() -> DesignScenario:
+    """Build a stable workload with a percentile target unsupported by the model."""
+    return DesignScenario(
+        identifier="latency_slo_test",
+        description="A percentile target that the current model cannot evaluate",
+        workload=WorkloadProfile(
+            baseline_requests_per_second=10.0,
+            peak_requests_per_second=20.0,
+        ),
+        requirements=[LatencyRequirement(threshold_value=1.0, percentile=99.0)],
     )
