@@ -34,7 +34,7 @@ def app_settings() -> AppSettings:
 @pytest.fixture(scope="session")
 def gate_settings(app_settings: AppSettings) -> AppSettings:
     """Temperature pinned to 0.0 for deterministic capability gating."""
-    return with_llm_updates(app_settings, temperature=0.0)
+    return with_llm_updates(app_settings, temperature=0)
 
 
 @pytest.fixture(scope="session")

@@ -60,10 +60,10 @@ def _longest_path_dp(
         outgoing.setdefault(edge.source_identifier, []).append(edge)
 
     dist: dict[str, float] = {
-        identifier: node_latencies.get(identifier, 0.0) for identifier in node_ids
+        identifier: node_latencies.get(identifier, 0) for identifier in node_ids
     }
     predecessor: dict[str, str | None] = {identifier: None for identifier in node_ids}
-    pred_edge_latency: dict[str, float] = {identifier: 0.0 for identifier in node_ids}
+    pred_edge_latency: dict[str, float] = {identifier: 0 for identifier in node_ids}
 
     for node_id in order:
         for edge in outgoing.get(node_id, []):
@@ -73,7 +73,7 @@ def _longest_path_dp(
             candidate = (
                 dist[node_id]
                 + edge.network_latency_milliseconds
-                + node_latencies.get(target, 0.0)
+                + node_latencies.get(target, 0)
             )
             if candidate > dist[target]:
                 dist[target] = candidate
@@ -176,13 +176,13 @@ def _compute_node_latencies(
 
     for node in graph.nodes:
         if isinstance(node, ClientNode):
-            latencies[node.identifier] = 0.0
+            latencies[node.identifier] = 0
         elif isinstance(node, CapacityNode):
             latencies[node.identifier] = _node_sojourn_ms(
-                node, incoming.get(node.identifier, 0.0)
+                node, incoming.get(node.identifier, 0)
             )
         else:
-            latencies[node.identifier] = 0.0
+            latencies[node.identifier] = 0
 
     return latencies
 
@@ -204,7 +204,7 @@ def compute_critical_path(
 
     if not node_ids:
         return CriticalPathResult(
-            total_latency_ms=0.0,
+            total_latency_ms=0,
             path_node_ids=(),
             node_latencies_ms=node_latencies,
             edge_latencies_ms=(),

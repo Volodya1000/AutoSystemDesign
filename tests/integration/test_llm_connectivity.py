@@ -58,7 +58,7 @@ def test_completion_returns_content_and_usage(
     )
     assert result.content.strip() != ""
     assert result.usage.total_tokens > 0
-    assert result.latency_seconds > 0.0
+    assert result.latency_seconds > 0
     assert result.finish_reason in (
         FinishReason.STOP,
         FinishReason.LENGTH,

@@ -92,7 +92,7 @@ def test_json_schema_mode_probe(
     """
     settings: AppSettings = with_llm_updates(
         app_settings,
-        temperature=0.0,
+        temperature=0,
         structured_output_mode=StructuredOutputMode.JSON_SCHEMA,
     )
     probe_designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(

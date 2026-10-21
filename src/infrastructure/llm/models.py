@@ -41,7 +41,7 @@ class CompletionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     messages: list[Message] = Field(min_length=1)
-    temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    temperature: float = Field(default=0, ge=0, le=2.0)
     max_tokens: int = Field(default=2048, gt=0)
     timeout_seconds: float = Field(default=180.0, gt=0)
 
@@ -56,4 +56,4 @@ class CompletionResult(BaseModel):
     content: str
     finish_reason: FinishReason
     usage: TokenUsage
-    latency_seconds: float = Field(default=0.0, ge=0.0)
+    latency_seconds: float = Field(default=0, ge=0)

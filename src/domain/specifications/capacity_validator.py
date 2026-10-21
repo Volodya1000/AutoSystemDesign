@@ -59,7 +59,7 @@ def compute_node_utilization(
         if not isinstance(node, CapacityNode):
             continue
         utilization[node.identifier] = incoming.get(
-            node.identifier, 0.0
+            node.identifier, 0
         ) / _node_max_rps(node)
 
     return utilization
@@ -92,7 +92,7 @@ class CapacitySaturationValidator(ScenarioValidator):
                 continue
 
             max_rps = _node_max_rps(node)
-            arrival_rps = incoming.get(node.identifier, 0.0)
+            arrival_rps = incoming.get(node.identifier, 0)
             utilization = arrival_rps / max_rps
 
             if utilization >= SATURATION_THRESHOLD:

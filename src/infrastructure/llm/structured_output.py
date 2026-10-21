@@ -68,7 +68,7 @@ class StructuredOutputAdapter:
                 Message(role=MessageRole.SYSTEM, content=system_prompt),
                 Message(role=MessageRole.USER, content=user_prompt),
             ],
-            temperature=0.0,
+            temperature=0,
             max_tokens=min(self._settings.llm.max_tokens, 8_000),
             timeout_seconds=self._settings.llm.timeout_seconds,
             response_schema=response_model.model_json_schema(),

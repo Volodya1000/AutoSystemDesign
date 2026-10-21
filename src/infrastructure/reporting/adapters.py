@@ -43,7 +43,7 @@ class LoggingPipelineReporter:
         _logger.info("Pipeline summary")
         _logger.info("  status : %s", overall.value)
 
-        total_seconds: float = 0.0
+        total_seconds: float = 0
         total_tokens: int = 0
         total_artifacts: int = 0
 

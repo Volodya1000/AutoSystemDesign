@@ -58,7 +58,7 @@ def log_attempts[PayloadT](
             validation_mark = f"{len(attempt.validation.errors)} error(s)"
         latency_mark: str = (
             f"{attempt.latency_seconds:.1f} s"
-            if attempt.latency_seconds > 0.0
+            if attempt.latency_seconds > 0
             else "n/a"
         )
         _logger.info(

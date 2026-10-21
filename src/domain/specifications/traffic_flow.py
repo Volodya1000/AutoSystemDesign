@@ -107,7 +107,7 @@ def compute_node_incoming_rps(
     The graph is assumed to be a DAG. Raises ValueError if a cycle is
     detected, which indicates a pipeline contract violation.
     """
-    flows: dict[str, float] = {node.identifier: 0.0 for node in graph.nodes}
+    flows: dict[str, float] = {node.identifier: 0 for node in graph.nodes}
 
     # Detect cycles even when there are no clients: a cyclic graph is never
     # a valid pipeline input, and tests expect a defensive ValueError.
