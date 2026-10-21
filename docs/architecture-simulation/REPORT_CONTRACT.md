@@ -74,7 +74,6 @@
       "percentile": 99.0,
       "observed_value": 510.0,
       "status": "inconclusive",
-      "confidence_level": 0.95,
       "confidence_interval": null,
       "reason_code": "insufficient_statistical_evidence"
     },
