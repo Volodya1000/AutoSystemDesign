@@ -44,6 +44,7 @@ def _service_graph(
                 service,
                 concurrency=concurrency,
                 mean_ms=mean_ms,
+                service_channels_per_replica=1,
             ),
         ],
         edges=[create_test_edge("client", service)],
@@ -63,7 +64,7 @@ def test_report_reuses_existing_capacity_calculation() -> None:
     )
 
     assert report.scenario_identifier == "capacity_report"
-    assert report.status is PerformanceAnalysisStatus.COMPLETE
+    assert report.status is PerformanceAnalysisStatus.PARTIAL
     assert client_metrics.node_identifier == "client"
     assert client_metrics.incoming_requests_per_second == pytest.approx(25.0)
     assert client_metrics.estimated_capacity_requests_per_second is None
@@ -267,60 +268,30 @@ def test_infinite_latency_is_reported_as_unavailable_not_serialized() -> None:
     assert type(report).model_validate_json(report.model_dump_json()) == report
 
 
-def test_multiple_cache_miss_fallbacks_report_equal_split_assumption() -> None:
-    """Multiple fallback databases have unknown alternative routing weights."""
+def test_saturated_service_channels_do_not_claim_capacity_headroom() -> None:
+    """Explicitly modeled channels must drive capacity and queue diagnosis."""
     graph = ArchitectureGraph(
         nodes=[
             create_test_node("client", NodeType.CLIENT),
-            create_test_compute_node("router"),
-            create_test_node("cache", NodeType.CACHE),
-            create_test_node("database_a", NodeType.DATABASE),
-            create_test_node("database_b", NodeType.DATABASE),
-        ],
-        edges=[
-            create_test_edge("client", "router"),
-            create_test_edge("router", "cache"),
-            create_test_edge("router", "database_a"),
-            create_test_edge("router", "database_b"),
-        ],
-    )
-
-    report = build_performance_analysis_report(graph, _scenario())
-
-    routing_findings = [
-        finding
-        for finding in report.findings
-        if finding.finding_code is PerformanceFindingCode.UNSUPPORTED_MODEL
-    ]
-    assert len(routing_findings) == 1
-    assert routing_findings[0].affected_node_identifiers == ["router"]
-
-
-def test_fan_out_cache_miss_fallbacks_do_not_claim_equal_split() -> None:
-    """Explicit fan-out fallback edges are not alternative routes."""
-    graph = ArchitectureGraph(
-        nodes=[
-            create_test_node("client", NodeType.CLIENT),
-            create_test_compute_node("router"),
-            create_test_node("cache", NodeType.CACHE),
-            create_test_node("database_a", NodeType.DATABASE),
-            create_test_node("database_b", NodeType.DATABASE),
-        ],
-        edges=[
-            create_test_edge("client", "router"),
-            create_test_edge("router", "cache"),
-            create_test_edge(
-                "router", "database_a", routing_mode=EdgeRoutingMode.FAN_OUT
-            ),
-            create_test_edge(
-                "router", "database_b", routing_mode=EdgeRoutingMode.FAN_OUT
+            create_test_compute_node(
+                "service",
+                concurrency=100,
+                service_channels_per_replica=1,
+                mean_ms=100.0,
             ),
         ],
+        edges=[create_test_edge("client", "service")],
     )
 
-    report = build_performance_analysis_report(graph, _scenario())
-
-    assert all(
-        finding.finding_code is not PerformanceFindingCode.UNSUPPORTED_MODEL
-        for finding in report.findings
+    report = build_performance_analysis_report(graph, _scenario(50.0))
+    service_metrics = next(
+        item for item in report.nodes if item.node_identifier == "service"
     )
+    codes = {finding.finding_code for finding in report.findings}
+
+    assert service_metrics.estimated_capacity_requests_per_second == pytest.approx(10.0)
+    assert service_metrics.utilization_ratio == pytest.approx(5.0)
+    assert service_metrics.estimated_mean_response_time_milliseconds is None
+    assert PerformanceFindingCode.CAPACITY_SATURATION in codes
+    assert PerformanceFindingCode.METRIC_UNAVAILABLE in codes
+    assert PerformanceFindingCode.CAPACITY_HEADROOM not in codes

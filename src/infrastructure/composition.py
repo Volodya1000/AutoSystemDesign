@@ -27,7 +27,6 @@ from domain.specifications.broker_consumer_validator import (
 from domain.specifications.budget_validator import BudgetRequirementValidator
 from domain.specifications.cache_usage_validator import CacheUsageValidator
 from domain.specifications.capacity_validator import CapacitySaturationValidator
-from domain.specifications.latency_validator import LatencySloValidator
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
 from domain.specifications.sequence_validation import (
     ClientOwnershipValidator,
@@ -39,6 +38,9 @@ from infrastructure.agents.api_designer import ApiDesignerAgent
 from infrastructure.agents.designer import ArchitectureDesignerAgent
 from infrastructure.agents.sequence_designer import SequenceDesignerAgent
 from infrastructure.llm.client import LiteLlmClient
+from infrastructure.performance_analysis.pdf_renderer import (
+    PerformanceReportPdfRenderer,
+)
 from infrastructure.persistence.artifact_writer import FileSystemArtifactWriter
 from infrastructure.reporting import LoggingGenerationReporter, LoggingPipelineReporter
 from infrastructure.visualisation.openapi.renderers import DefaultApiArtifactRenderer
@@ -81,7 +83,6 @@ def build_design_generation_service(
     scenario_validators: list[ScenarioValidator] = [
         RequirementValidationDispatcher([BudgetRequirementValidator()]),
         CapacitySaturationValidator(),
-        LatencySloValidator(),
     ]
     return DesignGenerationService(
         designer=designer,
@@ -166,7 +167,7 @@ def _build_c4_stage(
 
 def _build_performance_analysis_stage() -> PerformanceAnalysisStage:
     """Build the deterministic analysis stage without external dependencies."""
-    return PerformanceAnalysisStage()
+    return PerformanceAnalysisStage(pdf_renderer=PerformanceReportPdfRenderer())
 
 
 def _build_sequence_stage(

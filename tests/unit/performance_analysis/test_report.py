@@ -24,6 +24,8 @@ def _report() -> PerformanceAnalysisReport:
     return PerformanceAnalysisReport(
         scenario_identifier="online_store",
         status=PerformanceAnalysisStatus.PARTIAL,
+        estimated_longest_synchronous_path_mean_milliseconds=29.0,
+        critical_path_node_identifiers=["client", "database"],
         nodes=[
             NodePerformanceMetrics(
                 node_identifier="database",
@@ -68,6 +70,8 @@ def test_unavailable_metrics_remain_null_in_json() -> None:
     assert isinstance(node, dict)
     assert node["incoming_requests_per_second"] is None
     assert node["estimated_mean_response_time_milliseconds"] is None
+    assert payload["estimated_longest_synchronous_path_mean_milliseconds"] is None
+    assert payload["critical_path_node_identifiers"] == []
 
 
 def test_overload_ratio_can_exceed_one() -> None:
@@ -113,3 +117,31 @@ def test_report_rejects_unknown_fields() -> None:
 
     with pytest.raises(ValidationError):
         PerformanceAnalysisReport.model_validate(payload)
+
+
+@pytest.mark.parametrize("invalid_value", [-1.0, float("inf"), float("nan")])
+def test_longest_mean_path_rejects_invalid_estimates(invalid_value: float) -> None:
+    with pytest.raises(ValidationError):
+        PerformanceAnalysisReport(
+            scenario_identifier="online_store",
+            status=PerformanceAnalysisStatus.PARTIAL,
+            estimated_longest_synchronous_path_mean_milliseconds=invalid_value,
+        )
+
+
+def test_schema_version_defaults_for_legacy_reports() -> None:
+    legacy_json = '{"scenario_identifier":"legacy","status":"complete"}'
+    restored = PerformanceAnalysisReport.model_validate_json(legacy_json)
+
+    assert restored.schema_version == "1.0"
+    assert '"schema_version":"1.0"' in restored.model_dump_json()
+
+
+def test_old_report_json_defaults_new_optional_path_fields() -> None:
+    """Adding the path estimate must not break existing stored JSON."""
+    legacy_json = '{"scenario_identifier":"legacy","status":"complete"}'
+
+    restored = PerformanceAnalysisReport.model_validate_json(legacy_json)
+
+    assert restored.estimated_longest_synchronous_path_mean_milliseconds is None
+    assert restored.critical_path_node_identifiers == []

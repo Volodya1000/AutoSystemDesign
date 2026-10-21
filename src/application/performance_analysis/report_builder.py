@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from domain.models.enums import EdgeRoutingMode
 from domain.models.nodes import CacheNode, CapacityNode, DatabaseNode
+from domain.models.requirements import LatencyRequirement
 from domain.performance_analysis.report import (
     NodePerformanceMetrics,
     PerformanceAnalysisReport,
@@ -21,12 +22,41 @@ from domain.specifications.capacity_validator import (
     compute_node_capacity_rps,
     compute_node_utilization,
 )
-from domain.specifications.latency_validator import compute_critical_path
+from domain.specifications.latency_validator import (
+    CriticalPathResult,
+    compute_critical_path,
+)
 from domain.specifications.traffic_flow import compute_node_incoming_rps
 
 if TYPE_CHECKING:
     from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph
+
+_FINDING_SEVERITY_ORDER: dict[PerformanceFindingSeverity, int] = {
+    PerformanceFindingSeverity.ERROR: 0,
+    PerformanceFindingSeverity.WARNING: 1,
+    PerformanceFindingSeverity.INFO: 2,
+}
+
+
+def _ordered_findings(findings: list[PerformanceFinding]) -> list[PerformanceFinding]:
+    """Normalize node IDs and order diagnostics independently of input order."""
+    normalized = [
+        finding.model_copy(
+            update={
+                "affected_node_identifiers": sorted(finding.affected_node_identifiers)
+            }
+        )
+        for finding in findings
+    ]
+    return sorted(
+        normalized,
+        key=lambda finding: (
+            _FINDING_SEVERITY_ORDER[finding.severity],
+            finding.finding_code.value,
+            tuple(finding.affected_node_identifiers),
+        ),
+    )
 
 
 def build_performance_analysis_report(
@@ -37,8 +67,8 @@ def build_performance_analysis_report(
 
     Capacity is known from the node model even without a workload. Load,
     utilization, and latency are left unavailable when the scenario has no
-    workload profile. Infinite latency estimates are represented as null,
-    because the report contract intentionally accepts only finite numbers.
+    workload profile. Unavailable latency estimates are represented as null when
+    queueing assumptions are unknown or the modeled system is unstable.
     """
     capacity_by_node: dict[str, float] = {
         node.identifier: compute_node_capacity_rps(node)
@@ -57,7 +87,7 @@ def build_performance_analysis_report(
                         node.identifier
                     ),
                 )
-                for node in graph.nodes
+                for node in sorted(graph.nodes, key=lambda node: node.identifier)
             ],
             findings=[_workload_missing_finding()],
         )
@@ -67,18 +97,32 @@ def build_performance_analysis_report(
     )
     utilization_by_node: dict[str, float] = compute_node_utilization(graph, scenario)
     critical_path = compute_critical_path(graph, scenario)
-    latency_by_node: dict[str, float] = (
-        critical_path.node_latencies_ms if critical_path is not None else {}
-    )
     node_metrics, unavailable_latency_nodes = _build_node_metrics(
         graph,
         capacity_by_node,
         incoming_by_node,
         utilization_by_node,
-        latency_by_node,
+        critical_path,
     )
+    latency_slo_finding = _latency_slo_not_evaluated_finding(
+        scenario,
+        critical_path.path_node_ids
+        if critical_path is not None and critical_path.total_latency_ms is not None
+        else tuple(
+            node.identifier for node in graph.nodes if isinstance(node, CapacityNode)
+        ),
+    )
+    bounded_queue_nodes = [
+        node.identifier
+        for node in graph.nodes
+        if isinstance(node, CapacityNode) and incoming_by_node[node.identifier] > 0.0
+    ]
     findings = _capacity_findings(graph, utilization_by_node)
     findings.extend(_branching_findings(graph))
+    if bounded_queue_nodes:
+        findings.append(_bounded_queue_unmodeled_finding(bounded_queue_nodes))
+    if latency_slo_finding is not None:
+        findings.append(latency_slo_finding)
     if unavailable_latency_nodes:
         findings.append(_unavailable_latency_finding(unavailable_latency_nodes))
 
@@ -86,11 +130,23 @@ def build_performance_analysis_report(
         scenario_identifier=scenario.identifier,
         status=(
             PerformanceAnalysisStatus.PARTIAL
-            if unavailable_latency_nodes
+            if (
+                unavailable_latency_nodes
+                or bounded_queue_nodes
+                or latency_slo_finding is not None
+                or critical_path is None
+                or critical_path.total_latency_ms is None
+            )
             else PerformanceAnalysisStatus.COMPLETE
         ),
-        nodes=node_metrics,
-        findings=findings,
+        nodes=sorted(node_metrics, key=lambda metric: metric.node_identifier),
+        findings=_ordered_findings(findings),
+        estimated_longest_synchronous_path_mean_milliseconds=(
+            critical_path.total_latency_ms if critical_path is not None else None
+        ),
+        critical_path_node_identifiers=(
+            list(critical_path.path_node_ids) if critical_path is not None else []
+        ),
     )
 
 
@@ -99,27 +155,32 @@ def _build_node_metrics(
     capacity_by_node: dict[str, float],
     incoming_by_node: dict[str, float],
     utilization_by_node: dict[str, float],
-    latency_by_node: dict[str, float],
+    critical_path: CriticalPathResult | None,
 ) -> tuple[list[NodePerformanceMetrics], list[str]]:
     """Build per-node metrics and collect nodes with unavailable latency."""
     node_metrics: list[NodePerformanceMetrics] = []
     unavailable_latency_nodes: list[str] = []
 
     for node in graph.nodes:
-        response_time: float | None = latency_by_node.get(node.identifier)
-        queue_wait: float | None = None
+        response_time: float | None = (
+            critical_path.node_latencies_ms.get(node.identifier)
+            if critical_path is not None
+            else None
+        )
+        queue_wait: float | None = (
+            critical_path.node_queue_wait_ms.get(node.identifier)
+            if critical_path is not None
+            else None
+        )
 
         if isinstance(node, CapacityNode):
-            if response_time is not None and isfinite(response_time):
-                queue_wait = max(
-                    0.0,
-                    response_time - node.mean_processing_time_milliseconds,
-                )
-            else:
+            if response_time is None or not isfinite(response_time):
                 response_time = None
+                queue_wait = None
                 unavailable_latency_nodes.append(node.identifier)
         else:
             response_time = None
+            queue_wait = None
 
         node_metrics.append(
             NodePerformanceMetrics(
@@ -232,6 +293,56 @@ def _capacity_findings(
     return findings
 
 
+def _latency_slo_not_evaluated_finding(
+    scenario: DesignScenario,
+    critical_path_node_identifiers: tuple[str, ...],
+) -> PerformanceFinding | None:
+    """Explain that a percentile target cannot be checked from a mean estimate."""
+    requirements = [
+        requirement
+        for requirement in scenario.requirements
+        if isinstance(requirement, LatencyRequirement)
+    ]
+    if not requirements:
+        return None
+
+    targets = ", ".join(
+        f"p{requirement.percentile:g} {requirement.operator.value} "
+        f"{requirement.threshold_value:g} ms"
+        for requirement in requirements
+    )
+    return PerformanceFinding(
+        finding_code=PerformanceFindingCode.LATENCY_NOT_EVALUATED,
+        severity=PerformanceFindingSeverity.WARNING,
+        title="Процентильная цель задержки не оценена",
+        description=(
+            f"Цели {targets} нельзя проверить текущей моделью: она оценивает "
+            "среднее время ответа, но не распределение задержки. Средняя оценка "
+            "остаётся доступной отдельно и не интерпретируется как процентиль."
+        ),
+        affected_node_identifiers=list(critical_path_node_identifiers),
+    )
+
+
+def _bounded_queue_unmodeled_finding(
+    node_identifiers: list[str],
+) -> PerformanceFinding:
+    """Identify finite waiting rooms unsupported by infinite-buffer estimates."""
+    return PerformanceFinding(
+        finding_code=PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED,
+        severity=PerformanceFindingSeverity.WARNING,
+        title="Ограниченная очередь не моделируется точно",
+        description=(
+            "Для этих узлов задан конечный буфер. Средняя задержка, когда "
+            "она доступна, рассчитана в предположении неограниченной очереди "
+            "и не описывает вероятность отказа, потери запросов или backpressure. "
+            "Для очереди нулевой длины при положительной нагрузке время "
+            "ожидания не оценивается."
+        ),
+        affected_node_identifiers=node_identifiers,
+    )
+
+
 def _unavailable_latency_finding(
     node_identifiers: list[str],
 ) -> PerformanceFinding:
@@ -241,10 +352,10 @@ def _unavailable_latency_finding(
         severity=PerformanceFindingSeverity.WARNING,
         title="Оценка задержки недоступна как конечное значение",
         description=(
-            "Расчётное время пребывания запроса в узлах "
-            f"{', '.join(node_identifiers)} бесконечно при заданной нагрузке. "
-            "Поля задержки оставлены null, поскольку контракт отчёта допускает "
-            "только конечные числовые значения."
+            "Среднее время ответа не удалось оценить для указанных узлов. "
+            "Текущая модель требует известного числа независимых каналов "
+            "обслуживания, корректных параметров и устойчивого режима. "
+            "Неоценённая задержка не означает нулевую задержку."
         ),
         affected_node_identifiers=node_identifiers,
     )

@@ -24,13 +24,14 @@ SATURATION_THRESHOLD: float = 0.98
 
 
 def compute_node_capacity_rps(node: CapacityNode) -> float:
-    """Calculate the modelled processing capacity of a node, in requests/sec."""
-    return (
-        node.replicas_count
-        * node.maximum_concurrency
-        * 1000.0
-        / node.mean_processing_time_milliseconds
+    """Calculate capacity from known service channels, else concurrency proxy."""
+    independent_channels = node.queueing_server_count
+    parallelism = (
+        independent_channels
+        if independent_channels is not None
+        else node.replicas_count * node.maximum_concurrency
     )
+    return parallelism * 1000.0 / node.mean_processing_time_milliseconds
 
 
 def compute_node_utilization(
@@ -40,7 +41,9 @@ def compute_node_utilization(
     """Return utilization ratio per capacity node.
 
     Utilization = incoming_rps / max_rps, where
-    max_rps = replicas_count * maximum_concurrency * 1000 / mean_processing_time_ms.
+    max_rps = parallelism * 1000 / mean_processing_time_ms.
+    Parallelism is the explicit queueing server count when known; otherwise
+    replicas_count * maximum_concurrency is a provisional capacity proxy.
 
     Client nodes are excluded. Nodes with zero incoming RPS are present with
     utilization 0.0. Returns an empty dict if scenario.workload is None.

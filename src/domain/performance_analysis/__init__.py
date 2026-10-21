@@ -1,5 +1,8 @@
-"""Domain models for performance analysis."""
+"""Domain models and calculations for performance analysis."""
 
+from domain.performance_analysis.mm1 import compute_mm1_metrics
+from domain.performance_analysis.mmc import compute_mmc_metrics
+from domain.performance_analysis.queueing import QueueingMetrics, QueueingStatus
 from domain.performance_analysis.report import (
     NodePerformanceMetrics,
     PerformanceAnalysisReport,
@@ -16,4 +19,8 @@ __all__ = [
     "PerformanceFinding",
     "PerformanceFindingCode",
     "PerformanceFindingSeverity",
+    "QueueingMetrics",
+    "QueueingStatus",
+    "compute_mm1_metrics",
+    "compute_mmc_metrics",
 ]

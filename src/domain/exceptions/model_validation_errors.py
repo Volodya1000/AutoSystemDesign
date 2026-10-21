@@ -18,6 +18,7 @@ class ModelValidationCode(StrEnum):
     INVALID_INTERVAL_BOUNDS = "requirements.invalid_interval_bounds"
     ABSTRACT_BASE_NODE = "topology.abstract_base_node"
     ABSTRACT_CAPACITY_NODE = "topology.abstract_capacity_node"
+    SERVICE_CHANNELS_EXCEED_CONCURRENCY = "topology.service_channels_exceed_concurrency"
     WORKLOAD_PEAK_BELOW_BASELINE = "scenario.workload_peak_below_baseline"
     EMPTY_LIFELINE_ID = "sequence.empty_lifeline_id"
     DUPLICATE_LIFELINE_ID = "sequence.duplicate_lifeline_id"
@@ -72,6 +73,10 @@ class ModelValidationError(ValueError):
         ),
         ModelValidationCode.ABSTRACT_CAPACITY_NODE: (
             "CapacityNode is abstract: instantiate a concrete node subclass"
+        ),
+        ModelValidationCode.SERVICE_CHANNELS_EXCEED_CONCURRENCY: (
+            "Independent service channels ({channels}) cannot exceed "
+            "maximum concurrent in-flight requests ({concurrency}) per replica."
         ),
         ModelValidationCode.WORKLOAD_PEAK_BELOW_BASELINE: (
             "peak_requests_per_second must be greater than or equal "
