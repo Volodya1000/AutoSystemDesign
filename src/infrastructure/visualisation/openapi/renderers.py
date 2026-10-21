@@ -41,7 +41,7 @@ class DefaultApiArtifactRenderer:
         warnings: list[str] = []
 
         try:
-            spec_dict: dict = self._openapi_renderer.render_spec(subject)
+            spec_dict: dict[str, object] = self._openapi_renderer.render_spec(subject)
             json_path: Path = out_dir / f"{base_name}_openapi.json"
             json_path.write_text(json.dumps(spec_dict, indent=2), encoding="utf-8")
             artifacts.append(json_path)
