@@ -30,7 +30,8 @@ class _FakePdfRenderer:
 
     def render(self, _report: PerformanceAnalysisReport) -> bytes:
         if self._fail:
-            raise PdfRenderingUnavailableError("Font is unavailable")
+            message = "Font is unavailable"
+            raise PdfRenderingUnavailableError(message)
         return b"%PDF-1.4 test"
 
 
