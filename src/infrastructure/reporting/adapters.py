@@ -10,14 +10,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from application.pipeline.outcome import StageStatus
 from application.pipeline.result import PipelineRunResult
 from infrastructure.reporting.helpers import log_attempts, log_token_totals
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from application.pipeline.outcome import StageOutcome
+    from application.pipeline.outcome import StageOutcome, StageStatus
     from application.results import GenerationAttempt
     from application.usage import TokenUsage
 
