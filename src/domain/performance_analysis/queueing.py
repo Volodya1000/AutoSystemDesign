@@ -6,6 +6,8 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+MAX_SUPPORTED_SERVER_COUNT = 10_000
+
 
 class QueueingStatus(StrEnum):
     """State whether a steady-state queueing estimate exists."""

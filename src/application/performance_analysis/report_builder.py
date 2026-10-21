@@ -22,7 +22,10 @@ from domain.specifications.capacity_validator import (
     compute_node_capacity_rps,
     compute_node_utilization,
 )
-from domain.specifications.latency_validator import compute_critical_path
+from domain.specifications.latency_validator import (
+    CriticalPathResult,
+    compute_critical_path,
+)
 from domain.specifications.traffic_flow import compute_node_incoming_rps
 
 if TYPE_CHECKING:
@@ -38,8 +41,8 @@ def build_performance_analysis_report(
 
     Capacity is known from the node model even without a workload. Load,
     utilization, and latency are left unavailable when the scenario has no
-    workload profile. Infinite latency estimates are represented as null,
-    because the report contract intentionally accepts only finite numbers.
+    workload profile. Unavailable latency estimates are represented as null when
+    queueing assumptions are unknown or the modeled system is unstable.
     """
     capacity_by_node: dict[str, float] = {
         node.identifier: compute_node_capacity_rps(node)
@@ -68,19 +71,20 @@ def build_performance_analysis_report(
     )
     utilization_by_node: dict[str, float] = compute_node_utilization(graph, scenario)
     critical_path = compute_critical_path(graph, scenario)
-    latency_by_node: dict[str, float] = (
-        critical_path.node_latencies_ms if critical_path is not None else {}
-    )
     node_metrics, unavailable_latency_nodes = _build_node_metrics(
         graph,
         capacity_by_node,
         incoming_by_node,
         utilization_by_node,
-        latency_by_node,
+        critical_path,
     )
     latency_slo_finding = _latency_slo_not_evaluated_finding(
         scenario,
-        critical_path.path_node_ids if critical_path is not None else (),
+        critical_path.path_node_ids
+        if critical_path is not None and critical_path.total_latency_ms is not None
+        else tuple(
+            node.identifier for node in graph.nodes if isinstance(node, CapacityNode)
+        ),
     )
     findings = _capacity_findings(graph, utilization_by_node)
     findings.extend(_branching_findings(graph))
@@ -106,27 +110,32 @@ def _build_node_metrics(
     capacity_by_node: dict[str, float],
     incoming_by_node: dict[str, float],
     utilization_by_node: dict[str, float],
-    latency_by_node: dict[str, float],
+    critical_path: CriticalPathResult | None,
 ) -> tuple[list[NodePerformanceMetrics], list[str]]:
     """Build per-node metrics and collect nodes with unavailable latency."""
     node_metrics: list[NodePerformanceMetrics] = []
     unavailable_latency_nodes: list[str] = []
 
     for node in graph.nodes:
-        response_time: float | None = latency_by_node.get(node.identifier)
-        queue_wait: float | None = None
+        response_time: float | None = (
+            critical_path.node_latencies_ms.get(node.identifier)
+            if critical_path is not None
+            else None
+        )
+        queue_wait: float | None = (
+            critical_path.node_queue_wait_ms.get(node.identifier)
+            if critical_path is not None
+            else None
+        )
 
         if isinstance(node, CapacityNode):
-            if response_time is not None and isfinite(response_time):
-                queue_wait = max(
-                    0.0,
-                    response_time - node.mean_processing_time_milliseconds,
-                )
-            else:
+            if response_time is None or not isfinite(response_time):
                 response_time = None
+                queue_wait = None
                 unavailable_latency_nodes.append(node.identifier)
         else:
             response_time = None
+            queue_wait = None
 
         node_metrics.append(
             NodePerformanceMetrics(
@@ -275,10 +284,10 @@ def _unavailable_latency_finding(
         severity=PerformanceFindingSeverity.WARNING,
         title="Оценка задержки недоступна как конечное значение",
         description=(
-            "Расчётное время пребывания запроса в узлах "
-            f"{', '.join(node_identifiers)} бесконечно при заданной нагрузке. "
-            "Поля задержки оставлены null, поскольку контракт отчёта допускает "
-            "только конечные числовые значения."
+            "Среднее время ответа не удалось оценить для указанных узлов. "
+            "Текущая модель требует известного числа независимых каналов "
+            "обслуживания, корректных параметров и устойчивого режима. "
+            "Неоценённая задержка не означает нулевую задержку."
         ),
         affected_node_identifiers=node_identifiers,
     )

@@ -3,6 +3,7 @@
 from math import exp, fsum, isfinite, lgamma, log, log1p
 
 from domain.performance_analysis.queueing import (
+    MAX_SUPPORTED_SERVER_COUNT,
     QueueingMetrics,
     QueueingStatus,
     create_stable_queueing_metrics,
@@ -10,7 +11,6 @@ from domain.performance_analysis.queueing import (
 )
 
 MILLISECONDS_PER_SECOND = 1000.0
-MAX_SUPPORTED_SERVER_COUNT = 10_000
 
 
 def compute_mmc_metrics(

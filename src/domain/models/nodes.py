@@ -31,9 +31,9 @@ class CapacityNode(BaseNode):
     maximum_concurrency: int = Field(
         gt=0,
         description=(
-            "Maximum concurrent in-flight requests per replica. The current "
-            "capacity estimate uses this value, but queueing models do not "
-            "assume it equals the number of independent service channels."
+            "Maximum concurrent in-flight requests per replica. Capacity uses "
+            "this as a proxy only when service_channels_per_replica is "
+            "unknown; a concurrency limit is not a queueing server count."
         ),
     )
     maximum_queue_size: int = Field(ge=0)
