@@ -14,3 +14,5 @@ Both the local pre-commit hook and CI check **all** project Python code, includi
 WPS options are in `setup.cfg`. WPS suppression via `noqa` is explicitly forbidden. Never mask a violation using `noqa`, `ignore`, `extend-ignore`, `per-file-ignores`, a file exclusion, a reduced set of checks, or a non-failing exit code. Refactor the offending code and retain runtime behavior and type annotations.
 
 `uvx --from` installs a pinned standalone lint tool. This keeps the application dependency graph and its `uv.lock` unchanged, without compromising repeatability of the WPS version. Use `uv run` for the remaining checks.
+
+Inline suppressions are rejected by `scripts/check_lint_suppressions.py`, which tokenizes Python comments rather than matching strings in test fixtures. It detects `noqa`, `type: ignore`, `pylint: disable`, `nosec`, coverage and Pyright suppression directives. The guard runs independently in CI and pre-commit.
