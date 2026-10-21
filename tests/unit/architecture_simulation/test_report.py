@@ -192,9 +192,10 @@ def test_configuration_rejects_missing_or_invalid_duration() -> None:
 def test_configuration_is_stable_json_contract() -> None:
     configuration = SimulationConfiguration(base_seed=0, replications=1)
 
-    assert SimulationConfiguration.model_validate_json(
-        configuration.model_dump_json()
-    ) == configuration
+    assert (
+        SimulationConfiguration.model_validate_json(configuration.model_dump_json())
+        == configuration
+    )
 
 
 def test_no_unrecognized_model_version() -> None:
