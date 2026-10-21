@@ -238,7 +238,7 @@ def test_render_and_write_captures_source_generation_error() -> None:
         subject=MagicMock(),
         title="t",
         base_name="b",
-        out_dir=Path("."),
+        out_dir=Path(),
     )
     assert result.warnings
     assert "server down" in result.warnings[0]
@@ -313,7 +313,7 @@ def test_render_and_write_propagates_unexpected_error() -> None:
             subject=MagicMock(),
             title="t",
             base_name="b",
-            out_dir=Path("."),
+            out_dir=Path(),
         )
 
 
@@ -326,7 +326,7 @@ def test_render_and_write_propagates_unexpected_generate_error() -> None:
             subject=MagicMock(),
             title="t",
             base_name="b",
-            out_dir=Path("."),
+            out_dir=Path(),
         )
 
 
