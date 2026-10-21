@@ -92,8 +92,7 @@ def test_rejects_obsolete_project_name(fields: dict[str, str]) -> None:
         DesignScenario.model_validate({"description": "Valid scenario", **fields})
 
     assert any(
-        detail["loc"] == ("project_name",)
-        and detail["type"] == "extra_forbidden"
+        detail["loc"] == ("project_name",) and detail["type"] == "extra_forbidden"
         for detail in captured.value.errors()
     )
 
