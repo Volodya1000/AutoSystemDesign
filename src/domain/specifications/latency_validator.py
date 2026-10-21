@@ -150,7 +150,7 @@ def _node_sojourn_ms(node: CapacityNode, incoming_rps: float) -> float:
     mu_total = c * 1000.0 / mean
     rho = incoming_rps / mu_total
 
-    if rho >= 1.0:
+    if rho >= 1:
         # Saturated node: queue is unbounded, latency is genuinely infinite.
         return float("inf")
 
