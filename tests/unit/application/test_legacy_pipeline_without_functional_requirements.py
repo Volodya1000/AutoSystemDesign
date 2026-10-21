@@ -32,6 +32,8 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
     from pathlib import Path
 
+    from application.pipeline.result import PipelineRunResult
+
     from domain.models.sequence import InteractionScenario
 
 pytestmark = pytest.mark.unit
@@ -228,7 +230,7 @@ def test_legacy_pipeline_skips_sequence_and_api_but_keeps_c4_successful(
         reporter=pipeline_reporter,
     )
 
-    result = runner.run(scenario, tmp_path, writer)
+    result: PipelineRunResult = runner.run(scenario, tmp_path, writer)
 
     assert result.status is StageStatus.SUCCEEDED
     outcomes = result.outcomes

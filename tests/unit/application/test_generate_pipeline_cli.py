@@ -12,6 +12,7 @@ from application.pipeline.result import PipelineRunResult
 from application.pipeline.stage import StageId
 from infrastructure.visualisation.plantuml import DiagramImageFormat
 from scripts import generate_pipeline
+from scripts.generate_pipeline import PipelineExitCode
 
 pytestmark = pytest.mark.unit
 
@@ -19,24 +20,24 @@ pytestmark = pytest.mark.unit
 @pytest.mark.parametrize(
     ("status", "expected_exit_code"),
     [
-        (StageStatus.SUCCEEDED, 0),
-        (StageStatus.PARTIAL, 0),
-        (StageStatus.FAILED, 1),
+        (StageStatus.SUCCEEDED, PipelineExitCode.SUCCESS),
+        (StageStatus.PARTIAL, PipelineExitCode.SUCCESS),
+        (StageStatus.FAILED, PipelineExitCode.STAGE_FAILURE),
     ],
 )
 def test_cli_converts_pipeline_result_to_process_code(
     status: StageStatus,
-    expected_exit_code: int,
+    expected_exit_code: PipelineExitCode,
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    outcome = StageOutcome[object](
+    outcome: StageOutcome[object] = StageOutcome[object](
         name=StageId.C4,
         status=status,
         duration_seconds=0.0,
         total_tokens=0,
     )
-    runner = MagicMock()
+    runner: MagicMock = MagicMock()
     runner.run.return_value = PipelineRunResult((outcome,))
     monkeypatch.setattr(
         generate_pipeline,
@@ -83,4 +84,19 @@ def test_cli_preserves_configuration_error_exit_code(
         generate_pipeline, "load_app_settings", MagicMock(side_effect=ValueError)
     )
 
-    assert generate_pipeline.main() == 2
+    assert generate_pipeline.main() is PipelineExitCode.INPUT_OR_CONNECTION_ERROR
+
+
+@pytest.mark.parametrize(
+    ("code", "numeric_value"),
+    [
+        (PipelineExitCode.SUCCESS, 0),
+        (PipelineExitCode.STAGE_FAILURE, 1),
+        (PipelineExitCode.INPUT_OR_CONNECTION_ERROR, 2),
+    ],
+)
+def test_exit_codes_preserve_public_numeric_contract(
+    code: PipelineExitCode,
+    numeric_value: int,
+) -> None:
+    assert int(code) == numeric_value

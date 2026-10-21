@@ -23,7 +23,9 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from enum import IntEnum
 from pathlib import Path
+from typing import TYPE_CHECKING, assert_never
 
 import yaml
 from pydantic import ValidationError
@@ -37,10 +39,32 @@ from infrastructure.exceptions.llm_exceptions import LlmConnectionError
 from infrastructure.reporting import log_header
 from infrastructure.visualisation.plantuml import DiagramImageFormat
 
+if TYPE_CHECKING:
+    from application.pipeline.result import PipelineRunResult
+
 _logger: logging.Logger = logging.getLogger("pipeline")
 
 
-def main() -> int:
+class PipelineExitCode(IntEnum):
+    """Public CLI exit codes with stable numeric values."""
+
+    SUCCESS = 0
+    STAGE_FAILURE = 1
+    INPUT_OR_CONNECTION_ERROR = 2
+
+
+def _exit_code_for_status(status: StageStatus) -> PipelineExitCode:
+    """Convert a stage status to a CLI exit code in exactly one place."""
+    match status:
+        case StageStatus.SUCCEEDED | StageStatus.PARTIAL:
+            return PipelineExitCode.SUCCESS
+        case StageStatus.FAILED:
+            return PipelineExitCode.STAGE_FAILURE
+        case _:
+            assert_never(status)
+
+
+def main() -> PipelineExitCode:
     args: argparse.Namespace = _parse_args()
     configure_logging(verbose=args.verbose)
 
@@ -48,13 +72,13 @@ def main() -> int:
         settings: AppSettings = load_app_settings()
     except (ValidationError, ValueError):
         _logger.exception("Settings error")
-        return 2
+        return PipelineExitCode.INPUT_OR_CONNECTION_ERROR
 
     try:
         scenario: DesignScenario = _load_scenario(args.scenario)
     except (OSError, yaml.YAMLError, ValidationError):
         _logger.exception("Scenario error")
-        return 2
+        return PipelineExitCode.INPUT_OR_CONNECTION_ERROR
 
     out_dir, server, image_format = _resolve_visualisation(args, settings)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -68,13 +92,11 @@ def main() -> int:
             image_format=image_format,
             render_diagrams=not args.no_diagram,
         )
-        result = wiring.runner.run(scenario, out_dir, wiring.writer)
-        # PARTIAL preserves the historical success exit code: optional
-        # rendering errors must not fail a CLI invocation.
-        return 1 if result.status is StageStatus.FAILED else 0
+        result: PipelineRunResult = wiring.runner.run(scenario, out_dir, wiring.writer)
+        return _exit_code_for_status(result.status)
     except LlmConnectionError:
         _logger.exception("LLM endpoint failure")
-        return 2
+        return PipelineExitCode.INPUT_OR_CONNECTION_ERROR
 
 
 def _parse_args() -> argparse.Namespace:

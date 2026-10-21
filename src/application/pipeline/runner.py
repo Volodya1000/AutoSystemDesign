@@ -85,7 +85,7 @@ class PipelineRunner:
             if outcome.status is StageStatus.FAILED:
                 break
 
-        result = PipelineRunResult(outcomes=tuple(outcomes))
+        result: PipelineRunResult = PipelineRunResult(outcomes=tuple(outcomes))
         self._reporter.report(result.outcomes)
         return result
 

@@ -116,7 +116,7 @@ def _run(
         ],
         reporter=_SilentReporter(),
     )
-    result = pipeline.run(
+    result: PipelineRunResult = pipeline.run(
         scenario,
         output_directory,
         FileSystemArtifactWriter(log_writes=False),

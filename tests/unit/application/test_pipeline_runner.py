@@ -129,7 +129,7 @@ def test_runner_passes_immutable_snapshot_of_prior_stage_outcomes() -> None:
     )
     reporter = RecordingReporter()
 
-    result = _run([c4, sequence], reporter)
+    result: PipelineRunResult = _run([c4, sequence], reporter)
 
     assert result.status is StageStatus.PARTIAL
     assert result.failed_stage is None
@@ -156,7 +156,7 @@ def test_failed_stage_short_circuits_pipeline_and_reports_partial_history() -> N
     api = FakeStage(StageId.API, StageStatus.SUCCEEDED, depends_on=(StageId.SEQUENCE,))
     reporter = RecordingReporter()
 
-    result = _run([c4, sequence, api], reporter)
+    result: PipelineRunResult = _run([c4, sequence, api], reporter)
 
     assert result.status is StageStatus.FAILED
     assert result.failed_stage is result.outcomes[-1]
@@ -176,7 +176,7 @@ def test_partial_stage_does_not_fail_pipeline() -> None:
     stage = FakeStage(StageId.C4, StageStatus.PARTIAL, payload={"architecture": True})
     reporter = RecordingReporter()
 
-    result = _run([stage], reporter)
+    result: PipelineRunResult = _run([stage], reporter)
     assert result.status is StageStatus.PARTIAL
     assert result.failed_stage is None
     assert result.outcomes[0].status is StageStatus.PARTIAL
@@ -184,7 +184,7 @@ def test_partial_stage_does_not_fail_pipeline() -> None:
 
 def test_run_result_exposes_stage_payload_without_copying() -> None:
     payload = {"graph": "ready"}
-    result = _run(
+    result: PipelineRunResult = _run(
         [FakeStage(StageId.C4, StageStatus.SUCCEEDED, payload=payload)],
         RecordingReporter(),
     )

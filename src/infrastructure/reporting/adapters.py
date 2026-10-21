@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from application.pipeline.outcome import StageStatus
 from application.pipeline.result import PipelineRunResult
 from infrastructure.reporting.helpers import log_attempts, log_token_totals
 
@@ -37,7 +38,7 @@ class LoggingPipelineReporter:
     """Adapter: PipelineReporterProtocol port -> aggregated INFO summary."""
 
     def report(self, outcomes: Sequence[StageOutcome[object]]) -> None:
-        overall = PipelineRunResult(tuple(outcomes)).status
+        overall: StageStatus = PipelineRunResult(tuple(outcomes)).status
         _logger.info("=" * 64)
         _logger.info("Pipeline summary")
         _logger.info("  status : %s", overall.value)

@@ -29,6 +29,7 @@ from tests.unit.in_memory_writer import InMemoryWriter
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from application.pipeline.result import PipelineRunResult
     from application.results import GenerationAttempt
     from application.usage import TokenUsage
 
@@ -152,7 +153,7 @@ def test_runner_succeeds_on_all_succeeded(tmp_path: Path) -> None:
         stages=[FakeStage(name=StageId.C4)],
         reporter=CapturingPipelineReporter(),
     )
-    result = runner.run(_scenario(), tmp_path, InMemoryWriter())
+    result: PipelineRunResult = runner.run(_scenario(), tmp_path, InMemoryWriter())
     assert result.status is StageStatus.SUCCEEDED
 
 
@@ -162,7 +163,7 @@ def test_runner_returns_failed_status(tmp_path: Path) -> None:
         stages=[FakeStage(name=StageId.C4, status=StageStatus.FAILED)],
         reporter=reporter,
     )
-    result = runner.run(_scenario(), tmp_path, InMemoryWriter())
+    result: PipelineRunResult = runner.run(_scenario(), tmp_path, InMemoryWriter())
     assert result.status is StageStatus.FAILED
     assert result.failed_stage is result.outcomes[-1]
     assert tuple(reporter.reports[-1]) == result.outcomes
@@ -175,7 +176,7 @@ def test_runner_partial_is_not_a_failure(tmp_path: Path) -> None:
         stages=[FakeStage(name=StageId.C4, status=StageStatus.PARTIAL)],
         reporter=reporter,
     )
-    result = runner.run(_scenario(), tmp_path, InMemoryWriter())
+    result: PipelineRunResult = runner.run(_scenario(), tmp_path, InMemoryWriter())
     assert result.status is StageStatus.PARTIAL
     assert result.failed_stage is None
     assert result.outcomes[0].status is StageStatus.PARTIAL
@@ -190,7 +191,7 @@ def test_runner_stops_after_failed_stage(tmp_path: Path) -> None:
         ],
         reporter=CapturingPipelineReporter(),
     )
-    result = runner.run(_scenario(), tmp_path, InMemoryWriter())
+    result: PipelineRunResult = runner.run(_scenario(), tmp_path, InMemoryWriter())
     assert result.status is StageStatus.FAILED
     assert len(result.outcomes) == 1
     assert not second.calls  # never invoked
