@@ -23,6 +23,7 @@
 | [#110](https://github.com/Volodya1000/AutoSystemDesign/pull/110) | 12 | PDF из канонического JSON, табличный отчёт с кириллицей, бинарный writer и graceful degradation при сбое PDF. |
 | [#111](https://github.com/Volodya1000/AutoSystemDesign/pull/111) | подготовка 13 | Чек-лист приёмки корневого #90, четыре реалистичных YAML-примера, CLI-проверка сохранённых артефактов и шаблон оценки логов. |
 | [#112](https://github.com/Volodya1000/AutoSystemDesign/pull/112) | 13 | Сквозные тесты PipelineRunner от фиксированного C4 до JSON/PDF без LLM, версия JSON v1 и сгенерированная Pydantic JSON Schema с CI-проверкой. |
+| [#113](https://github.com/Volodya1000/AutoSystemDesign/pull/113) | интеграция | Объединяет все изменения и историю дочерних PR в основной feature-ветке #90, разрешает конфликты #99 и запускает полный CI перед финальной приёмкой. |
 
 ## Как связаны PR
 
