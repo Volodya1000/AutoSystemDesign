@@ -65,9 +65,7 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
     monkeypatch.setattr(cli, "DocumentRequirementsService", _dummy_factory)
     monkeypatch.setattr(cli, "LlmDocumentScenarioMapper", _dummy_factory)
     monkeypatch.setattr(cli, "DocumentScenarioService", FakeService)
-    monkeypatch.setattr(
-        asyncio, "create_subprocess_exec", fake_create_subprocess_exec
-    )
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_create_subprocess_exec)
 
     exit_code = cli.main(
         [
