@@ -1,4 +1,4 @@
-"""Regression coverage for strict YAML scenario validation."""
+"""Test strict YAML scenario validation."""
 
 from pathlib import Path
 
@@ -10,12 +10,11 @@ from domain.models.scenarios import DesignScenario
 
 pytestmark = pytest.mark.unit
 
-SCENARIO_DIRECTORY = Path(__file__).resolve().parents[3] / "scenarios"
 
 
 @pytest.mark.parametrize("unknown_field", ["requrements", "worklod"])
 def test_rejects_unknown_scenario_keys(unknown_field: str) -> None:
-    """Do not silently drop misspelled top-level keys."""
+    """Reject misspelled top-level keys instead of dropping them."""
     with pytest.raises(ValidationError) as captured:
         DesignScenario.model_validate(
             {"description": "A valid description", unknown_field: []}
@@ -29,7 +28,7 @@ def test_rejects_unknown_scenario_keys(unknown_field: str) -> None:
 
 
 def test_rejects_unknown_workload_keys() -> None:
-    """Nested workload typos must be rejected too."""
+    """Reject nested workload typos."""
     with pytest.raises(ValidationError) as captured:
         DesignScenario.model_validate(
             {
@@ -50,7 +49,7 @@ def test_rejects_unknown_workload_keys() -> None:
 
 
 def test_rejects_unknown_requirement_keys() -> None:
-    """The strict boundary covers requirement objects as well."""
+    """Reject unknown fields inside requirement objects."""
     with pytest.raises(ValidationError) as captured:
         DesignScenario.model_validate(
             {
@@ -86,11 +85,11 @@ def test_accepts_both_project_name_spellings(name_field: str) -> None:
 
 @pytest.mark.parametrize(
     "scenario_path",
-    sorted(SCENARIO_DIRECTORY.glob("*.yaml")),
+    sorted((Path(__file__).resolve().parents[3] / "scenarios").glob("*.yaml")),
     ids=lambda path: path.name,
 )
 def test_repository_scenarios_parse_strictly(scenario_path: Path) -> None:
-    """All bundled example YAML files remain valid input."""
+    """Load every bundled YAML file through the strict input model."""
     data = yaml.safe_load(scenario_path.read_text(encoding="utf-8"))
 
     scenario = DesignScenario.model_validate(data)
