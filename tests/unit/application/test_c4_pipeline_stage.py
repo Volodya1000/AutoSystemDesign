@@ -11,9 +11,16 @@ from application.pipeline.stages.c4 import C4Stage
 from application.results import DesignGenerationResult, GenerationAttempt
 from application.usage import TokenUsage
 from domain.exceptions.architecture_errors import ArchitectureValidationError
+from domain.models.requirement_coverage import (
+    RequirementCheckStatus,
+    RequirementCoverageReport,
+    RequirementCoverageStatus,
+)
+from domain.models.requirements import AvailabilityRequirement
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
+from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
 from tests.unit.in_memory_writer import InMemoryWriter
 
 pytestmark = pytest.mark.unit
@@ -171,3 +178,33 @@ def test_c4_stage_persists_diagnostic_graph_but_fails_invalid_design(
     assert outcome.payload is None
     assert renderer.calls == 0
     assert [path.name for path, _ in writer.writes] == ["c4_stage_test_c4.json"]
+
+
+def test_c4_stage_reports_unsupported_nfr_without_failing(tmp_path: Path) -> None:
+    """A model can be generated while its NFRs remain unverified."""
+    scenario = _scenario().model_copy(
+        update={"requirements": [AvailabilityRequirement(threshold_value=99.99)]}
+    )
+    result = _success_result()
+    result.attempts[0].validation = RequirementValidationDispatcher([]).validate(
+        _graph(), scenario
+    )
+    writer = InMemoryWriter()
+    stage = C4Stage(FakeDesignGenerator(result), None, NullReporter())
+    outcome = stage.run(
+        StageContext(
+            scenario=scenario,
+            out_dir=tmp_path / "output",
+            writer=writer,
+            upstream={},
+        )
+    )
+
+    assert outcome.status is StageStatus.SUCCEEDED
+    report_path = tmp_path / "output" / "c4_stage_test_nfr_coverage.json"
+    json_content = next(text for path, text in writer.writes if path == report_path)
+    report = RequirementCoverageReport.model_validate_json(json_content)
+    assert report.status is RequirementCoverageStatus.INCOMPLETE
+    assert report.requirements[0].status is RequirementCheckStatus.NOT_EVALUATED
+    assert report_path in outcome.artifacts
+    assert len(outcome.warnings) == 1

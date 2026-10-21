@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.models.base_constraints import BaseRequirement
+from domain.models.requirement_coverage import RequirementAssessment
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 
@@ -12,6 +13,7 @@ class ValidationResult(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
     errors: list[ArchitectureValidationError] = Field(default_factory=list)
+    requirement_assessments: list[RequirementAssessment] = Field(default_factory=list)
 
     @property
     def is_successful(self) -> bool:
