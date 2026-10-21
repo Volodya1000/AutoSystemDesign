@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from io import BytesIO
-from pathlib import Path
 
 import pytest
 from pypdf import PdfReader
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from domain.performance_analysis.report import (
     NodePerformanceMetrics,
@@ -61,10 +64,10 @@ def test_pdf_is_readable_and_contains_cyrillic_and_absent_metric() -> None:
 
     assert pdf_bytes.startswith(b"%PDF-")
     assert len(pdf_bytes) > 2000
-    assert "Отчёт об анализе производительности" in text
+    assert "Анализ производительности" in text
     assert "load_test_пример" in text
     assert "Ограниченная очередь" in text
-    assert "Не оценено" in text
+    assert "нет оценки" in text
     assert "15.00 мс" in text
 
 
