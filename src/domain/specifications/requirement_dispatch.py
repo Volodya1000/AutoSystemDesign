@@ -67,9 +67,7 @@ class RequirementValidationDispatcher(ScenarioValidator):
         assessments: list[RequirementAssessment] = []
         for index, requirement in enumerate(scenario.requirements):
             identifier = requirement_identifier(index)
-            kind = getattr(
-                requirement, "type_identifier", type(requirement).__name__
-            )
+            kind = getattr(requirement, "type_identifier", type(requirement).__name__)
             validator = self._by_type.get(type(requirement))
             if validator is None:
                 assessments.append(
@@ -98,9 +96,7 @@ class RequirementValidationDispatcher(ScenarioValidator):
                     validator_identifier=type(validator).__name__,
                 )
             )
-        return ValidationResult(
-            errors=errors, requirement_assessments=assessments
-        )
+        return ValidationResult(errors=errors, requirement_assessments=assessments)
 
 
 def _unsupported_reason(

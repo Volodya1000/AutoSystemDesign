@@ -90,7 +90,6 @@ class C4Stage:
                     "see the NFR coverage JSON artifact"
                 )
 
-
         if result.status is not GenerationStatus.SUCCEEDED or graph is None:
             return StageOutcome(
                 name=self.name,
@@ -122,9 +121,7 @@ class C4Stage:
             rendering_partial = bool(render_result.warnings)
 
         # Unverified NFRs warn the user; they are not optional rendering failures.
-        status = (
-            StageStatus.PARTIAL if rendering_partial else StageStatus.SUCCEEDED
-        )
+        status = StageStatus.PARTIAL if rendering_partial else StageStatus.SUCCEEDED
         return StageOutcome(
             name=self.name,
             status=status,

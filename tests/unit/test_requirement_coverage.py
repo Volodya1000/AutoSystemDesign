@@ -145,9 +145,10 @@ def test_report_is_incomplete_even_when_graph_generation_succeeds() -> None:
         RequirementCheckStatus.SATISFIED,
         RequirementCheckStatus.NOT_EVALUATED,
     ]
-    assert RequirementCoverageReport.model_validate_json(
-        report.model_dump_json()
-    ) == report
+    assert (
+        RequirementCoverageReport.model_validate_json(report.model_dump_json())
+        == report
+    )
 
 
 def test_unaccepted_graph_cannot_claim_a_passing_budget() -> None:
@@ -169,6 +170,7 @@ def test_missing_graph_marks_all_requirements_not_evaluated() -> None:
     )
     assert report.status is RequirementCoverageStatus.INCOMPLETE
     assert report.requirements[0].reason is RequirementCheckReason.GRAPH_UNAVAILABLE
+
 
 def test_duplicate_assessment_cannot_overwrite_another_result() -> None:
     scenario = _scenario(BudgetRequirement(threshold_value=200.0))

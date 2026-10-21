@@ -248,7 +248,6 @@ def test_legacy_pipeline_skips_sequence_and_api_but_keeps_c4_successful(
     assert outcomes[0].warnings
 
 
-
 def test_sequence_generation_failure_still_fails_for_functional_scenarios(
     tmp_path: Path,
 ) -> None:

@@ -43,7 +43,6 @@ class RequirementAssessment(BaseModel):
     reason: RequirementCheckReason | None = None
     validator_identifier: str | None = None
 
-
     @classmethod
     def not_evaluated(
         cls,
@@ -80,6 +79,7 @@ class RequirementCoverageReport(BaseModel):
     graph_accepted: bool
     status: RequirementCoverageStatus
     requirements: list[RequirementAssessment] = Field(default_factory=list)
+
 
 def requirement_identifier(index: int) -> str:
     """Address a requirement occurrence within one immutable scenario version."""

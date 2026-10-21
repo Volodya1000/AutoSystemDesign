@@ -54,8 +54,7 @@ def _coverage_status(
     if any(item.status is RequirementCheckStatus.VIOLATED for item in assessments):
         return RequirementCoverageStatus.VIOLATED
     if not graph_accepted or any(
-        item.status is RequirementCheckStatus.NOT_EVALUATED
-        for item in assessments
+        item.status is RequirementCheckStatus.NOT_EVALUATED for item in assessments
     ):
         return RequirementCoverageStatus.INCOMPLETE
     return RequirementCoverageStatus.SATISFIED
