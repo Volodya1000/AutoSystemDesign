@@ -39,6 +39,9 @@ markers = [
     "integration: tests that call a real LLM via LM Studio",
 ]
 
+[tool.ruff]
+preview = true
+
 [tool.ruff.lint]
 # Add design-oriented checks while keeping Ruff's existing default rules.
 extend-select = [
