@@ -111,6 +111,16 @@
 - [CLI-проверка артефактов](../../scripts/check_performance_acceptance.py) —
   структурная проверка сохранённого JSON/PDF без вызова LLM.
 
+## Сквозные проверки без LLM
+
+- [Тесты C4 → PipelineRunner → JSON/PDF](../../tests/unit/performance_analysis/test_pipeline_integration.py):
+  реальные компоненты и файловый writer с заранее известными числами.
+- [Опубликованная JSON Schema v1](report.schema.json) и
+  [её экспортёр](../../scripts/export_performance_schema.py).
+- [Этап 13: сквозные тесты и схема](13-e2e-and-schema.md).
+- [Чек-лист интеграции](ROOT_PR_ACCEPTANCE.md) остаётся обязательным до
+  фактического merge в главную feature-ветку #90.
+
 ## План развития
 
 Полная последовательность этапов, зависимости, критерии приёмки и ограничения
