@@ -43,7 +43,9 @@ def log_header(settings: AppSettings, scenario: DesignScenario) -> None:
         _logger.info("  %s", line)
 
 
-def log_attempts(attempts: Sequence[GenerationAttempt], label: str) -> None:
+def log_attempts[PayloadT](
+    attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+) -> None:
     """Log per-attempt outcomes of a repair loop."""
     _logger.info(label)
     for attempt in attempts:
