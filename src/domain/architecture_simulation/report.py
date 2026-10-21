@@ -91,9 +91,11 @@ class LatencyQuantiles(SimulationDataModel):
     def validate_order(self) -> Self:
         """Reject contradictory quantiles when the adjacent values exist."""
         if self.p50 is not None and self.p95 is not None and self.p50 > self.p95:
-            raise ValueError("p50 must not exceed p95")
+            message = "p50 must not exceed p95"
+            raise ValueError(message)
         if self.p95 is not None and self.p99 is not None and self.p95 > self.p99:
-            raise ValueError("p95 must not exceed p99")
+            message = "p95 must not exceed p99"
+            raise ValueError(message)
         return self
 
 
@@ -141,7 +143,8 @@ class SimulationExperiment(SimulationDataModel):
             + self.failed_requests
         )
         if terminal != self.generated_requests:
-            raise ValueError("root request outcomes must sum to generated_requests")
+            message = "root request outcomes must sum to generated_requests"
+            raise ValueError(message)
         return self
 
 
@@ -157,7 +160,8 @@ class ConfidenceInterval(SimulationDataModel):
     def validate_bounds(self) -> Self:
         """Keep reported uncertainty intervals ordered."""
         if self.lower > self.upper:
-            raise ValueError("confidence lower bound must not exceed upper bound")
+            message = "confidence lower bound must not exceed upper bound"
+            raise ValueError(message)
         return self
 
 
@@ -179,12 +183,17 @@ class RequirementEvaluation(SimulationDataModel):
         """Require evidence for conclusive results and reasons otherwise."""
         if self.status in (RequirementVerdict.MET, RequirementVerdict.VIOLATED):
             if self.observed_value is None or self.confidence_interval is None:
-                raise ValueError("conclusive verdict requires observed value and CI")
+                message = "conclusive verdict requires observed value and CI"
+                raise ValueError(message)
         elif self.reason_code is None:
-            raise ValueError("non-conclusive verdict requires a reason code")
-        if self.status is RequirementVerdict.NOT_EVALUATED:
-            if self.observed_value is not None or self.confidence_interval is not None:
-                raise ValueError("unsupported requirement cannot contain observations")
+            message = "non-conclusive verdict requires a reason code"
+            raise ValueError(message)
+        if (
+            self.status is RequirementVerdict.NOT_EVALUATED
+            and (self.observed_value is not None or self.confidence_interval is not None)
+        ):
+            message = "unsupported requirement cannot contain observations"
+            raise ValueError(message)
         return self
 
 
