@@ -115,7 +115,12 @@ def _erlang_c_probability_of_waiting(
     utilization_ratio: float,
     server_count: int,
 ) -> float:
-    """Compute Erlang C probability using log-scaled terms."""
+    """Evaluate Erlang-C P(wait) without huge factorials or powers.
+
+    Direct a**c and c! can overflow for large c. Compute the corresponding
+    logarithms, shift by the largest term, and sum scaled exponentials.
+    All three parameters are unitless (a=lambda/mu, rho=lambda/(c*mu)).
+    """
     log_offered_load = log(offered_load)
     log_waiting_term = (
         server_count * log_offered_load
