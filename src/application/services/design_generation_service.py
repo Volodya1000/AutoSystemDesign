@@ -84,8 +84,8 @@ class DesignGenerationService:
         self._scenario_validators: tuple[ScenarioValidator, ...] = tuple(
             scenario_validators
         )
-        self._designer = designer
-        self._max_attempts = max_attempts
+        self._designer: ArchitectureDesigner = designer
+        self._max_attempts: int = max_attempts
 
     def generate(self, scenario: DesignScenario) -> DesignGenerationResult:
         task: DesignTask = DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
@@ -129,7 +129,9 @@ class DesignGenerationService:
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> ValidationResult:
         """Run every topology and scenario validator, aggregating errors."""
-        results = [validator.validate(graph) for validator in self._validators]
+        results: list[ValidationResult] = [
+            validator.validate(graph) for validator in self._validators
+        ]
         results.extend(
             validator.validate(graph, scenario)
             for validator in self._scenario_validators

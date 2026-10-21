@@ -7,10 +7,15 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class RequirementCheckStatus(StrEnum):
-    """A checked requirement is not the same as a generated graph."""
+    """Result of checking exactly one nonfunctional requirement."""
 
+    # Одно требование: проверка выполнена, порог соблюдён.
     SATISFIED = "satisfied"
+
+    # Одно требование: проверка выполнена, порог нарушен.
     VIOLATED = "violated"
+
+    # Одно требование: достоверной проверки не было, вывод делать нельзя.
     NOT_EVALUATED = "not_evaluated"
 
 
@@ -74,11 +79,22 @@ class RequirementAssessment(BaseModel):
 
 
 class RequirementCoverageStatus(StrEnum):
-    """A coverage summary, separate from pipeline and generation status."""
+    """Aggregate NFR coverage across the entire scenario, not a single check.
 
+    A separate enum excludes invalid combinations: a single check cannot be
+    INCOMPLETE, and the aggregate cannot be NOT_EVALUATED.
+    """
+
+    # Все требования проверены и выполнены.
     SATISFIED = "satisfied"
+
+    # Хотя бы одно требование нарушено; другие могут быть не проверены.
     VIOLATED = "violated"
+
+    # Нарушений не найдено, но хотя бы одно требование не проверено.
     INCOMPLETE = "incomplete"
+
+    # В сценарии нет нефункциональных требований.
     NOT_APPLICABLE = "not_applicable"
 
 

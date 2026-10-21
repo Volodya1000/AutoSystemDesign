@@ -39,6 +39,9 @@ class RequirementValidationDispatcher(ScenarioValidator):
 
     Requirements without a registered validator produce non-blocking,
     traceable NOT_EVALUATED assessments. Validation errors still drive repair.
+
+    A heterogeneous registry needs an erased generic parameter at lookup.
+    Runtime matching by exact requirement class guards the validator call.
     """
 
     def __init__(self, validators: Sequence[RequirementValidator[Any]]) -> None:
@@ -60,11 +63,13 @@ class RequirementValidationDispatcher(ScenarioValidator):
         errors: list[ArchitectureValidationError] = []
         assessments: list[RequirementAssessment] = []
         for index, requirement in enumerate(scenario.requirements):
-            identifier = requirement_identifier(index)
-            kind = getattr(requirement, "type_identifier", type(requirement).__name__)
-            validator = self._by_type.get(type(requirement))
+            identifier: str = requirement_identifier(index)
+            kind: str = requirement.type_identifier
+            validator: RequirementValidator[Any] | None = self._by_type.get(
+                type(requirement)
+            )
             if validator is None:
-                reason = RequirementCheckReason.NO_VALIDATOR
+                reason: RequirementCheckReason = RequirementCheckReason.NO_VALIDATOR
                 if scenario.workload is None and requirement.requires_workload:
                     reason = RequirementCheckReason.MISSING_WORKLOAD
                 assessments.append(
@@ -74,7 +79,9 @@ class RequirementValidationDispatcher(ScenarioValidator):
                 )
                 continue
 
-            violations = validator.validate(graph, requirement)
+            violations: list[ArchitectureValidationError] = validator.validate(
+                graph, requirement
+            )
             errors.extend(violations)
             assessments.append(
                 RequirementAssessment(

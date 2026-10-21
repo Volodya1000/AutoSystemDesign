@@ -9,9 +9,16 @@ from typing import TYPE_CHECKING
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
 from application.pipeline.stage import StageId
 from application.requirement_coverage import build_requirement_coverage_report
-from application.results import GenerationStatus
-from domain.models.requirement_coverage import RequirementCheckStatus
-from domain.specifications.metrics import compute_project_metrics, format_metrics_title
+from application.results import DesignGenerationResult, GenerationStatus
+from domain.models.requirement_coverage import (
+    RequirementCheckStatus,
+    RequirementCoverageReport,
+)
+from domain.specifications.metrics import (
+    ProjectMetrics,
+    compute_project_metrics,
+    format_metrics_title,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -44,7 +51,7 @@ class C4Stage:
         scenario: DesignScenario = context.scenario
 
         generation_start: float = time.perf_counter()
-        result = self._service.generate(scenario)
+        result: DesignGenerationResult = self._service.generate(scenario)
         generation_seconds: float = time.perf_counter() - generation_start
 
         self._reporter.attempts(result.attempts, "C4 generation attempts")
@@ -69,7 +76,7 @@ class C4Stage:
             )
 
         if scenario.requirements:
-            coverage = build_requirement_coverage_report(
+            coverage: RequirementCoverageReport = build_requirement_coverage_report(
                 scenario,
                 graph_accepted=result.status is GenerationStatus.SUCCEEDED,
                 validation=result.attempts[-1].validation,
@@ -80,7 +87,7 @@ class C4Stage:
                     coverage.model_dump_json(indent=2),
                 )
             )
-            unchecked = sum(
+            unchecked: int = sum(
                 item.status is RequirementCheckStatus.NOT_EVALUATED
                 for item in coverage.requirements
             )
@@ -102,12 +109,14 @@ class C4Stage:
                 warnings=tuple(warnings),
             )
 
-        render_result = self._render(graph, scenario, context.out_dir)
+        render_result: DiagramRenderResult = self._render(
+            graph, scenario, context.out_dir
+        )
         artifacts.extend(render_result.artifacts)
         warnings.extend(render_result.warnings)
 
         # Unverified NFRs warn; only optional rendering errors make C4 partial.
-        status = StageStatus.SUCCEEDED
+        status: StageStatus = StageStatus.SUCCEEDED
         if render_result.warnings:
             status = StageStatus.PARTIAL
         return StageOutcome(
@@ -129,9 +138,9 @@ class C4Stage:
         """Render an optional diagram independently of NFR coverage warnings."""
         if self._renderer is None:
             return DiagramRenderResult()
-        title = f"C4 Container: {scenario.identifier}"
-        metrics = compute_project_metrics(graph, scenario)
-        summary = format_metrics_title(metrics)
+        title: str = f"C4 Container: {scenario.identifier}"
+        metrics: ProjectMetrics = compute_project_metrics(graph, scenario)
+        summary: str = format_metrics_title(metrics)
         if summary:
             title = f"{title}\n{summary}"
         return self._renderer.render(

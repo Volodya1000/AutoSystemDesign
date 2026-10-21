@@ -22,7 +22,7 @@ def _resolve_assessment(
 ) -> RequirementAssessment:
     """Reject missing, conflicting, or unrelated validation evidence."""
     if len(matches) != 1 or matches[0].type_identifier != kind:
-        reason = RequirementCheckReason.NO_VALIDATOR
+        reason: RequirementCheckReason = RequirementCheckReason.NO_VALIDATOR
         if not validation_available:
             reason = RequirementCheckReason.GRAPH_UNAVAILABLE
         elif matches:
@@ -31,7 +31,7 @@ def _resolve_assessment(
             identifier=identifier, kind=kind, reason=reason
         )
 
-    found = matches[0]
+    found: RequirementAssessment = matches[0]
     if graph_accepted or found.status is not RequirementCheckStatus.SATISFIED:
         return found
     # Passing one check does not approve a structurally rejected topology.
@@ -74,7 +74,7 @@ def build_requirement_coverage_report(
 
     assessments: list[RequirementAssessment] = []
     for index, requirement in enumerate(scenario.requirements):
-        identifier = requirement_identifier(index)
+        identifier: str = requirement_identifier(index)
         assessments.append(
             _resolve_assessment(
                 identifier,

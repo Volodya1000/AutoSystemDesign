@@ -3,11 +3,13 @@
 from typing import Literal
 
 import pytest
+from pydantic import ValidationError
 
 from application.requirement_coverage import build_requirement_coverage_report
 from domain.models.base_constraints import BaseRequirement
 from domain.models.nodes import ComputeNode
 from domain.models.requirement_coverage import (
+    RequirementAssessment,
     RequirementCheckReason,
     RequirementCheckStatus,
     RequirementCoverageReport,
@@ -19,10 +21,12 @@ from domain.models.requirements import (
     LatencyRequirement,
     QueueSizePercentileRequirement,
     ResourceUtilizationRequirement,
+    Requirement,
 )
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.budget_validator import BudgetRequirementValidator
+from domain.specifications.interfaces import ValidationResult
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
 
 pytestmark = pytest.mark.unit
@@ -40,11 +44,11 @@ def _graph() -> ArchitectureGraph:
     return ArchitectureGraph(nodes=[node], edges=[])
 
 
-def _scenario(*requirements: BaseRequirement, workload: bool = True) -> DesignScenario:
+def _scenario(*requirements: Requirement, workload: bool = True) -> DesignScenario:
     return DesignScenario(
         identifier="coverage",
         description="NFR evidence",
-        requirements=list(requirements),  # type: ignore[arg-type]
+        requirements=list(requirements),
         workload=(
             WorkloadProfile(
                 baseline_requests_per_second=10.0,
@@ -57,14 +61,14 @@ def _scenario(*requirements: BaseRequirement, workload: bool = True) -> DesignSc
 
 
 def test_two_budgets_are_evaluated_independently() -> None:
-    scenario = _scenario(
+    scenario: DesignScenario = _scenario(
         BudgetRequirement(threshold_value=200.0),
         BudgetRequirement(threshold_value=50.0),
     )
-    validation = RequirementValidationDispatcher(
+    validation: ValidationResult = RequirementValidationDispatcher(
         [BudgetRequirementValidator()]
     ).validate(_graph(), scenario)
-    identifiers = [
+    identifiers: list[str] = [
         item.requirement_identifier for item in validation.requirement_assessments
     ]
     assert identifiers == ["requirements[0]", "requirements[1]"]
@@ -76,13 +80,13 @@ def test_two_budgets_are_evaluated_independently() -> None:
 
 
 def test_known_unsupported_types_receive_explicit_reasons() -> None:
-    scenario = _scenario(
+    scenario: DesignScenario = _scenario(
         AvailabilityRequirement(threshold_value=99.99),
         LatencyRequirement(threshold_value=150.0),
         QueueSizePercentileRequirement(threshold_value=10.0),
         ResourceUtilizationRequirement(minimum_value=10.0, maximum_value=85.0),
     )
-    validation = RequirementValidationDispatcher([]).validate(_graph(), scenario)
+    validation: ValidationResult = RequirementValidationDispatcher([]).validate(_graph(), scenario)
     assert not validation.errors
     assert [item.reason for item in validation.requirement_assessments] == [
         RequirementCheckReason.NO_VALIDATOR,
@@ -97,13 +101,13 @@ def test_known_unsupported_types_receive_explicit_reasons() -> None:
 
 
 def test_missing_workload_is_not_silent_for_dependent_requirements() -> None:
-    scenario = _scenario(
+    scenario: DesignScenario = _scenario(
         LatencyRequirement(threshold_value=150.0),
         QueueSizePercentileRequirement(threshold_value=10.0),
         ResourceUtilizationRequirement(minimum_value=0.0, maximum_value=80.0),
         workload=False,
     )
-    validation = RequirementValidationDispatcher([]).validate(_graph(), scenario)
+    validation: ValidationResult = RequirementValidationDispatcher([]).validate(_graph(), scenario)
     assert [item.reason for item in validation.requirement_assessments] == [
         RequirementCheckReason.MISSING_WORKLOAD
     ] * 3
@@ -124,7 +128,7 @@ def test_programmatic_unknown_requirement_is_observable() -> None:
         description="Injected type outside discriminated union",
         requirements=[_UnregisteredRequirement()],
     )
-    validation = RequirementValidationDispatcher([]).validate(_graph(), scenario)
+    validation: ValidationResult = RequirementValidationDispatcher([]).validate(_graph(), scenario)
     assert len(validation.requirement_assessments) == 1
     assert (
         validation.requirement_assessments[0].reason
@@ -134,14 +138,14 @@ def test_programmatic_unknown_requirement_is_observable() -> None:
 
 
 def test_report_is_incomplete_even_when_graph_generation_succeeds() -> None:
-    scenario = _scenario(
+    scenario: DesignScenario = _scenario(
         BudgetRequirement(threshold_value=200.0),
         AvailabilityRequirement(threshold_value=99.99),
     )
-    validation = RequirementValidationDispatcher(
+    validation: ValidationResult = RequirementValidationDispatcher(
         [BudgetRequirementValidator()]
     ).validate(_graph(), scenario)
-    report = build_requirement_coverage_report(
+    report: RequirementCoverageReport = build_requirement_coverage_report(
         scenario, graph_accepted=True, validation=validation
     )
     assert report.graph_accepted
@@ -157,11 +161,11 @@ def test_report_is_incomplete_even_when_graph_generation_succeeds() -> None:
 
 
 def test_unaccepted_graph_cannot_claim_a_passing_budget() -> None:
-    scenario = _scenario(BudgetRequirement(threshold_value=200.0))
-    validation = RequirementValidationDispatcher(
+    scenario: DesignScenario = _scenario(BudgetRequirement(threshold_value=200.0))
+    validation: ValidationResult = RequirementValidationDispatcher(
         [BudgetRequirementValidator()]
     ).validate(_graph(), scenario)
-    report = build_requirement_coverage_report(
+    report: RequirementCoverageReport = build_requirement_coverage_report(
         scenario, graph_accepted=False, validation=validation
     )
     assert report.status is RequirementCoverageStatus.INCOMPLETE
@@ -169,8 +173,8 @@ def test_unaccepted_graph_cannot_claim_a_passing_budget() -> None:
 
 
 def test_missing_graph_marks_all_requirements_not_evaluated() -> None:
-    scenario = _scenario(BudgetRequirement(threshold_value=200.0))
-    report = build_requirement_coverage_report(
+    scenario: DesignScenario = _scenario(BudgetRequirement(threshold_value=200.0))
+    report: RequirementCoverageReport = build_requirement_coverage_report(
         scenario, graph_accepted=False, validation=None
     )
     assert report.status is RequirementCoverageStatus.INCOMPLETE
@@ -178,13 +182,13 @@ def test_missing_graph_marks_all_requirements_not_evaluated() -> None:
 
 
 def test_duplicate_assessment_cannot_overwrite_another_result() -> None:
-    scenario = _scenario(BudgetRequirement(threshold_value=200.0))
-    validation = RequirementValidationDispatcher(
+    scenario: DesignScenario = _scenario(BudgetRequirement(threshold_value=200.0))
+    validation: ValidationResult = RequirementValidationDispatcher(
         [BudgetRequirementValidator()]
     ).validate(_graph(), scenario)
-    assessment = validation.requirement_assessments[0]
+    assessment: RequirementAssessment = validation.requirement_assessments[0]
     validation.requirement_assessments.append(assessment.model_copy())
-    report = build_requirement_coverage_report(
+    report: RequirementCoverageReport = build_requirement_coverage_report(
         scenario, graph_accepted=True, validation=validation
     )
     assert report.status is RequirementCoverageStatus.INCOMPLETE
@@ -193,13 +197,13 @@ def test_duplicate_assessment_cannot_overwrite_another_result() -> None:
 
 def test_type_mismatched_evidence_is_not_accepted() -> None:
     """Reject an assessment tied to the wrong requirement kind."""
-    scenario = _scenario(BudgetRequirement(threshold_value=200.0))
-    validation = RequirementValidationDispatcher(
+    scenario: DesignScenario = _scenario(BudgetRequirement(threshold_value=200.0))
+    validation: ValidationResult = RequirementValidationDispatcher(
         [BudgetRequirementValidator()]
     ).validate(_graph(), scenario)
     validation.requirement_assessments[0].type_identifier = "latency"
 
-    report = build_requirement_coverage_report(
+    report: RequirementCoverageReport = build_requirement_coverage_report(
         scenario, graph_accepted=True, validation=validation
     )
     assert report.status is RequirementCoverageStatus.INCOMPLETE
@@ -208,7 +212,11 @@ def test_type_mismatched_evidence_is_not_accepted() -> None:
 
 def test_workload_requirement_flag_is_not_part_of_scenario_payload() -> None:
     """Keep prerequisite metadata internal rather than expanding YAML schema."""
-    dependent_requirements = (
+    dependent_requirements: tuple[
+        LatencyRequirement,
+        QueueSizePercentileRequirement,
+        ResourceUtilizationRequirement,
+    ] = (
         LatencyRequirement(threshold_value=150.0),
         QueueSizePercentileRequirement(threshold_value=10.0),
         ResourceUtilizationRequirement(minimum_value=0.0, maximum_value=80.0),
@@ -219,3 +227,73 @@ def test_workload_requirement_flag_is_not_part_of_scenario_payload() -> None:
 
     assert not BudgetRequirement(threshold_value=100.0).requires_workload
     assert not AvailabilityRequirement(threshold_value=99.9).requires_workload
+
+
+
+def test_all_checked_requirements_produce_satisfied_coverage() -> None:
+    """The aggregate is satisfied only if every NFR is checked and passed."""
+    scenario: DesignScenario = _scenario(BudgetRequirement(threshold_value=200.0))
+    validation: ValidationResult = RequirementValidationDispatcher(
+        [BudgetRequirementValidator()]
+    ).validate(_graph(), scenario)
+
+    report: RequirementCoverageReport = build_requirement_coverage_report(
+        scenario, graph_accepted=True, validation=validation
+    )
+
+    assert report.status is RequirementCoverageStatus.SATISFIED
+    assert report.requirements[0].status is RequirementCheckStatus.SATISFIED
+
+
+def test_one_violation_takes_precedence_over_incomplete_coverage() -> None:
+    """A rejected budget is observable even if availability was not checked."""
+    scenario: DesignScenario = _scenario(
+        BudgetRequirement(threshold_value=50.0),
+        AvailabilityRequirement(threshold_value=99.99),
+    )
+    validation: ValidationResult = RequirementValidationDispatcher(
+        [BudgetRequirementValidator()]
+    ).validate(_graph(), scenario)
+
+    report: RequirementCoverageReport = build_requirement_coverage_report(
+        scenario, graph_accepted=True, validation=validation
+    )
+
+    assert report.status is RequirementCoverageStatus.VIOLATED
+    assert [item.status for item in report.requirements] == [
+        RequirementCheckStatus.VIOLATED,
+        RequirementCheckStatus.NOT_EVALUATED,
+    ]
+
+
+def test_zero_requirements_have_not_applicable_coverage() -> None:
+    """There is nothing to assess, which is neither success nor failure."""
+    scenario: DesignScenario = _scenario()
+    report: RequirementCoverageReport = build_requirement_coverage_report(
+        scenario, graph_accepted=True, validation=ValidationResult()
+    )
+
+    assert report.status is RequirementCoverageStatus.NOT_APPLICABLE
+    assert not report.requirements
+
+
+def test_individual_and_aggregate_status_enums_reject_cross_level_values() -> None:
+    """Prevent invalid per-requirement and summary states in the JSON contract."""
+    with pytest.raises(ValidationError, match="status"):
+        RequirementAssessment.model_validate(
+            {
+                "requirement_identifier": "requirements[0]",
+                "type_identifier": "budget",
+                "status": "incomplete",
+            }
+        )
+
+    with pytest.raises(ValidationError, match="status"):
+        RequirementCoverageReport.model_validate(
+            {
+                "scenario_identifier": "coverage",
+                "graph_accepted": True,
+                "status": "not_evaluated",
+                "requirements": [],
+            }
+        )
