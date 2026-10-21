@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -27,6 +26,7 @@ from tests.factories import create_test_compute_node, create_test_edge, create_t
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from pathlib import Path
 
 pytestmark = pytest.mark.unit
 
@@ -176,9 +176,7 @@ def test_linear_mm1_metrics_match_hand_calculation_in_json_and_pdf(
         101.0
     )
     assert report.critical_path_node_identifiers == ["client", "service"]
-    reader = PdfReader(
-        str(tmp_path / f"{identifier}_performance_analysis.pdf")
-    )
+    reader = PdfReader(str(tmp_path / f"{identifier}_performance_analysis.pdf"))
     pdf_text = "\n".join(page.extract_text() for page in reader.pages)
     assert identifier in pdf_text
     assert "100.00" in pdf_text
