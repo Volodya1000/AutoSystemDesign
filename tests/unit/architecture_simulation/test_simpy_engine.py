@@ -117,7 +117,10 @@ def test_scheduled_requests_can_round_trip_through_json() -> None:
         requests=[ScheduledRequest(arrival_seconds=1.5, service_seconds=2.5)],
     )
 
-    restored: SingleNodeSimulationPlan = SingleNodeSimulationPlan.model_validate_json(plan.model_dump_json())
+    payload: str = plan.model_dump_json()
+    restored: SingleNodeSimulationPlan = (
+        SingleNodeSimulationPlan.model_validate_json(payload)
+    )
 
     assert restored == plan
 
@@ -146,7 +149,10 @@ def test_time_travel_in_observations_is_rejected() -> None:
 def test_observation_round_trip_preserves_elapsed_times() -> None:
     result: SingleNodeSimulationResult = _run([(0, 2), (0, 1)])
 
-    restored: SingleNodeSimulationResult = SingleNodeSimulationResult.model_validate_json(result.model_dump_json())
+    payload: str = result.model_dump_json()
+    restored: SingleNodeSimulationResult = (
+        SingleNodeSimulationResult.model_validate_json(payload)
+    )
 
     assert restored == result
     assert restored.observations[1].wait_seconds == 2.0
