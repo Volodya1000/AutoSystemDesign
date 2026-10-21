@@ -146,20 +146,24 @@ def _branching_findings(graph: ArchitectureGraph) -> list[PerformanceFinding]:
         if not edge.protocol.is_asynchronous
         and isinstance(node_by_id.get(edge.target_identifier), CacheNode)
     }
-    alternative_edge_counts: Counter[str] = Counter(
-        edge.source_identifier
-        for edge in graph.edges
-        if edge.routing_mode is EdgeRoutingMode.ALTERNATIVE
-        and not (
+    alternative_edge_counts: Counter[str] = Counter()
+    fallback_edge_counts: Counter[str] = Counter()
+    for edge in graph.edges:
+        if edge.routing_mode is not EdgeRoutingMode.ALTERNATIVE:
+            continue
+        is_fallback = (
             edge.source_identifier in cache_reader_sources
             and not edge.protocol.is_asynchronous
             and isinstance(node_by_id.get(edge.target_identifier), DatabaseNode)
         )
-    )
+        counts = fallback_edge_counts if is_fallback else alternative_edge_counts
+        counts[edge.source_identifier] += 1
+
     branching_nodes: list[str] = [
         node.identifier
         for node in graph.nodes
         if alternative_edge_counts[node.identifier] > 1
+        or fallback_edge_counts[node.identifier] > 1
     ]
     if not branching_nodes:
         return []
