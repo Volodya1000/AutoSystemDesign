@@ -63,15 +63,9 @@ def _longest_path_dp(
                 + edge.network_latency_milliseconds
                 + node_latencies.get(target, 0.0)
             )
-            if (
-                candidate > dist[target]
-                or (
-                    candidate == dist[target]
-                    and (
-                        predecessor[target] is None
-                        or node_id < predecessor[target]
-                    )
-                )
+            if candidate > dist[target] or (
+                candidate == dist[target]
+                and (predecessor[target] is None or node_id < predecessor[target])
             ):
                 # Stable tie-break: prefer lexicographically smaller parent.
                 dist[target] = candidate
