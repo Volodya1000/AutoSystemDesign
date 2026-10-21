@@ -63,7 +63,17 @@ def _longest_path_dp(
                 + edge.network_latency_milliseconds
                 + node_latencies.get(target, 0.0)
             )
-            if candidate > dist[target]:
+            if (
+                candidate > dist[target]
+                or (
+                    candidate == dist[target]
+                    and (
+                        predecessor[target] is None
+                        or node_id < predecessor[target]
+                    )
+                )
+            ):
+                # Stable tie-break: prefer lexicographically smaller parent.
                 dist[target] = candidate
                 predecessor[target] = node_id
                 pred_edge_latency[target] = edge.network_latency_milliseconds
@@ -275,7 +285,8 @@ def _compute_synchronous_critical_path(
         reachable_edges,
         known_node_latencies,
     )
-    end_node = max(dist, key=dist.__getitem__)
+    # For equal-length paths, select the same end node regardless of graph order.
+    end_node = max(sorted(dist), key=dist.__getitem__)
     if not math.isfinite(dist[end_node]):
         return None, (), ()
 
