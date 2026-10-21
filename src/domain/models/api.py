@@ -90,7 +90,7 @@ class ApiRequestBody(ApiModel):
     schema_ref: str = Field(
         description=(
             "Name of the schema in the central registry "
-            + "(e.g., 'CreateOrderRequest')"
+            "(e.g., 'CreateOrderRequest')"
         )
     )
 
