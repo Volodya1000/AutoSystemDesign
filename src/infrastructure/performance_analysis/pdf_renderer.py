@@ -13,7 +13,9 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import (
+    Flowable,
     LongTable,
     Paragraph,
     SimpleDocTemplate,
@@ -21,6 +23,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from application.performance_analysis.protocols import PdfRenderingUnavailableError
 from domain.performance_analysis.report import PerformanceAnalysisReport
 
 _FONT_NAME = "ASDPerformanceSans"
@@ -40,7 +43,7 @@ _PAGE_WIDTH, _PAGE_HEIGHT = A4
 _CONTENT_WIDTH = _PAGE_WIDTH - 36 * mm
 
 
-class PdfFontUnavailableError(RuntimeError):
+class PdfFontUnavailableError(PdfRenderingUnavailableError):
     """No permitted Unicode TrueType font is accessible for embedding."""
 
 
@@ -71,7 +74,7 @@ class PerformanceReportPdfRenderer:
             title=f"Анализ производительности: {report.scenario_identifier}",
             author="AutoSystemDesign",
         )
-        story: list[object] = [
+        story: list[Flowable] = [
             Paragraph("Отчёт об анализе производительности", styles["title"]),
             Spacer(1, 5 * mm),
             Paragraph(
@@ -122,8 +125,10 @@ class PerformanceReportPdfRenderer:
             )
         table = LongTable(
             rows,
-            colWidths=[_CONTENT_WIDTH * portion for portion in
-                       (0.25, 0.11, 0.16, 0.12, 0.18, 0.18)],
+            colWidths=[
+                _CONTENT_WIDTH * portion
+                for portion in (0.25, 0.11, 0.16, 0.12, 0.18, 0.18)
+            ],
             repeatRows=1,
             hAlign="LEFT",
         )
@@ -131,9 +136,12 @@ class PerformanceReportPdfRenderer:
             TableStyle(
                 [
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EAF0F6")),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
-                        colors.white, colors.HexColor("#F7F9FC")
-                    ]),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor("#F7F9FC")],
+                    ),
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
                     ("LEFTPADDING", (0, 0), (-1, -1), 5),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 5),
@@ -279,7 +287,7 @@ def _build_styles(font: str) -> dict[str, ParagraphStyle]:
     }
 
 
-def _draw_footer(canvas: object, font: str) -> None:
+def _draw_footer(canvas: Canvas, font: str) -> None:
     """Render deterministic page numbering below the document content."""
     canvas.saveState()
     canvas.setFont(font, 8)
