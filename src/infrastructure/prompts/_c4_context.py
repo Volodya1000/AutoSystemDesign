@@ -30,6 +30,5 @@ def render_c4_components(
         f"- {node.identifier} (type: {node.node_type.value})" for node in graph.nodes
     )
     if footer is not None:
-        lines.append("")
-        lines.append(footer)
+        lines.extend(("", footer))
     return "\n".join(lines)
