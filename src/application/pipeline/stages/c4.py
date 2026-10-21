@@ -107,7 +107,9 @@ class C4Stage:
         warnings.extend(render_result.warnings)
 
         # Unverified NFRs warn; only optional rendering errors make C4 partial.
-        status = StageStatus.PARTIAL if render_result.warnings else StageStatus.SUCCEEDED
+        status = StageStatus.SUCCEEDED
+        if render_result.warnings:
+            status = StageStatus.PARTIAL
         return StageOutcome(
             name=self.name,
             status=status,

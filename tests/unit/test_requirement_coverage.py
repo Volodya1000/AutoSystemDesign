@@ -113,7 +113,7 @@ class _UnregisteredRequirement(BaseRequirement):
     type_identifier: Literal["experimental"] = "experimental"
 
     def is_met_requirement(self, actual_value: float) -> bool:
-        """An unknown NFR cannot claim compliance."""
+        """Return failure for this intentionally unsupported requirement."""
         del actual_value
         return False
 
