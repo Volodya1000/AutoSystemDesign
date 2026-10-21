@@ -42,6 +42,7 @@ class PerformanceFindingCode(StrEnum):
     METRIC_UNAVAILABLE = "metric_unavailable"
     UNSUPPORTED_MODEL = "unsupported_model"
     LATENCY_NOT_EVALUATED = "latency_not_evaluated"
+    BOUNDED_QUEUE_UNMODELED = "bounded_queue_unmodeled"
 
 
 class NodePerformanceMetrics(BaseModel):
