@@ -94,6 +94,11 @@ uv run python scripts/generate_pipeline.py \\
 Сам подробный план реализации находится в
 [ROADMAP.md](docs/performance-analysis/ROADMAP.md).
 
+После стадии C4 анализ производительности сохраняет `<scenario>_performance_analysis.json`
+и, когда доступен системный Unicode TrueType-шрифт, создаёт рядом PDF.
+PDF использует те же значения, что JSON, и не делает новых вычислений.
+Подробнее: [PDF-отчёт](docs/performance-analysis/12-pdf-report.md).
+
 ## Этапы конвейера
 
 1. **C4**: генерация и проверка графа архитектуры.

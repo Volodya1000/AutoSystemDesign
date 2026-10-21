@@ -56,6 +56,7 @@
 - [Метрики очередей и путь средних задержек](09-queue-metrics-json-report.md) — смысл нового JSON-контракта, единицы, числовой пример и ограничения.
 - [Ограниченные очереди](10-bounded-queue-policy.md) — диагностика конечного буфера, отсутствие выдуманных потерь и ограничение применимости G/G/c.
 - [Тесты буфера](../../tests/unit/performance_analysis/test_bounded_queues.py) — конечная и нулевая очередь.
+- [PDF-отчёт](12-pdf-report.md) — PDF из канонического JSON, шрифты, тесты и обработка ошибок.
 - [Детерминированная диагностика](11-report-diagnostics.md) — устойчивые finding-коды, severity, порядок и числовые сценарии.
 - [Тесты диагностик](../../tests/unit/performance_analysis/test_report_diagnostics.py) — порядок вывода, одинаковый JSON и отсутствие противоречивых рисков.
 - [Числовые тесты JSON-отчёта](../../tests/unit/performance_analysis/test_queue_metrics_report.py) — линейный путь, fan-out, асинхронные ветви и неизвестные параметры.

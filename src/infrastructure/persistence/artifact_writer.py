@@ -21,3 +21,11 @@ class FileSystemArtifactWriter:
         if self._log_writes:
             _logger.info("Artifact written: %s", path)
         return path
+
+    def write_bytes(self, path: Path, content: bytes) -> Path:
+        """Persist a binary artifact without applying text encoding."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+        if self._log_writes:
+            _logger.info("Artifact written: %s", path)
+        return path

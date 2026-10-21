@@ -5,6 +5,10 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
+from application.performance_analysis.protocols import (
+    PdfRenderingUnavailableError,
+    PerformanceReportPdfRendererProtocol,
+)
 from application.performance_analysis.report_builder import (
     build_performance_analysis_report,
 )
@@ -31,6 +35,11 @@ class PerformanceAnalysisStage:
     name: StageId = StageId.PERFORMANCE_ANALYSIS
     depends_on: tuple[StageId, ...] = (StageId.C4,)
 
+    def __init__(
+        self, pdf_renderer: PerformanceReportPdfRendererProtocol | None = None
+    ) -> None:
+        self._pdf_renderer = pdf_renderer
+
     def run(self, context: StageContext) -> StageOutcome[PerformanceAnalysisReport]:
         stage_start: float = time.perf_counter()
         scenario: DesignScenario = context.scenario
@@ -46,12 +55,30 @@ class PerformanceAnalysisStage:
             report.model_dump_json(indent=2),
         )
 
+        artifacts: tuple[Path, ...] = (artifact_path,)
+        warnings: tuple[str, ...] = ()
+        status = StageStatus.SUCCEEDED
+
+        if self._pdf_renderer is not None:
+            try:
+                pdf_content = self._pdf_renderer.render(report)
+                pdf_path = context.writer.write_bytes(
+                    context.out_dir / f"{scenario.identifier}_performance_analysis.pdf",
+                    pdf_content,
+                )
+                artifacts = (*artifacts, pdf_path)
+            except (OSError, PdfRenderingUnavailableError) as exc:
+                # JSON is mandatory and has already been persisted successfully.
+                status = StageStatus.PARTIAL
+                warnings = (f"Optional performance PDF unavailable: {exc}",)
+
         duration_seconds: float = time.perf_counter() - stage_start
         return StageOutcome[PerformanceAnalysisReport](
             name=self.name,
-            status=StageStatus.SUCCEEDED,
+            status=status,
             duration_seconds=duration_seconds,
             total_tokens=0,
-            artifacts=(artifact_path,),
+            artifacts=artifacts,
             payload=report,
+            warnings=warnings,
         )
