@@ -125,7 +125,7 @@ def _dereference(node: object, active: tuple[str, ...], root: object) -> object:
     return node
 
 
-def dereference_internal_refs(spec: dict[str, object]) -> dict[str, object]:
+def dereference_internal_refs(spec: dict[str, Any]) -> dict[str, Any]:
     """Return a rebuilt copy of *spec* with all internal ``$ref`` inlined.
 
     Why: Swagger UI resolves ``$ref`` pointers at runtime. Even when the
