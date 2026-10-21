@@ -51,7 +51,22 @@ def main() -> int:
 
     try:
         scenario: DesignScenario = _load_scenario(args.scenario)
-    except (OSError, yaml.YAMLError, ValidationError):
+    except ValidationError as error:
+        for detail in error.errors():
+            location = ".".join(str(part) for part in detail["loc"])
+            description = (
+                "Unknown field"
+                if detail["type"] == "extra_forbidden"
+                else detail["msg"]
+            )
+            _logger.error(
+                "Invalid scenario %s at '%s': %s",
+                args.scenario,
+                location,
+                description,
+            )
+        return 2
+    except (OSError, yaml.YAMLError):
         _logger.exception("Scenario error")
         return 2
 
