@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.result import PipelineRunResult
-
     from domain.models.sequence import InteractionScenario
 
 pytestmark = pytest.mark.unit
