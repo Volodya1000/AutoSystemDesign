@@ -118,8 +118,8 @@ def test_scheduled_requests_can_round_trip_through_json() -> None:
     )
 
     payload: str = plan.model_dump_json()
-    restored: SingleNodeSimulationPlan = (
-        SingleNodeSimulationPlan.model_validate_json(payload)
+    restored: SingleNodeSimulationPlan = SingleNodeSimulationPlan.model_validate_json(
+        payload
     )
 
     assert restored == plan
