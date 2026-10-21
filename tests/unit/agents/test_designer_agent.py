@@ -21,8 +21,8 @@ from infrastructure.prompts.fragments_schema import FEW_SHOT_GRAPH_JSON
 pytestmark = pytest.mark.unit
 
 
-@pytest.fixture
-def settings() -> AppSettings:
+@pytest.fixture(name="settings")
+def _settings_fixture() -> AppSettings:
     return AppSettings(
         base_url="http://localhost:1234/v1",
         api_key=SecretStr("fake"),
