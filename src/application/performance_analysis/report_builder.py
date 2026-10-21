@@ -22,7 +22,10 @@ from domain.specifications.capacity_validator import (
     compute_node_capacity_rps,
     compute_node_utilization,
 )
-from domain.specifications.latency_validator import compute_critical_path
+from domain.specifications.latency_validator import (
+    CriticalPathResult,
+    compute_critical_path,
+)
 from domain.specifications.traffic_flow import compute_node_incoming_rps
 
 if TYPE_CHECKING:
@@ -68,15 +71,12 @@ def build_performance_analysis_report(
     )
     utilization_by_node: dict[str, float] = compute_node_utilization(graph, scenario)
     critical_path = compute_critical_path(graph, scenario)
-    latency_by_node: dict[str, float | None] = (
-        critical_path.node_latencies_ms if critical_path is not None else {}
-    )
     node_metrics, unavailable_latency_nodes = _build_node_metrics(
         graph,
         capacity_by_node,
         incoming_by_node,
         utilization_by_node,
-        latency_by_node,
+        critical_path,
     )
     latency_slo_finding = _latency_slo_not_evaluated_finding(
         scenario,
@@ -110,27 +110,32 @@ def _build_node_metrics(
     capacity_by_node: dict[str, float],
     incoming_by_node: dict[str, float],
     utilization_by_node: dict[str, float],
-    latency_by_node: dict[str, float | None],
+    critical_path: CriticalPathResult | None,
 ) -> tuple[list[NodePerformanceMetrics], list[str]]:
     """Build per-node metrics and collect nodes with unavailable latency."""
     node_metrics: list[NodePerformanceMetrics] = []
     unavailable_latency_nodes: list[str] = []
 
     for node in graph.nodes:
-        response_time: float | None = latency_by_node.get(node.identifier)
-        queue_wait: float | None = None
+        response_time: float | None = (
+            critical_path.node_latencies_ms.get(node.identifier)
+            if critical_path is not None
+            else None
+        )
+        queue_wait: float | None = (
+            critical_path.node_queue_wait_ms.get(node.identifier)
+            if critical_path is not None
+            else None
+        )
 
         if isinstance(node, CapacityNode):
-            if response_time is not None and isfinite(response_time):
-                queue_wait = max(
-                    0.0,
-                    response_time - node.mean_processing_time_milliseconds,
-                )
-            else:
+            if response_time is None or not isfinite(response_time):
                 response_time = None
+                queue_wait = None
                 unavailable_latency_nodes.append(node.identifier)
         else:
             response_time = None
+            queue_wait = None
 
         node_metrics.append(
             NodePerformanceMetrics(
