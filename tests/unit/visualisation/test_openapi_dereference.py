@@ -64,8 +64,8 @@ def _chat_spec() -> dict[str, Any]:
 
 class TestInlining:
     def test_inlines_refs_at_every_usage_site(self) -> None:
-        result = dereference_internal_refs(_chat_spec())
-        request_schema = result["paths"]["/messages"]["post"]["requestBody"]["content"][
+        dereferenced_spec = dereference_internal_refs(_chat_spec())
+        request_schema = dereferenced_spec["paths"]["/messages"]["post"]["requestBody"]["content"][
             "application/json"
         ]["schema"]
         assert request_schema == {
@@ -77,12 +77,12 @@ class TestInlining:
     def test_no_ref_key_remains_in_output(self) -> None:
         assert "$ref" not in json.dumps(dereference_internal_refs(_chat_spec()))
 
-    def test_repeated_usage_produces_independent_copies(self) -> None:
-        result = dereference_internal_refs(_chat_spec())
-        request_schema = result["paths"]["/messages"]["post"]["requestBody"]["content"][
+    def test_reused_refs_produce_independent_copies(self) -> None:
+        dereferenced_spec = dereference_internal_refs(_chat_spec())
+        request_schema = dereferenced_spec["paths"]["/messages"]["post"]["requestBody"]["content"][
             "application/json"
         ]["schema"]
-        response_schema = result["paths"]["/messages"]["post"]["responses"]["201"][
+        response_schema = dereferenced_spec["paths"]["/messages"]["post"]["responses"]["201"][
             "content"
         ]["application/json"]["schema"]
         assert request_schema == response_schema
@@ -106,14 +106,14 @@ class TestCycles:
                 }
             }
         }
-        result = dereference_internal_refs(spec)
-        items = result["components"]["schemas"]["Node"]["properties"]["children"][
-            "items"
-        ]
-        assert items["type"] == "object"
-        nested_items = items["properties"]["children"]["items"]
+        dereferenced_spec = dereference_internal_refs(spec)
+        children_schema = dereferenced_spec["components"]["schemas"]["Node"]["properties"][
+            "children"
+        ]["items"]
+        assert children_schema["type"] == "object"
+        nested_items = children_schema["properties"]["children"]["items"]
         assert "Recursive" in nested_items["description"]
-        assert "$ref" not in json.dumps(result)
+        assert "$ref" not in json.dumps(dereferenced_spec)
 
     def test_mutual_cycle_collapses_to_stub(self) -> None:
         spec = {
@@ -130,8 +130,8 @@ class TestCycles:
                 }
             }
         }
-        result = dereference_internal_refs(spec)
-        inner_a = result["components"]["schemas"]["B"]["properties"]["a"]
+        dereferenced_spec = dereference_internal_refs(spec)
+        inner_a = dereferenced_spec["components"]["schemas"]["B"]["properties"]["a"]
         assert inner_a["type"] == "object"
         inner_b = inner_a["properties"]["b"]
         assert "Recursive" in inner_b["properties"]["a"]["description"]
@@ -156,8 +156,8 @@ class TestCycles:
                 }
             },
         }
-        result = dereference_internal_refs(spec)
-        assert "$ref" not in json.dumps(result)
+        dereferenced_spec = dereference_internal_refs(spec)
+        assert "$ref" not in json.dumps(dereferenced_spec)
 
 
 class TestDanglingRefs:
@@ -190,15 +190,15 @@ class TestDanglingRefs:
     def test_malformed_pointer_becomes_stub(self) -> None:
         # "components" (no leading slash) is not a valid JSON pointer.
         spec = {"a": {"$ref": "#components"}}
-        result = dereference_internal_refs(spec)
-        assert "Unresolved reference" in result["a"]["description"]
+        dereferenced_spec = dereference_internal_refs(spec)
+        assert "Unresolved reference" in dereferenced_spec["a"]["description"]
 
     def test_pointer_to_absent_empty_key(self) -> None:
         # RFC 6901: "/" addresses the root key "" -- absent here, so the
         # reference resolves to a stub, not to the whole document.
         spec = {"a": {"$ref": "#/"}}
-        result = dereference_internal_refs(spec)
-        assert "Unresolved reference" in result["a"]["description"]
+        dereferenced_spec = dereference_internal_refs(spec)
+        assert "Unresolved reference" in dereferenced_spec["a"]["description"]
 
 
 class TestRefSiblings:
@@ -246,9 +246,9 @@ class TestRefSiblings:
         # A sibling "description" would REPLACE the stub's diagnostic text
         # (sibling-wins semantics), so use a non-clashing sibling key here.
         spec = {"a": {"$ref": "#/components/schemas/Missing", "title": "Kept"}}
-        result = dereference_internal_refs(spec)
-        assert result["a"]["title"] == "Kept"
-        assert "Unresolved reference" in result["a"]["description"]
+        dereferenced_spec = dereference_internal_refs(spec)
+        assert dereferenced_spec["a"]["title"] == "Kept"
+        assert "Unresolved reference" in dereferenced_spec["a"]["description"]
 
 
 class TestStructureTraversal:
@@ -267,9 +267,9 @@ class TestStructureTraversal:
                 ]
             },
         }
-        result = dereference_internal_refs(spec)
-        assert result["schema"]["allOf"][0] == {"type": "object"}
-        assert result["schema"]["allOf"][1] == {"type": "string"}
+        dereferenced_spec = dereference_internal_refs(spec)
+        assert dereferenced_spec["schema"]["allOf"][0] == {"type": "object"}
+        assert dereferenced_spec["schema"]["allOf"][1] == {"type": "string"}
 
     def test_escaped_pointer_segments_are_resolved(self) -> None:
         # RFC 6901: "~1" encodes "/", "~0" encodes "~" within a segment.
@@ -283,9 +283,9 @@ class TestStructureTraversal:
             "slash": {"$ref": "#/components/schemas/Foo~1Bar"},
             "tilde": {"$ref": "#/components/schemas/Foo~0Bar"},
         }
-        result = dereference_internal_refs(spec)
-        assert result["slash"] == {"type": "object"}
-        assert result["tilde"] == {"type": "string"}
+        dereferenced_spec = dereference_internal_refs(spec)
+        assert dereferenced_spec["slash"] == {"type": "object"}
+        assert dereferenced_spec["tilde"] == {"type": "string"}
 
     def test_pointer_to_list_index(self) -> None:
         spec = {
@@ -304,7 +304,7 @@ class TestNonObjectTargets:
         spec = {"info": {"version": "1.2.3"}, "a": {"$ref": "#/info/version"}}
         assert dereference_internal_refs(spec)["a"] == "1.2.3"
 
-    def test_dropped_siblings_on_scalar_target_log_warning(
+    def test_scalar_target_siblings_log_warning(
         self, caplog: pytest.LogCaptureFixture
     ) -> None:
         spec = {
@@ -312,8 +312,8 @@ class TestNonObjectTargets:
             "a": {"$ref": "#/info/version", "description": "dropped"},
         }
         with caplog.at_level(logging.WARNING):
-            result = dereference_internal_refs(spec)
-        assert result["a"] == "1.2.3"
+            dereferenced_spec = dereference_internal_refs(spec)
+        assert dereferenced_spec["a"] == "1.2.3"
         assert any("siblings" in message for message in caplog.messages)
 
 
@@ -331,9 +331,9 @@ class TestPurity:
             "list": [inner, inner],
         }
         before = json.dumps(spec, sort_keys=True)
-        result = dereference_internal_refs(spec)
+        dereferenced_spec = dereference_internal_refs(spec)
         assert json.dumps(spec, sort_keys=True) == before
-        first, second = result["list"]
+        first, second = dereferenced_spec["list"]
         assert first == second == {"type": "object"}
         assert first is not second
 
