@@ -128,7 +128,7 @@ class TestArchitectureDesignerAgent:
         )
         designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))
         request: CompletionRequest = client.received_requests[0]
-        assert request.temperature == 0.7
+        assert request.temperature == pytest.approx(0.7)
         assert request.max_tokens == 512
-        assert request.timeout_seconds == 12.5
+        assert request.timeout_seconds == pytest.approx(12.5)
         assert request.messages

@@ -102,8 +102,8 @@ class TestBudgetRequirementValidator:
         error = errors[0]
         assert isinstance(error, BudgetExceededError)
         assert error.error_code == "BUDGET_EXCEEDED"
-        assert error.total_monthly_cost_usd == 3500.0
-        assert error.budget_limit_usd == 3000.0
+        assert error.total_monthly_cost_usd == pytest.approx(3500.0)
+        assert error.budget_limit_usd == pytest.approx(3000.0)
         assert "3500.00" in error.message
         assert "3000.00" in error.message
 

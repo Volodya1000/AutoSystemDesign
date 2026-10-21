@@ -36,7 +36,7 @@ def test_extractor_sends_schema_and_returns_validated_output() -> None:
     assert isinstance(result, ExtractionChunk)
     assert len(client.requests) == 1
     request = client.requests[0]
-    assert request.temperature == 0.0
+    assert request.temperature == pytest.approx(0.0)
     assert request.response_schema is not None
     schema = request.response_schema
     requirement_ref = schema["properties"]["requirements"]["items"]["$ref"]

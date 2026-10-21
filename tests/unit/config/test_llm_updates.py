@@ -26,14 +26,14 @@ class TestWithLlmUpdates:
 
         assert updated is not settings
         assert updated.llm is not settings.llm
-        assert updated.llm.temperature == 0.7
+        assert updated.llm.temperature == pytest.approx(0.7)
         assert updated.llm.max_tokens == 512
         assert updated.llm.context_window_tokens == 4096
         assert updated.llm.structured_output_mode is StructuredOutputMode.PROMPT
         assert updated.llm.model == settings.llm.model
         assert updated.llm.timeout_seconds == settings.llm.timeout_seconds
         assert updated.generation == settings.generation
-        assert settings.llm.temperature == 0.0
+        assert settings.llm.temperature == pytest.approx(0.0)
         assert settings.llm.max_tokens == 1_000
         assert settings.llm.context_window_tokens is None
         assert settings.llm.structured_output_mode is StructuredOutputMode.JSON_SCHEMA
@@ -48,9 +48,9 @@ class TestWithLlmUpdates:
             structured_output_mode=StructuredOutputMode.JSON_OBJECT,
         )
 
-        assert updated.llm.temperature == 0.0
+        assert updated.llm.temperature == pytest.approx(0.0)
         assert updated.llm.structured_output_mode is StructuredOutputMode.JSON_OBJECT
-        assert settings.llm.temperature == 0.7
+        assert settings.llm.temperature == pytest.approx(0.7)
 
     @pytest.mark.parametrize(
         "updates",
@@ -71,5 +71,5 @@ class TestWithLlmUpdates:
         with pytest.raises(ValidationError):
             with_llm_updates(settings, **updates)
 
-        assert settings.llm.temperature == 0.0
+        assert settings.llm.temperature == pytest.approx(0.0)
         assert settings.llm.max_tokens == 1_000

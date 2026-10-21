@@ -215,15 +215,15 @@ def test_architecture_designer_builds_typed_request_and_parses_result(
     assert request.messages[0].content == (
         "initial prompt" if mode is DesignTaskMode.INITIAL else "repair prompt"
     )
-    assert request.temperature == 0.3
+    assert request.temperature == pytest.approx(0.3)
     assert request.max_tokens == 512
-    assert request.timeout_seconds == 9.0
+    assert request.timeout_seconds == pytest.approx(9.0)
     assert request.response_schema == ArchitectureGraph.model_json_schema()
     assert request.response_schema_name == "architecture_graph"
     assert proposal.graph is graph
     assert proposal.raw_content == client.result.content
     assert proposal.usage == client.result.usage
-    assert proposal.latency_seconds == 0.25
+    assert proposal.latency_seconds == pytest.approx(0.25)
 
 
 @pytest.mark.parametrize("mode", [DesignTaskMode.INITIAL, DesignTaskMode.REPAIR])
@@ -259,13 +259,13 @@ def test_api_designer_builds_typed_request_and_parses_result(
     )
     assert request.response_schema == ApiDesign.model_json_schema()
     assert request.response_schema_name == "api_design"
-    assert request.temperature == 0.3
+    assert request.temperature == pytest.approx(0.3)
     assert request.max_tokens == 512
-    assert request.timeout_seconds == 9.0
+    assert request.timeout_seconds == pytest.approx(9.0)
     assert proposal.payload is api_design
     assert proposal.raw_content == client.result.content
     assert proposal.usage == client.result.usage
-    assert proposal.latency_seconds == 0.25
+    assert proposal.latency_seconds == pytest.approx(0.25)
 
 
 @pytest.mark.parametrize("mode", [DesignTaskMode.INITIAL, DesignTaskMode.REPAIR])
@@ -300,7 +300,7 @@ def test_sequence_designer_builds_roles_request_and_parses_result(
     assert proposal.payload is catalog
     assert proposal.raw_content == client.result.content
     assert proposal.usage == client.result.usage
-    assert proposal.latency_seconds == 0.25
+    assert proposal.latency_seconds == pytest.approx(0.25)
 
 
 @pytest.mark.parametrize("mode", [DesignTaskMode.INITIAL, DesignTaskMode.REPAIR])
@@ -341,4 +341,4 @@ def test_sequence_designer_builds_interaction_request_and_parses_result(
     assert proposal.payload is interaction
     assert proposal.raw_content == client.result.content
     assert proposal.usage == client.result.usage
-    assert proposal.latency_seconds == 0.25
+    assert proposal.latency_seconds == pytest.approx(0.25)

@@ -116,9 +116,9 @@ def test_maps_verified_fields_into_pipeline_compatible_scenario() -> None:
     assert result.scenario.identifier == "spec"
     assert result.scenario.description == FUNCTIONAL
     assert result.scenario.workload is not None
-    assert result.scenario.workload.baseline_requests_per_second == 120.0
-    assert result.scenario.workload.peak_requests_per_second == 400.0
-    assert result.scenario.workload.read_ratio == 0.7
+    assert result.scenario.workload.baseline_requests_per_second == pytest.approx(120.0)
+    assert result.scenario.workload.peak_requests_per_second == pytest.approx(400.0)
+    assert result.scenario.workload.read_ratio == pytest.approx(0.7)
     assert len(result.scenario.requirements) == 2
     assert result.scenario.functional_requirements[0].identifier == "FR-001"
     assert result.field_evidence["workload.baseline_requests_per_second"] == BASELINE

@@ -128,7 +128,7 @@ class TestDesignGenerationService:
         assert len(result.attempts) == 1
         assert result.attempts[0].validation is not None
         assert result.attempts[0].validation.is_successful
-        assert result.attempts[0].latency_seconds == 5.0
+        assert result.attempts[0].latency_seconds == pytest.approx(5.0)
         assert result.graph is result.attempts[0].payload
         assert result.total_usage == TokenUsage(prompt_tokens=100, completion_tokens=50)
         assert len(designer.received_tasks) == 1
