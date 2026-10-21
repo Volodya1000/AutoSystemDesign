@@ -24,9 +24,11 @@ from reportlab.platypus import (
 )
 
 from application.performance_analysis.protocols import PdfRenderingUnavailableError
+
 if TYPE_CHECKING:
-    from domain.performance_analysis.report import PerformanceAnalysisReport
     from reportlab.pdfgen.canvas import Canvas
+
+    from domain.performance_analysis.report import PerformanceAnalysisReport
 
 _FONT_NAME = "ASDPerformanceSans"
 _FONT_PATHS: tuple[Path, ...] = (
