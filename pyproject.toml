@@ -94,13 +94,6 @@ extend-select = [
     "E501",   # Apply the configured 88-column line limit consistently.
 ]
 # Fix all enabled lint findings without inline suppressions.
-allowed-confusables = ["а", "е", "о", "р", "с", "С"]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [
-    "S101",    # Allow assertions in tests.
-    "PLR2004", # Keep readable literal expectations in tests.
-]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
@@ -109,18 +102,6 @@ max-complexity = 10
 python_version = "3.13"
 strict = true
 mypy_path = "src"
-
-[tool.pylint."messages control"]
-disable = [
-    "import-outside-toplevel",
-    "inconsistent-return-statements",
-    "missing-docstring",
-    "redefined-outer-name",
-    "too-few-public-methods",
-    "too-many-arguments",
-    "too-many-positional-arguments",
-    "unused-argument",
-]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

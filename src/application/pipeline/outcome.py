@@ -38,9 +38,6 @@ class DiagramRenderResult:
     image_rendered: bool = False
 
 
-# pylint: disable=too-many-instance-attributes
-
-
 @dataclass(frozen=True)
 class StageOutcome[PayloadT]:
     """Everything downstream stages, reporters, and tests inspect."""
