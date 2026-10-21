@@ -42,7 +42,7 @@ jobs:
       - name: Run type checking
         run: uv run mypy --strict src tests scripts
       - name: Run pylint
-        run: uv run pylint --disable=duplicate-code src tests scripts
+        run: uv run pylint src tests scripts
 
   architecture:
     name: Architecture import rules
