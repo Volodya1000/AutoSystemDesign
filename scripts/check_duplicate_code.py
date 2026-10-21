@@ -24,6 +24,13 @@ MODULE_LOCATION = re.compile(r"^==(.+?):\[(\d+):(\d+)\]$")
 EXPECTED_IF_MODULES_COUNT = 2
 
 
+class CommandExecutionError(RuntimeError):
+    """A child process exited with an unsuccessful status."""
+
+    def __init__(self, exit_code: int) -> None:
+        super().__init__(f"Command failed with exit code {exit_code}")
+
+
 class ProcessResult(NamedTuple):
     """Captured output from an asynchronously started process."""
 
@@ -53,7 +60,7 @@ def run_process(
 
     result = asyncio.run(execute())
     if check and result.returncode != 0:
-        raise RuntimeError(f"Command failed with exit code {result.returncode}")
+        raise CommandExecutionError(result.returncode)
     return result
 
 

@@ -7,14 +7,10 @@ validators, and by the metrics aggregator.
 
 from __future__ import annotations
 
-from collections import deque
 from typing import TYPE_CHECKING
 
-from domain.exceptions.model_validation_errors import (
-    ModelValidationCode,
-    ModelValidationError,
-)
 from domain.models.nodes import CacheNode, ClientNode
+from domain.specifications.topological_order import topological_order
 
 if TYPE_CHECKING:
     from domain.models.edges import Edge
@@ -57,39 +53,6 @@ def _propagate_flows(
                 flows[edge.target_identifier] += share
 
 
-def _topological_order(graph: ArchitectureGraph) -> list[str]:
-    """Return node identifiers in Kahn topological order.
-
-    Raises ValueError when the graph contains a cycle. Structural
-    validation normally guarantees a DAG; this is a defensive contract check.
-    """
-    node_ids: list[str] = [node.identifier for node in graph.nodes]
-    in_degree: dict[str, int] = dict.fromkeys(node_ids, 0)
-    adjacency: dict[str, list[str]] = {identifier: [] for identifier in node_ids}
-
-    for edge in graph.edges:
-        if edge.source_identifier in adjacency and edge.target_identifier in in_degree:
-            adjacency[edge.source_identifier].append(edge.target_identifier)
-            in_degree[edge.target_identifier] += 1
-
-    queue: deque[str] = deque(
-        identifier for identifier in node_ids if in_degree[identifier] == 0
-    )
-    order: list[str] = []
-
-    while queue:
-        current = queue.popleft()
-        order.append(current)
-        for target in adjacency[current]:
-            in_degree[target] -= 1
-            if in_degree[target] == 0:
-                queue.append(target)
-
-    if len(order) != len(node_ids):
-        raise ModelValidationError(ModelValidationCode.TOPOLOGY_CYCLE)
-    return order
-
-
 def compute_node_incoming_rps(
     graph: ArchitectureGraph,
     workload: WorkloadProfile,
@@ -111,7 +74,9 @@ def compute_node_incoming_rps(
 
     # Detect cycles even when there are no clients: a cyclic graph is never
     # a valid pipeline input, and tests expect a defensive ValueError.
-    order: list[str] = _topological_order(graph)
+    order: list[str] = topological_order(
+        [node.identifier for node in graph.nodes], graph.edges
+    )
 
     clients: list[ClientNode] = [
         node for node in graph.nodes if isinstance(node, ClientNode)

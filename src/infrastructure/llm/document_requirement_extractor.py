@@ -20,7 +20,7 @@ class LlmDocumentRequirementExtractor(StructuredOutputAdapter):
             source_name_json=encode_prompt_data(source_name),
             text_json=encode_prompt_data(text),
         )
-        return self._complete_response(
+        return self.complete_response(
             system_prompt=SYSTEM_PROMPT,
             user_prompt=user_prompt,
             response_model=ExtractionChunk,

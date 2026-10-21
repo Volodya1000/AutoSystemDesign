@@ -53,7 +53,7 @@ class StructuredOutputAdapter:
         self._settings = settings
         self._client: CompletionClient = client or LiteLlmClient(settings)
 
-    def _complete_response(
+    def complete_response(
         self,
         *,
         system_prompt: str,

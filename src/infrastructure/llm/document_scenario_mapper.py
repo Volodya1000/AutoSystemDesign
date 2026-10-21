@@ -29,7 +29,7 @@ class LlmDocumentScenarioMapper(StructuredOutputAdapter):
                 DocumentScenarioExtraction.model_json_schema()
             ),
         )
-        return self._complete_response(
+        return self.complete_response(
             system_prompt=SYSTEM_PROMPT,
             user_prompt=user_prompt,
             response_model=DocumentScenarioExtraction,

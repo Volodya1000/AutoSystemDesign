@@ -66,6 +66,10 @@ mypy_path = "src"
 [tool.pylint."messages control"]
 disable = ["missing-docstring"]
 
+[tool.pylint.main]
+# Allow Pylint to inspect mypy's compiled API instead of reporting a false member error.
+extension-pkg-allow-list = ["mypy.api"]
+
 [tool.pylint.design]
 # Single-purpose validators, protocols, and adapters legitimately expose one operation.
 min-public-methods = 1

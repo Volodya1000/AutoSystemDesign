@@ -9,7 +9,6 @@ exceeds the SLA, the 99th percentile cannot pass either.
 from __future__ import annotations
 
 import math
-from collections import deque
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -24,6 +23,7 @@ from domain.exceptions.model_validation_errors import (
 from domain.models.nodes import CapacityNode, ClientNode
 from domain.models.requirements import LatencyRequirement
 from domain.specifications.interfaces import ScenarioValidator, ValidationResult
+from domain.specifications.topological_order import topological_order
 from domain.specifications.traffic_flow import compute_node_incoming_rps
 
 if TYPE_CHECKING:
@@ -109,34 +109,6 @@ def _reconstruct_path(
     return path, edge_latencies
 
 
-def _topological_order(node_ids: list[str], edges: list[Edge]) -> list[str]:
-    """Kahn topological order over the supplied edge subset."""
-    in_degree: dict[str, int] = dict.fromkeys(node_ids, 0)
-    adjacency: dict[str, list[str]] = {identifier: [] for identifier in node_ids}
-
-    for edge in edges:
-        if edge.source_identifier in adjacency and edge.target_identifier in in_degree:
-            adjacency[edge.source_identifier].append(edge.target_identifier)
-            in_degree[edge.target_identifier] += 1
-
-    queue: deque[str] = deque(
-        identifier for identifier in node_ids if in_degree[identifier] == 0
-    )
-    order: list[str] = []
-
-    while queue:
-        current = queue.popleft()
-        order.append(current)
-        for target in adjacency[current]:
-            in_degree[target] -= 1
-            if in_degree[target] == 0:
-                queue.append(target)
-
-    if len(order) != len(node_ids):
-        raise ModelValidationError(ModelValidationCode.TOPOLOGY_CYCLE)
-    return order
-
-
 def _node_sojourn_ms(node: CapacityNode, incoming_rps: float) -> float:
     """Mean sojourn time via Allen-Cunneen.
 
@@ -211,7 +183,7 @@ def compute_critical_path(
         )
 
     sync_edges = [edge for edge in graph.edges if not edge.protocol.is_asynchronous]
-    order = _topological_order(node_ids, sync_edges)
+    order = topological_order(node_ids, sync_edges)
     dist, predecessor, pred_edge_latency = _longest_path_dp(
         node_ids, order, sync_edges, node_latencies
     )
