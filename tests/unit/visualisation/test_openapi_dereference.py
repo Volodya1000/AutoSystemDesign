@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     import pytest
 
 
-def _chat_spec() -> dict:
+def _chat_spec() -> dict[str, object]:
     """Create a small but realistic OpenAPI document with $refs in several places."""
     return {
         "openapi": "3.1.0",
