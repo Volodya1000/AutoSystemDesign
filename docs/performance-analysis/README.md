@@ -117,7 +117,7 @@
   реальные компоненты и файловый writer с заранее известными числами.
 - [Опубликованная JSON Schema v1](report.schema.json) и
   [её экспортёр](../../scripts/export_performance_schema.py).
-- [Этап 13: сквозные тесты и схема](13-e2e-and-schema.md). 
+- [Этап 13: сквозные тесты и схема](13-e2e-and-schema.md).
 - [Чек-лист интеграции](ROOT_PR_ACCEPTANCE.md) остаётся обязательным до
   фактического merge в главную feature-ветку #90.
 
