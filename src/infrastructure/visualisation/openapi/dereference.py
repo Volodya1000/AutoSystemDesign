@@ -30,7 +30,7 @@ def _split_pointer(pointer: str) -> list[str]:
     "" -> []; "/" -> [""]; "/a/b" -> ["a", "b"]; "//" -> ["", ""].
     Only "~1" ("/") and "~0" ("~") escapes are decoded, in that order.
     """
-    if pointer == "":
+    if not pointer:
         return []
     return [
         segment.replace("~1", "/").replace("~0", "~")
