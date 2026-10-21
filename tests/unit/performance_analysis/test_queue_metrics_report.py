@@ -104,9 +104,7 @@ def test_asynchronous_branch_does_not_extend_caller_path() -> None:
             create_test_compute_node("async_worker"),
         ],
         edges=[
-            create_test_edge(
-                "client", "service", routing_mode=EdgeRoutingMode.FAN_OUT
-            ),
+            create_test_edge("client", "service", routing_mode=EdgeRoutingMode.FAN_OUT),
             Edge(
                 source_identifier="client",
                 target_identifier="async_worker",
