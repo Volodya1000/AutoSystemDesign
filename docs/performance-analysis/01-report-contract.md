@@ -17,6 +17,8 @@
 | `status` | Полнота анализа: `complete`, `partial` или `unavailable`. |
 | `nodes` | Метрики по узлам архитектуры. |
 | `findings` | Диагностические сообщения, связанные с рисками или наблюдениями. |
+| `estimated_longest_synchronous_path_mean_milliseconds` | Максимум средних оценок **синхронных путей** от клиента в миллисекундах, а не среднее время завершения параллельного запроса. При недоступной оценке `null`. |
+| `critical_path_node_identifiers` | Узлы выбранного синхронного пути. Пустой список, если путь не оценён. |
 
 ### Статус отчёта и статусы генерации
 
@@ -30,6 +32,10 @@
 успешно ли завершилась генерация и валидация предложения LLM. Это также не `StageStatus`,
 который управляет результатом стадии конвейера. Их значения похожи внешне, но отвечают на
 разные вопросы и принадлежат разным слоям; импортировать application-статус в domain нельзя.
+
+Новые поля критического пути добавлены в PR 9 и остаются необязательными для
+обратной совместимости существующего JSON. Вычисления, тесты и ограничения
+описаны в [09-queue-metrics-json-report.md](09-queue-metrics-json-report.md).
 
 ## Метрики узла
 
@@ -133,6 +139,8 @@
   "scenario_identifier": "online_store",
   "status": "unavailable",
   "nodes": [],
+  "estimated_longest_synchronous_path_mean_milliseconds": null,
+  "critical_path_node_identifiers": [],
   "findings": [
     {
       "finding_code": "workload_missing",

@@ -27,7 +27,7 @@ def test_mypy_rejects_builder_for_the_wrong_subject_type(
     )
 
     mypy_api = import_module("mypy.api")
-    mypy_run = getattr(mypy_api, "run")
+    mypy_run = mypy_api.run
     stdout, stderr, exit_status = mypy_run(
         [
             "--config-file",

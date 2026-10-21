@@ -97,11 +97,22 @@ def build_performance_analysis_report(
         scenario_identifier=scenario.identifier,
         status=(
             PerformanceAnalysisStatus.PARTIAL
-            if unavailable_latency_nodes or latency_slo_finding is not None
+            if (
+                unavailable_latency_nodes
+                or latency_slo_finding is not None
+                or critical_path is None
+                or critical_path.total_latency_ms is None
+            )
             else PerformanceAnalysisStatus.COMPLETE
         ),
         nodes=node_metrics,
         findings=findings,
+        estimated_longest_synchronous_path_mean_milliseconds=(
+            critical_path.total_latency_ms if critical_path is not None else None
+        ),
+        critical_path_node_identifiers=(
+            list(critical_path.path_node_ids) if critical_path is not None else []
+        ),
     )
 
 
