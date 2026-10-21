@@ -121,6 +121,7 @@ def create_test_latency_graph(
     *,
     service_channels_per_replica: int | None = None,
     concurrency: int = 1,
+    queue_size: int = 500,
 ) -> ArchitectureGraph:
     """Build a low-load graph whose mean response time exceeds a tiny p99 target."""
     return ArchitectureGraph(
@@ -132,6 +133,7 @@ def create_test_latency_graph(
                 mean_ms=10.0,
                 std_ms=10.0,
                 service_channels_per_replica=service_channels_per_replica,
+                queue_size=queue_size,
             ),
         ],
         edges=[create_test_edge("client", "service")],
