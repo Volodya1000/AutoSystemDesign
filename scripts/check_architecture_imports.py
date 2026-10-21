@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 import shutil
+import sys
 from pathlib import Path
 
 
@@ -22,19 +23,23 @@ def main() -> int:
     if uvx_executable is None:
         raise RuntimeError
 
-    async def run_linter() -> int:
-        process = await asyncio.create_subprocess_exec(
-            uvx_executable,
-            "--from",
-            "import-linter==2.15",
-            "lint-imports",
-            cwd=root,
-            env=env,
-        )
-        return await process.wait()
+    return asyncio.run(_run_linter(uvx_executable, root, env))
 
-    return asyncio.run(run_linter())
+
+async def _run_linter(
+    executable: str, root: Path, environment: dict[str, str]
+) -> int:
+    """Launch import-linter with the repository's Python import path."""
+    process = await asyncio.create_subprocess_exec(
+        executable,
+        "--from",
+        "import-linter==2.15",
+        "lint-imports",
+        cwd=root,
+        env=environment,
+    )
+    return await process.wait()
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())
