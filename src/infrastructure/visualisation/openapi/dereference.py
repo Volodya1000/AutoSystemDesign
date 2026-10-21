@@ -62,7 +62,7 @@ def _lookup_pointer(document: object, pointer: str) -> object:
     return current
 
 
-def _recursive_stub(ref: str) -> dict:
+def _recursive_stub(ref: str) -> dict[str, object]:
     """Emit a placeholder instead of re-entering a cyclic reference."""
     return {
         "type": "object",
@@ -74,7 +74,7 @@ def _recursive_stub(ref: str) -> dict:
     }
 
 
-def _unresolved_stub(ref: str) -> dict:
+def _unresolved_stub(ref: str) -> dict[str, object]:
     """Emit a placeholder for a dangling or malformed reference."""
     return {"description": f"Unresolved reference: {ref}"}
 
@@ -93,7 +93,7 @@ def _dereference(node: object, active: tuple[str, ...], root: object) -> object:
         ref = node.get("$ref")
         if isinstance(ref, str) and ref.startswith("#"):
             pointer: str = ref[1:]
-            siblings: dict = {
+            siblings: dict[str, object] = {
                 key: _dereference(value, active, root)
                 for key, value in node.items()
                 if key != "$ref"
@@ -125,7 +125,7 @@ def _dereference(node: object, active: tuple[str, ...], root: object) -> object:
     return node
 
 
-def dereference_internal_refs(spec: dict) -> dict:
+def dereference_internal_refs(spec: dict[str, object]) -> dict[str, object]:
     """Return a rebuilt copy of *spec* with all internal ``$ref`` inlined.
 
     Why: Swagger UI resolves ``$ref`` pointers at runtime. Even when the
