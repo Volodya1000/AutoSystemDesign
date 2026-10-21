@@ -62,8 +62,8 @@ def _longest_path_dp(
     dist: dict[str, float] = {
         identifier: node_latencies.get(identifier, 0.0) for identifier in node_ids
     }
-    predecessor: dict[str, str | None] = {identifier: None for identifier in node_ids}
-    pred_edge_latency: dict[str, float] = {identifier: 0.0 for identifier in node_ids}
+    predecessor: dict[str, str | None] = dict.fromkeys(node_ids)
+    pred_edge_latency: dict[str, float] = dict.fromkeys(node_ids, 0.0)
 
     for node_id in order:
         for edge in outgoing.get(node_id, []):
@@ -111,7 +111,7 @@ def _reconstruct_path(
 
 def _topological_order(node_ids: list[str], edges: list[Edge]) -> list[str]:
     """Kahn topological order over the supplied edge subset."""
-    in_degree: dict[str, int] = {identifier: 0 for identifier in node_ids}
+    in_degree: dict[str, int] = dict.fromkeys(node_ids, 0)
     adjacency: dict[str, list[str]] = {identifier: [] for identifier in node_ids}
 
     for edge in edges:
