@@ -85,10 +85,10 @@ def test_known_unsupported_types_receive_explicit_reasons() -> None:
     validation = RequirementValidationDispatcher([]).validate(_graph(), scenario)
     assert not validation.errors
     assert [item.reason for item in validation.requirement_assessments] == [
-        RequirementCheckReason.RELIABILITY_MODEL_UNAVAILABLE,
-        RequirementCheckReason.PERCENTILE_UNMODELED,
-        RequirementCheckReason.PERCENTILE_UNMODELED,
-        RequirementCheckReason.TARGET_SCOPE_UNSPECIFIED,
+        RequirementCheckReason.NO_VALIDATOR,
+        RequirementCheckReason.NO_VALIDATOR,
+        RequirementCheckReason.NO_VALIDATOR,
+        RequirementCheckReason.NO_VALIDATOR,
     ]
     assert all(
         item.status is RequirementCheckStatus.NOT_EVALUATED
@@ -188,4 +188,34 @@ def test_duplicate_assessment_cannot_overwrite_another_result() -> None:
         scenario, graph_accepted=True, validation=validation
     )
     assert report.status is RequirementCoverageStatus.INCOMPLETE
-    assert report.requirements[0].reason is RequirementCheckReason.AMBIGUOUS_EVIDENCE
+    assert report.requirements[0].reason is RequirementCheckReason.INVALID_EVIDENCE
+
+
+def test_type_mismatched_evidence_is_not_accepted() -> None:
+    """Reject an assessment tied to the wrong requirement kind."""
+    scenario = _scenario(BudgetRequirement(threshold_value=200.0))
+    validation = RequirementValidationDispatcher(
+        [BudgetRequirementValidator()]
+    ).validate(_graph(), scenario)
+    validation.requirement_assessments[0].type_identifier = "latency"
+
+    report = build_requirement_coverage_report(
+        scenario, graph_accepted=True, validation=validation
+    )
+    assert report.status is RequirementCoverageStatus.INCOMPLETE
+    assert report.requirements[0].reason is RequirementCheckReason.INVALID_EVIDENCE
+
+
+def test_workload_requirement_flag_is_not_part_of_scenario_payload() -> None:
+    """Keep prerequisite metadata internal rather than expanding YAML schema."""
+    dependent_requirements = (
+        LatencyRequirement(threshold_value=150.0),
+        QueueSizePercentileRequirement(threshold_value=10.0),
+        ResourceUtilizationRequirement(minimum_value=0.0, maximum_value=80.0),
+    )
+    for requirement in dependent_requirements:
+        assert requirement.requires_workload
+        assert "requires_workload" not in requirement.model_dump()
+
+    assert not BudgetRequirement(threshold_value=100.0).requires_workload
+    assert not AvailabilityRequirement(threshold_value=99.9).requires_workload

@@ -19,12 +19,6 @@ from domain.models.requirement_coverage import (
     RequirementCheckStatus,
     requirement_identifier,
 )
-from domain.models.requirements import (
-    AvailabilityRequirement,
-    LatencyRequirement,
-    QueueSizePercentileRequirement,
-    ResourceUtilizationRequirement,
-)
 from domain.specifications.interfaces import (
     RequirementValidator,
     ScenarioValidator,
@@ -74,9 +68,10 @@ class RequirementValidationDispatcher(ScenarioValidator):
                     RequirementAssessment.not_evaluated(
                         identifier=identifier,
                         kind=kind,
-                        reason=_unsupported_reason(
-                            requirement,
-                            workload_missing=scenario.workload is None,
+                        reason=(
+                            RequirementCheckReason.MISSING_WORKLOAD
+                            if scenario.workload is None and requirement.requires_workload
+                            else RequirementCheckReason.NO_VALIDATOR
                         ),
                     )
                 )
@@ -98,22 +93,3 @@ class RequirementValidationDispatcher(ScenarioValidator):
             )
         return ValidationResult(errors=errors, requirement_assessments=assessments)
 
-
-def _unsupported_reason(
-    requirement: BaseRequirement, *, workload_missing: bool
-) -> RequirementCheckReason:
-    """Use typed requirement classes, never heuristic name comparisons."""
-    load_dependent = (
-        LatencyRequirement,
-        QueueSizePercentileRequirement,
-        ResourceUtilizationRequirement,
-    )
-    if workload_missing and isinstance(requirement, load_dependent):
-        return RequirementCheckReason.MISSING_WORKLOAD
-    if isinstance(requirement, (LatencyRequirement, QueueSizePercentileRequirement)):
-        return RequirementCheckReason.PERCENTILE_UNMODELED
-    if isinstance(requirement, ResourceUtilizationRequirement):
-        return RequirementCheckReason.TARGET_SCOPE_UNSPECIFIED
-    if isinstance(requirement, AvailabilityRequirement):
-        return RequirementCheckReason.RELIABILITY_MODEL_UNAVAILABLE
-    return RequirementCheckReason.NO_VALIDATOR

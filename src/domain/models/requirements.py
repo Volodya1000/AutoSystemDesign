@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated, ClassVar, Literal
 
 from pydantic import Field
 
@@ -12,11 +12,13 @@ from domain.models.enums import Operator
 
 class LatencyRequirement(PercentileThresholdRequirement):
     type_identifier: Literal["latency"] = "latency"
+    requires_workload: ClassVar[bool] = True
     operator: Operator = Operator.LESS_THAN_OR_EQUAL
 
 
 class QueueSizePercentileRequirement(PercentileThresholdRequirement):
     type_identifier: Literal["queue_size_percentile"] = "queue_size_percentile"
+    requires_workload: ClassVar[bool] = True
     operator: Operator = Operator.LESS_THAN_OR_EQUAL
 
 
@@ -33,6 +35,7 @@ class AvailabilityRequirement(ThresholdRequirement):
 
 class ResourceUtilizationRequirement(IntervalRequirement):
     type_identifier: Literal["resource_utilization"] = "resource_utilization"
+    requires_workload: ClassVar[bool] = True
     minimum_value: float = Field(ge=0.0, le=100.0)
     maximum_value: float = Field(ge=0.0, le=100.0)
 

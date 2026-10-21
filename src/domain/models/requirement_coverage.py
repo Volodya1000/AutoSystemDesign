@@ -15,17 +15,30 @@ class RequirementCheckStatus(StrEnum):
 
 
 class RequirementCheckReason(StrEnum):
-    """Stable explanations for missing evidence."""
+    """Explain why an NFR check produced NOT_EVALUATED, not a failure verdict.
 
+    This is one primary reason, not a complete list of missing prerequisites.
+    The requirement's type_identifier already identifies the unsupported metric.
+    """
+
+    # Нет зарегистрированного валидатора для этого типа требования.
+    # Например, проверка availability пока не реализована.
     NO_VALIDATOR = "no_validator"
+
+    # Не задан workload для требования, зависящего от нагрузки.
+    # Важно: добавление workload само по себе не создаёт отсутствующий валидатор.
     MISSING_WORKLOAD = "missing_workload"
-    PERCENTILE_UNMODELED = "percentile_unmodeled"
-    RELIABILITY_MODEL_UNAVAILABLE = "reliability_model_unavailable"
-    TARGET_SCOPE_UNSPECIFIED = "target_scope_unspecified"
+
+    # Нет результата валидации: например, LLM не выдала разбираемый C4-граф.
     GRAPH_UNAVAILABLE = "graph_unavailable"
+
+    # Граф оценивали, но саму архитектуру не приняли из-за других ошибок.
+    # Даже успешная проверка бюджета такого графа не доказывает пригодность проекта.
     GRAPH_UNACCEPTED = "graph_unaccepted"
-    AMBIGUOUS_EVIDENCE = "ambiguous_evidence"
-    EVIDENCE_TYPE_MISMATCH = "evidence_type_mismatch"
+
+    # Внутренняя ошибка сопоставления: два результата с одним ID или несовпадение
+    # типа результата и требования. Нельзя выбирать один результат наугад.
+    INVALID_EVIDENCE = "invalid_evidence"
 
 
 class RequirementAssessment(BaseModel):
