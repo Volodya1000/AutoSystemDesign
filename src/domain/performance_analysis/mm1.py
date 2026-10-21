@@ -16,11 +16,24 @@ def compute_mm1_metrics(
     arrival_rate_requests_per_second: float,
     service_rate_requests_per_second: float,
 ) -> QueueingMetrics:
-    """Calculate M/M/1 mean queue wait and response time.
+    """Calculate exact steady-state M/M/1 queueing estimates.
 
-    Rates are measured in requests per second. The model assumes a Poisson
-    arrival process, exponentially distributed service times, one independent
-    server, and an unbounded queue in steady state.
+    Kendall's A/S/c notation: the first M means Poisson arrivals
+    (exponentially distributed interarrival times), the second M means
+    exponentially distributed service times, and 1 means one service channel.
+
+    Let lambda = arrival_rate_requests_per_second (requests/second) and
+    mu = service_rate_requests_per_second (requests/second, ONE channel).
+
+        rho = lambda / mu                 # utilization, dimensionless
+        Wq  = lambda / [mu * (mu-lambda)] # mean queue waiting, seconds
+        W   = 1 / (mu-lambda)            # mean wait + service, seconds
+
+    The code multiplies seconds by 1000 to return milliseconds. A finite
+    stationary mean exists only if lambda < mu. Otherwise the time fields
+    are unavailable (None), not zero. This model assumes infinite waiting
+    capacity and FIFO; it does not predict real-world p95/p99 or losses.
+    See docs/performance-analysis/QUEUEING_THEORY_FOR_BEGINNERS.md.
     """
     validate_queueing_rates(
         arrival_rate_requests_per_second,
