@@ -16,6 +16,8 @@ from domain.models.requirements import Requirement
 
 
 class WorkloadProfile(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     baseline_requests_per_second: float = Field(gt=0.0)
     peak_requests_per_second: float = Field(gt=0.0)
     read_ratio: float = Field(default=0.8, ge=0.0, le=1.0)
@@ -32,7 +34,7 @@ class WorkloadProfile(BaseModel):
 
 
 class DesignScenario(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     identifier: str = Field(
         default="project",
