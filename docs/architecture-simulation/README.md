@@ -1,6 +1,6 @@
 # Имитационная проверка архитектуры: SimPy
 
-**Статус: проектирование, реализации пока нет.** Эта папка описывает новую, отдельную от аналитического анализа производительности фичу AutoSystemDesign.
+**Статус: контракт отчёта и минимальное ядро одного узла реализованы; полная симуляция C4 и отчёт пока не реализованы.** Эта папка описывает новую, отдельную от аналитического анализа производительности фичу AutoSystemDesign.
 
 ## Начать с результата
 
@@ -23,7 +23,8 @@
 3. [Семантика дискретно-событийной модели](MODEL_SEMANTICS.md) — что именно моделируется узлами, рёбрами и очередями.
 4. [ROADMAP](ROADMAP.md) — маленькие последовательные PR, зависимости и критерии выхода.
 5. [Чек-лист приёмки](ROOT_PR_ACCEPTANCE.md) — независимые числовые проверки, CI, ручные прогоны и принятие GO/NO-GO.
-6. [Индекс PR](PR_INDEX.md) — журнал изменений, который заполняется после создания реальных PR.
+6. [Контракт и настройки](01-contract-and-settings.md) → [первые события SimPy](02-single-node-kernel.md) — учебные материалы по реализованным этапам.
+7. [Индекс PR](PR_INDEX.md) — журнал изменений и ревью.
 
 ## Связь с существующим кодом
 
@@ -31,6 +32,7 @@
 - [Граф](../../src/domain/models/topology.py), [узлы](../../src/domain/models/nodes.py), [рёбра](../../src/domain/models/edges.py), [протоколы](../../src/domain/models/protocols.py) — уже существующая предметная схема.
 - [Нефункциональные требования](../../src/domain/models/requirements.py), [сценарий](../../src/domain/models/scenarios.py) — входные ограничения и нагрузка.
 - [Контракт отчёта SimPy](../../src/domain/architecture_simulation/report.py) и [параметры симуляции](../../src/domain/architecture_simulation/configuration.py) — реализация этапа 1; [учебная глава о контракте и настройках](01-contract-and-settings.md), [контрактные тесты](../../tests/unit/architecture_simulation/test_report.py).
+- [Минимальный SimPy-движок](../../src/infrastructure/architecture_simulation/simpy_engine.py), [договор engine](../../src/application/architecture_simulation/protocols.py) и [модели расписания](../../src/domain/architecture_simulation/kernel.py) — реализация этапа 2; [числовые тесты](../../tests/unit/architecture_simulation/test_simpy_engine.py).
 - [Стадии конвейера](../../src/application/pipeline/stage.py), [композиция](../../src/infrastructure/composition.py) — точка интеграции после C4.
 - [PDF-рендерер аналитического отчёта](../../src/infrastructure/performance_analysis/pdf_renderer.py) и [его протокол](../../src/application/performance_analysis/protocols.py) — источник повторно используемой типографики, шрифтов и правил деградации.
 
