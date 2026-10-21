@@ -24,9 +24,8 @@ from reportlab.platypus import (
 )
 
 from application.performance_analysis.protocols import PdfRenderingUnavailableError
-from domain.performance_analysis.report import PerformanceAnalysisReport
-
 if TYPE_CHECKING:
+    from domain.performance_analysis.report import PerformanceAnalysisReport
     from reportlab.pdfgen.canvas import Canvas
 
 _FONT_NAME = "ASDPerformanceSans"
@@ -228,10 +227,11 @@ class PerformanceReportPdfRenderer:
         )
         font_path = next((path for path in candidates if path.is_file()), None)
         if font_path is None:
-            raise PdfFontUnavailableError(
+            message = (
                 "A Unicode TrueType font is required for the PDF report. "
                 "Pass font_path to PerformanceReportPdfRenderer."
             )
+            raise PdfFontUnavailableError(message)
         if _FONT_NAME not in pdfmetrics.getRegisteredFontNames():
             pdfmetrics.registerFont(TTFont(_FONT_NAME, str(font_path)))
         return _FONT_NAME
