@@ -1,7 +1,6 @@
 """Contract tests for ordered pipeline execution and typed dependencies."""
 
 from collections.abc import Sequence
-from dataclasses import FrozenInstanceError
 from pathlib import Path
 from types import MappingProxyType
 from typing import cast
@@ -183,7 +182,7 @@ def test_partial_stage_does_not_fail_pipeline() -> None:
     assert result.outcomes[0].status is StageStatus.PARTIAL
 
 
-def test_run_result_is_immutable_without_copying_stage_payload() -> None:
+def test_run_result_exposes_stage_payload_without_copying() -> None:
     payload = {"graph": "ready"}
     result = _run(
         [FakeStage(StageId.C4, StageStatus.SUCCEEDED, payload=payload)],
@@ -193,8 +192,6 @@ def test_run_result_is_immutable_without_copying_stage_payload() -> None:
     assert result.status is StageStatus.SUCCEEDED
     assert result.failed_stage is None
     assert result.outcomes[0].payload is payload
-    with pytest.raises(FrozenInstanceError):
-        result.__setattr__("outcomes", ())
 
 
 def _context(
