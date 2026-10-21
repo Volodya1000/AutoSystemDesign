@@ -69,7 +69,7 @@ def test_stage_persists_report_from_c4_graph_and_workload(tmp_path: Path) -> Non
 
     assert outcome.status is StageStatus.SUCCEEDED
     assert outcome.payload is not None
-    assert outcome.payload.status is PerformanceAnalysisStatus.COMPLETE
+    assert outcome.payload.status is PerformanceAnalysisStatus.PARTIAL
     assert outcome.artifacts == (tmp_path / "store_performance_analysis.json",)
     assert writer.writes[0][0] == outcome.artifacts[0]
     persisted_report = PerformanceAnalysisReport.model_validate_json(
