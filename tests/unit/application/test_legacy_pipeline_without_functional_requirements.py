@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.unit
 
 LEGACY_SCENARIO_YAML = """
-project_name: legacy_project
+identifier: legacy_project
 description: A legacy C4 scenario without functional requirements
 workload:
   baseline_requests_per_second: 100.0
