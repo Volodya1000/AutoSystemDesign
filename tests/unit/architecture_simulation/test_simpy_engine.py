@@ -4,10 +4,11 @@ All expected numbers follow from fixed, hand-computable event traces.
 Tests assert outcomes, not implementation strings or SimPy internals.
 """
 
+from typing import TYPE_CHECKING
+
 import pytest
 from pydantic import ValidationError
 
-from application.architecture_simulation.protocols import SimulationEngineProtocol
 from domain.architecture_simulation.kernel import (
     CompletedRequestObservation,
     ScheduledRequest,
@@ -15,6 +16,9 @@ from domain.architecture_simulation.kernel import (
     SingleNodeSimulationResult,
 )
 from infrastructure.architecture_simulation.simpy_engine import SimPySingleNodeEngine
+
+if TYPE_CHECKING:
+    from application.architecture_simulation.protocols import SimulationEngineProtocol
 
 pytestmark = pytest.mark.unit
 
