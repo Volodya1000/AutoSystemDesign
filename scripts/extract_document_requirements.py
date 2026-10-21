@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Run document-requirements extraction against a local Markdown file."""
 
 import argparse

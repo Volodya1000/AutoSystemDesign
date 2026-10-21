@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Run Import Linter with the project's src-layout package path configured."""
 
 from __future__ import annotations

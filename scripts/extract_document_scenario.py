@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Extract verified requirements into a pipeline-compatible YAML scenario."""
 
 import argparse

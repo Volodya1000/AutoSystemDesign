@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Pipeline runner: C4 Architecture -> Sequence Diagrams (N+1).
 
 Usage (from the repository root, with LM Studio running):

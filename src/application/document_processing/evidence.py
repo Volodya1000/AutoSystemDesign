@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Pure helpers for validating source citations against source text."""
 
 from collections.abc import Iterable

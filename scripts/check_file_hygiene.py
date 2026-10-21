@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Read-only checks for repository whitespace and end-of-file hygiene."""
 
 from __future__ import annotations

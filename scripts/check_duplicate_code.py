@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Fail when a changed Python file introduces a new duplicate-code pair.
 
 Pylint runs against both the PR base and the current tree. Existing similarity

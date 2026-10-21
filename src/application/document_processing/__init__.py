@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Pure helpers for document chunking, citation validation and merging."""
 
 from application.document_processing.chunking import split_document_text
