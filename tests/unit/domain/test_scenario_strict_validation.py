@@ -68,16 +68,34 @@ def test_rejects_unknown_requirement_keys() -> None:
     )
 
 
-@pytest.mark.parametrize("name_field", ["identifier", "project_name"])
-def test_accepts_both_project_name_spellings(name_field: str) -> None:
-    """Keep the documented identifier alias for older YAML scenarios."""
+def test_accepts_canonical_identifier() -> None:
+    """Accept the single documented YAML identifier field."""
     scenario = DesignScenario.model_validate(
-        {name_field: "legacy_project", "description": "Legacy C4-only scenario"}
+        {"identifier": "legacy_project", "description": "C4-only scenario"}
     )
 
     assert scenario.identifier == "legacy_project"
     assert scenario.requirements == []
     assert scenario.functional_requirements == []
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"project_name": "legacy_project"},
+        {"identifier": "canonical_project", "project_name": "legacy_project"},
+    ],
+)
+def test_rejects_obsolete_project_name(fields: dict[str, str]) -> None:
+    """Reject the obsolete field even when identifier is also present."""
+    with pytest.raises(ValidationError) as captured:
+        DesignScenario.model_validate({"description": "Valid scenario", **fields})
+
+    assert any(
+        detail["loc"] == ("project_name",)
+        and detail["type"] == "extra_forbidden"
+        for detail in captured.value.errors()
+    )
 
 
 @pytest.mark.parametrize(
