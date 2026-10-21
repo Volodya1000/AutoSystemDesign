@@ -1,7 +1,6 @@
 """Regression tests for reconciling sequence lifelines with C4 nodes."""
 
 import json
-
 from itertools import starmap
 
 import pytest
