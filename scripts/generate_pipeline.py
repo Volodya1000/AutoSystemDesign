@@ -119,9 +119,7 @@ def _log_scenario_validation_errors(path: str, error: ValidationError) -> None:
     for detail in error.errors():
         location = ".".join(str(part) for part in detail["loc"])
         description = (
-            "Unknown field"
-            if detail["type"] == "extra_forbidden"
-            else detail["msg"]
+            "Unknown field" if detail["type"] == "extra_forbidden" else detail["msg"]
         )
         _logger.error("Invalid scenario %s at '%s': %s", path, location, description)
 
