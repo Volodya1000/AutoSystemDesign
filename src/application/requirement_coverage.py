@@ -11,6 +11,7 @@ from domain.models.requirement_coverage import (
 from domain.models.scenarios import DesignScenario
 from domain.specifications.interfaces import ValidationResult
 
+
 def build_requirement_coverage_report(
     scenario: DesignScenario,
     *,
@@ -19,34 +20,34 @@ def build_requirement_coverage_report(
 ) -> RequirementCoverageReport:
     """Only explicit validation evidence can establish compliance."""
     accepted = graph_accepted
-    by_identifier = (
-        {
-            item.requirement_identifier: item
-            for item in validation.requirement_assessments
-        }
-        if validation is not None
-        else {}
-    )
+    by_identifier: dict[str, list[RequirementAssessment]] = {}
+    if validation is not None:
+        for assessment in validation.requirement_assessments:
+            by_identifier.setdefault(assessment.requirement_identifier, []).append(
+                assessment
+            )
     assessments: list[RequirementAssessment] = []
 
     for index, requirement in enumerate(scenario.requirements):
         identifier = requirement_identifier(index)
         kind = requirement.type_identifier
-        found = by_identifier.get(identifier)
-        if found is None or found.type_identifier != kind:
+        matches = by_identifier.get(identifier, [])
+        if len(matches) != 1 or matches[0].type_identifier != kind:
+            reason = RequirementCheckReason.NO_VALIDATOR
+            if validation is None:
+                reason = RequirementCheckReason.GRAPH_UNAVAILABLE
+            elif len(matches) > 1:
+                reason = RequirementCheckReason.AMBIGUOUS_EVIDENCE
+            elif matches:
+                reason = RequirementCheckReason.EVIDENCE_TYPE_MISMATCH
             assessments.append(
                 RequirementAssessment.not_evaluated(
-                    identifier=identifier,
-                    kind=kind,
-                    reason=(
-                        RequirementCheckReason.GRAPH_UNAVAILABLE
-                        if validation is None
-                        else RequirementCheckReason.NO_VALIDATOR
-                    ),
+                    identifier=identifier, kind=kind, reason=reason
                 )
             )
             continue
 
+        found = matches[0]
         if not accepted and found.status is RequirementCheckStatus.SATISFIED:
             # A passing check on a rejected candidate is not an accepted design.
             found = found.model_copy(

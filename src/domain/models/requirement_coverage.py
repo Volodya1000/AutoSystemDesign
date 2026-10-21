@@ -24,6 +24,8 @@ class RequirementCheckReason(StrEnum):
     TARGET_SCOPE_UNSPECIFIED = "target_scope_unspecified"
     GRAPH_UNAVAILABLE = "graph_unavailable"
     GRAPH_UNACCEPTED = "graph_unaccepted"
+    AMBIGUOUS_EVIDENCE = "ambiguous_evidence"
+    EVIDENCE_TYPE_MISMATCH = "evidence_type_mismatch"
 
 
 class RequirementAssessment(BaseModel):

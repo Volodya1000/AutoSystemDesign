@@ -13,6 +13,12 @@ from domain.exceptions.model_validation_errors import (
     ModelValidationCode,
     ModelValidationError,
 )
+from domain.models.requirements import (
+    AvailabilityRequirement,
+    LatencyRequirement,
+    QueueSizePercentileRequirement,
+    ResourceUtilizationRequirement,
+)
 from domain.models.requirement_coverage import (
     RequirementAssessment,
     RequirementCheckReason,
@@ -71,7 +77,8 @@ class RequirementValidationDispatcher(ScenarioValidator):
                         identifier=identifier,
                         kind=kind,
                         reason=_unsupported_reason(
-                            kind, workload_missing=scenario.workload is None
+                            requirement,
+                            workload_missing=scenario.workload is None,
                         ),
                     )
                 )
@@ -97,20 +104,20 @@ class RequirementValidationDispatcher(ScenarioValidator):
 
 
 def _unsupported_reason(
-    type_identifier: str, *, workload_missing: bool
+    requirement: BaseRequirement, *, workload_missing: bool
 ) -> RequirementCheckReason:
-    """Use explicit capability boundaries, not metric-name similarity."""
-    workload_dependent = {
-        "latency",
-        "queue_size_percentile",
-        "resource_utilization",
-    }
-    if workload_missing and type_identifier in workload_dependent:
+    """Use typed requirement classes, never heuristic name comparisons."""
+    load_dependent = (
+        LatencyRequirement,
+        QueueSizePercentileRequirement,
+        ResourceUtilizationRequirement,
+    )
+    if workload_missing and isinstance(requirement, load_dependent):
         return RequirementCheckReason.MISSING_WORKLOAD
-    if type_identifier in {"latency", "queue_size_percentile"}:
+    if isinstance(requirement, (LatencyRequirement, QueueSizePercentileRequirement)):
         return RequirementCheckReason.PERCENTILE_UNMODELED
-    if type_identifier == "resource_utilization":
+    if isinstance(requirement, ResourceUtilizationRequirement):
         return RequirementCheckReason.TARGET_SCOPE_UNSPECIFIED
-    if type_identifier == "availability":
+    if isinstance(requirement, AvailabilityRequirement):
         return RequirementCheckReason.RELIABILITY_MODEL_UNAVAILABLE
     return RequirementCheckReason.NO_VALIDATOR

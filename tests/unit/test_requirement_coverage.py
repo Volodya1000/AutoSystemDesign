@@ -23,7 +23,6 @@ from domain.models.requirements import (
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.budget_validator import BudgetRequirementValidator
-from domain.specifications.interfaces import ValidationResult
 from domain.specifications.requirement_dispatch import RequirementValidationDispatcher
 
 pytestmark = pytest.mark.unit
@@ -170,3 +169,16 @@ def test_missing_graph_marks_all_requirements_not_evaluated() -> None:
     )
     assert report.status is RequirementCoverageStatus.INCOMPLETE
     assert report.requirements[0].reason is RequirementCheckReason.GRAPH_UNAVAILABLE
+
+def test_duplicate_assessment_cannot_overwrite_another_result() -> None:
+    scenario = _scenario(BudgetRequirement(threshold_value=200.0))
+    validation = RequirementValidationDispatcher(
+        [BudgetRequirementValidator()]
+    ).validate(_graph(), scenario)
+    assessment = validation.requirement_assessments[0]
+    validation.requirement_assessments.append(assessment.model_copy())
+    report = build_requirement_coverage_report(
+        scenario, graph_accepted=True, validation=validation
+    )
+    assert report.status is RequirementCoverageStatus.INCOMPLETE
+    assert report.requirements[0].reason is RequirementCheckReason.AMBIGUOUS_EVIDENCE
