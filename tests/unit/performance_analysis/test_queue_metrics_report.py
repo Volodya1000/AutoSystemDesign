@@ -108,10 +108,10 @@ def test_asynchronous_branch_does_not_extend_caller_path() -> None:
         edges=[
             create_test_edge("client", "service"),
             Edge(
-                source_identifier="service",
+                source_identifier="client",
                 target_identifier="async_worker",
                 protocol=ASYNCHRONOUS_MESSAGE_QUEUE,
-                network_latency_milliseconds=1.0,
+                network_latency_milliseconds=3.0,
             ),
         ],
     )
