@@ -8,6 +8,7 @@ class InMemoryWriter:
 
     def __init__(self) -> None:
         self.writes: list[tuple[Path, str]] = []
+        self.binary_writes: list[tuple[Path, bytes]] = []
 
     def write_text(self, path: Path, content: str) -> Path:
         self.writes.append((path, content))
