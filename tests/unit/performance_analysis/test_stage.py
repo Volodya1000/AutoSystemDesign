@@ -119,7 +119,7 @@ def test_pdf_is_written_alongside_mandatory_json(tmp_path: Path) -> None:
     assert writer.binary_writes == [
         (tmp_path / "store_performance_analysis.pdf", b"%PDF-1.4 test")
     ]
-    assert outcome.warnings == ()
+    assert not outcome.warnings
 
 
 def test_pdf_failure_keeps_json_and_marks_stage_partial(tmp_path: Path) -> None:
@@ -131,7 +131,7 @@ def test_pdf_failure_keeps_json_and_marks_stage_partial(tmp_path: Path) -> None:
 
     assert outcome.status is StageStatus.PARTIAL
     assert len(writer.writes) == 1
-    assert writer.binary_writes == []
+    assert not writer.binary_writes
     assert outcome.artifacts == (tmp_path / "store_performance_analysis.json",)
     assert len(outcome.warnings) == 1
     assert "Font is unavailable" in outcome.warnings[0]
