@@ -60,14 +60,14 @@ def test_full_report_round_trips_json() -> None:
             SimulationFinding(
                 code=SimulationFindingCode.QUEUE_BOTTLENECK,
                 severity="warning",
-                title="Очередь у базы данных",
-                description="В эксперименте обнаружено ожидание.",
+                title="Database queue",
+                description="Model detects a waiting queue.",
             )
         ],
         limitations=[
             SimulationLimitation(
                 code=SimulationLimitationCode.MODELED_NOT_MEASURED,
-                description="Числа относятся к модели.",
+                description="Metrics are modeled, not measured.",
             )
         ],
     )
@@ -91,8 +91,12 @@ def test_unavailable_report_keeps_null_distinct_from_zero() -> None:
 
 
 def test_report_collections_are_not_shared() -> None:
-    first = SimulationReport(scenario_identifier="a", status=SimulationReportStatus.PARTIAL)
-    second = SimulationReport(scenario_identifier="b", status=SimulationReportStatus.PARTIAL)
+    first = SimulationReport(
+        scenario_identifier="a", status=SimulationReportStatus.PARTIAL
+    )
+    second = SimulationReport(
+        scenario_identifier="b", status=SimulationReportStatus.PARTIAL
+    )
 
     first.experiments.append(_peak_experiment())
 
