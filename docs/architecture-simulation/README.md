@@ -30,6 +30,7 @@
 - [Аналитический анализ производительности](../performance-analysis/README.md), корневой [PR #90](https://github.com/Volodya1000/AutoSystemDesign/pull/90). Модели M/M/1, M/M/c, G/G/c полезны как **независимые эталоны** простых случаев, но не как исполнитель SimPy.
 - [Граф](../../src/domain/models/topology.py), [узлы](../../src/domain/models/nodes.py), [рёбра](../../src/domain/models/edges.py), [протоколы](../../src/domain/models/protocols.py) — уже существующая предметная схема.
 - [Нефункциональные требования](../../src/domain/models/requirements.py), [сценарий](../../src/domain/models/scenarios.py) — входные ограничения и нагрузка.
+- [Контракт отчёта SimPy](../../src/domain/architecture_simulation/report.py) и [параметры симуляции](../../src/domain/architecture_simulation/configuration.py) — реализация этапа 1; [учебная глава о контракте и настройках](01-contract-and-settings.md), [контрактные тесты](../../tests/unit/architecture_simulation/test_report.py).
 - [Стадии конвейера](../../src/application/pipeline/stage.py), [композиция](../../src/infrastructure/composition.py) — точка интеграции после C4.
 - [PDF-рендерер аналитического отчёта](../../src/infrastructure/performance_analysis/pdf_renderer.py) и [его протокол](../../src/application/performance_analysis/protocols.py) — источник повторно используемой типографики, шрифтов и правил деградации.
 
