@@ -75,17 +75,18 @@ def build_requirement_coverage_report(
                 assessment
             )
 
-    assessments = [
-        _resolve_assessment(
-            identifier,
-            requirement.type_identifier,
-            by_identifier.get(identifier, []),
-            graph_accepted=graph_accepted,
-            validation_available=validation is not None,
+    assessments: list[RequirementAssessment] = []
+    for index, requirement in enumerate(scenario.requirements):
+        identifier = requirement_identifier(index)
+        assessments.append(
+            _resolve_assessment(
+                identifier,
+                requirement.type_identifier,
+                by_identifier.get(identifier, []),
+                graph_accepted=graph_accepted,
+                validation_available=validation is not None,
+            )
         )
-        for index, requirement in enumerate(scenario.requirements)
-        if (identifier := requirement_identifier(index))
-    ]
 
     return RequirementCoverageReport(
         scenario_identifier=scenario.identifier,
