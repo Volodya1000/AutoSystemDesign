@@ -13,17 +13,17 @@ from domain.exceptions.model_validation_errors import (
     ModelValidationCode,
     ModelValidationError,
 )
-from domain.models.requirements import (
-    AvailabilityRequirement,
-    LatencyRequirement,
-    QueueSizePercentileRequirement,
-    ResourceUtilizationRequirement,
-)
 from domain.models.requirement_coverage import (
     RequirementAssessment,
     RequirementCheckReason,
     RequirementCheckStatus,
     requirement_identifier,
+)
+from domain.models.requirements import (
+    AvailabilityRequirement,
+    LatencyRequirement,
+    QueueSizePercentileRequirement,
+    ResourceUtilizationRequirement,
 )
 from domain.specifications.interfaces import (
     RequirementValidator,
