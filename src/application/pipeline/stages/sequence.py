@@ -89,7 +89,7 @@ class SequenceStage:
         early_collision_error: str | None = self._check_early_collisions(scenario)
         if early_collision_error is not None:
             _logger.error("Identifier collision: %s", early_collision_error)
-            return self._failed(0.0, 0, early_collision_error)
+            return self._failed(0, 0, early_collision_error)
 
         generation_start: float = time.perf_counter()
         result: SequenceGenerationResult = self._service.generate(scenario, graph)

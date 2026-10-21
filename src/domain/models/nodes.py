@@ -31,10 +31,10 @@ class CapacityNode(BaseNode):
     maximum_concurrency: int = Field(gt=0)
     maximum_queue_size: int = Field(ge=0)
 
-    mean_processing_time_milliseconds: float = Field(gt=0.0)
-    standard_deviation_processing_time: float = Field(ge=0.0)
+    mean_processing_time_milliseconds: float = Field(gt=0)
+    standard_deviation_processing_time: float = Field(ge=0)
 
-    monthly_cost_usd: float = Field(ge=0.0)
+    monthly_cost_usd: float = Field(ge=0)
 
     @model_validator(mode="after")
     def _reject_direct_capacity_instantiation(self) -> "CapacityNode":
@@ -66,7 +66,7 @@ class DatabaseNode(CapacityNode):
 
 class CacheNode(CapacityNode):
     node_type: Literal[NodeType.CACHE] = NodeType.CACHE
-    cache_hit_rate_probability: float = Field(default=0.8, ge=0.0, le=1.0)
+    cache_hit_rate_probability: float = Field(default=0.8, ge=0, le=1.0)
     eviction_policy: str = "least_recently_used"
 
 

@@ -27,7 +27,7 @@ class LlmSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     model: str
-    temperature: float = Field(ge=0.0, le=2.0)
+    temperature: float = Field(ge=0, le=2.0)
     max_tokens: int = Field(gt=0)
     context_window_tokens: int | None = Field(default=None, gt=0)
     timeout_seconds: float = Field(gt=0)

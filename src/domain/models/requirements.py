@@ -27,14 +27,14 @@ class BudgetRequirement(ThresholdRequirement):
 
 class AvailabilityRequirement(ThresholdRequirement):
     type_identifier: Literal["availability"] = "availability"
-    threshold_value: float = Field(ge=0.0, le=100.0)
+    threshold_value: float = Field(ge=0, le=100)
     operator: Operator = Operator.GREATER_THAN_OR_EQUAL
 
 
 class ResourceUtilizationRequirement(IntervalRequirement):
     type_identifier: Literal["resource_utilization"] = "resource_utilization"
-    minimum_value: float = Field(ge=0.0, le=100.0)
-    maximum_value: float = Field(ge=0.0, le=100.0)
+    minimum_value: float = Field(ge=0, le=100)
+    maximum_value: float = Field(ge=0, le=100)
 
 
 # Discriminated union: external payloads must declare an explicit requirement

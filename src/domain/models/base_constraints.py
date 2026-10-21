@@ -52,4 +52,4 @@ class IntervalRequirement(BaseRequirement):
 
 
 class PercentileThresholdRequirement(ThresholdRequirement):
-    percentile: float = Field(default=99.0, ge=0.0, le=100.0)
+    percentile: float = Field(default=99.0, ge=0, le=100)

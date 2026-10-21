@@ -10,10 +10,10 @@ class NodeProfile(BaseModel):
     maximum_concurrency: int = Field(gt=0)
     maximum_queue_size: int = Field(ge=0)
 
-    mean_processing_time_milliseconds: float = Field(gt=0.0)
-    standard_deviation_processing_time: float = Field(ge=0.0)
+    mean_processing_time_milliseconds: float = Field(gt=0)
+    standard_deviation_processing_time: float = Field(ge=0)
 
-    monthly_cost_usd: float = Field(ge=0.0)
+    monthly_cost_usd: float = Field(ge=0)
 
 
 class ProfileRegistry(BaseModel):

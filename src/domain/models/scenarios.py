@@ -12,9 +12,9 @@ from domain.models.requirements import Requirement
 class WorkloadProfile(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    baseline_requests_per_second: float = Field(gt=0.0)
-    peak_requests_per_second: float = Field(gt=0.0)
-    read_ratio: float = Field(default=0.8, ge=0.0, le=1.0)
+    baseline_requests_per_second: float = Field(gt=0)
+    peak_requests_per_second: float = Field(gt=0)
+    read_ratio: float = Field(default=0.8, ge=0, le=1.0)
 
     @model_validator(mode="after")
     def _validate_peak_covers_baseline(self) -> "WorkloadProfile":

@@ -57,7 +57,7 @@ class DesignProposal(BaseModel):
     graph: ArchitectureGraph
     raw_content: str
     usage: TokenUsage
-    latency_seconds: float = Field(default=0.0, ge=0.0)
+    latency_seconds: float = Field(default=0, ge=0)
 
 
 class SequenceRoleTask(BaseModel):
@@ -76,7 +76,7 @@ class SequenceRoleProposal(BaseModel):
     payload: ProjectRolesCatalog
     raw_content: str
     usage: TokenUsage
-    latency_seconds: float = Field(default=0.0, ge=0.0)
+    latency_seconds: float = Field(default=0, ge=0)
 
 
 class SequenceInteractionTask(BaseModel):
@@ -97,7 +97,7 @@ class SequenceInteractionProposal(BaseModel):
     payload: InteractionScenario
     raw_content: str
     usage: TokenUsage
-    latency_seconds: float = Field(default=0.0, ge=0.0)
+    latency_seconds: float = Field(default=0, ge=0)
 
 
 class ApiDesignTask(BaseModel):
@@ -118,4 +118,4 @@ class ApiDesignProposal(BaseModel):
     payload: ApiDesign
     raw_content: str
     usage: TokenUsage
-    latency_seconds: float = Field(default=0.0, ge=0.0)
+    latency_seconds: float = Field(default=0, ge=0)

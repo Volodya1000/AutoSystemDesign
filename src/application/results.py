@@ -32,7 +32,7 @@ class GenerationAttempt[PayloadT](BaseModel):
     payload: PayloadT | None = None
     validation: ValidationResult | None = None
     usage: TokenUsage
-    latency_seconds: float = Field(default=0.0, ge=0.0)
+    latency_seconds: float = Field(default=0, ge=0)
     parsing_failures: list[ProposalFailureDetail] = Field(default_factory=list)
 
 

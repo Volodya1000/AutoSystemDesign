@@ -17,6 +17,6 @@ class Edge(BaseModel):
         ),
     )
 
-    network_latency_milliseconds: float = Field(default=2.0, ge=0.0)
+    network_latency_milliseconds: float = Field(default=2.0, ge=0)
     retry_attempts_count: int = Field(default=0, ge=0)
-    timeout_milliseconds: float = Field(default=5000.0, gt=0.0)
+    timeout_milliseconds: float = Field(default=5000, gt=0)
