@@ -39,7 +39,7 @@ def test_cli_reports_invalid_yaml_field_before_generation(
         encoding="utf-8",
     )
     monkeypatch.setattr(cli, "configure_logging", lambda **_kwargs: None)
-    monkeypatch.setattr(cli, "load_app_settings", lambda: object())
+    monkeypatch.setattr(cli, "load_app_settings", object)
     monkeypatch.setattr(
         cli,
         "_parse_args",
