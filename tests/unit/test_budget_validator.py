@@ -2,7 +2,10 @@
 
 import pytest
 
-from domain.exceptions.architecture_errors import BudgetExceededError
+from domain.exceptions.architecture_errors import (
+    ArchitectureValidationError,
+    BudgetExceededError,
+)
 from domain.models.nodes import ClientNode, ComputeNode, DatabaseNode
 from domain.models.requirements import (
     BudgetRequirement,
@@ -122,7 +125,7 @@ class _RecordingRequirementValidator(RequirementValidator[BudgetRequirement]):
 
     def validate(
         self, graph: ArchitectureGraph, requirement: BudgetRequirement
-    ) -> list:
+    ) -> list[ArchitectureValidationError]:
         del graph
         self.received.append(requirement)
         return []
