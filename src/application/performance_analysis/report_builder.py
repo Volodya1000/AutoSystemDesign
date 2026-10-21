@@ -32,6 +32,34 @@ if TYPE_CHECKING:
     from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph
 
+_FINDING_SEVERITY_ORDER: dict[PerformanceFindingSeverity, int] = {
+    PerformanceFindingSeverity.ERROR: 0,
+    PerformanceFindingSeverity.WARNING: 1,
+    PerformanceFindingSeverity.INFO: 2,
+}
+
+
+def _ordered_findings(findings: list[PerformanceFinding]) -> list[PerformanceFinding]:
+    """Normalize node IDs and order diagnostics independently of input order."""
+    normalized = [
+        finding.model_copy(
+            update={
+                "affected_node_identifiers": sorted(
+                    finding.affected_node_identifiers
+                )
+            }
+        )
+        for finding in findings
+    ]
+    return sorted(
+        normalized,
+        key=lambda finding: (
+            _FINDING_SEVERITY_ORDER[finding.severity],
+            finding.finding_code.value,
+            tuple(finding.affected_node_identifiers),
+        ),
+    )
+
 
 def build_performance_analysis_report(
     graph: ArchitectureGraph,
@@ -61,7 +89,7 @@ def build_performance_analysis_report(
                         node.identifier
                     ),
                 )
-                for node in graph.nodes
+                for node in sorted(graph.nodes, key=lambda node: node.identifier)
             ],
             findings=[_workload_missing_finding()],
         )
@@ -113,8 +141,8 @@ def build_performance_analysis_report(
             )
             else PerformanceAnalysisStatus.COMPLETE
         ),
-        nodes=node_metrics,
-        findings=findings,
+        nodes=sorted(node_metrics, key=lambda metric: metric.node_identifier),
+        findings=_ordered_findings(findings),
         estimated_longest_synchronous_path_mean_milliseconds=(
             critical_path.total_latency_ms if critical_path is not None else None
         ),
