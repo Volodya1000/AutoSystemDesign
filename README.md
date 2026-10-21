@@ -85,6 +85,15 @@ uv run python scripts/generate_pipeline.py \\
 того же вызова, добавив `--run-pipeline`. Для пропуска рендеринга добавьте также
 `--no-diagram`; каталог артефактов можно задать через `--pipeline-out-dir output/design`.
 
+## Изучение анализа производительности
+
+Если вы впервые читаете расчёты нагрузки и очередей, начните не с PR, а с
+[учебной карты фичи](docs/performance-analysis/README.md).
+Там есть [объяснение M/M/1, M/M/c, M/M/c/K и аппроксимаций с нуля](docs/performance-analysis/QUEUEING_THEORY_FOR_BEGINNERS.md)
+и [указатель всех pull request с причинами изменений](docs/performance-analysis/PR_INDEX.md).
+Сам подробный план реализации находится в
+[ROADMAP.md](docs/performance-analysis/ROADMAP.md).
+
 ## Этапы конвейера
 
 1. **C4**: генерация и проверка графа архитектуры.
