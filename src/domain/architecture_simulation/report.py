@@ -188,12 +188,8 @@ class RequirementEvaluation(SimulationDataModel):
         elif self.reason_code is None:
             message = "non-conclusive verdict requires a reason code"
             raise ValueError(message)
-        if (
-            self.status is RequirementVerdict.NOT_EVALUATED
-            and (
-                self.observed_value is not None
-                or self.confidence_interval is not None
-            )
+        if self.status is RequirementVerdict.NOT_EVALUATED and (
+            self.observed_value is not None or self.confidence_interval is not None
         ):
             message = "unsupported requirement cannot contain observations"
             raise ValueError(message)
