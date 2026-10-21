@@ -42,7 +42,9 @@ class ProgrammingError(ValueError):
 
 
 class NullGenerationReporter:
-    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None: ...
+    def attempts[PayloadT](
+        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+    ) -> None: ...
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None: ...
 
