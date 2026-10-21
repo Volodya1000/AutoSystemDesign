@@ -237,17 +237,13 @@ def _compute_synchronous_critical_path(
     if not reachable_node_ids:
         return None, (), ()
 
-    relevant_latencies = {
-        identifier: node_latencies[identifier] for identifier in reachable_node_ids
-    }
-    if any(latency is None for latency in relevant_latencies.values()):
-        return None, (), ()
-
     known_node_latencies = {
         identifier: latency
-        for identifier, latency in relevant_latencies.items()
-        if latency is not None
+        for identifier in reachable_node_ids
+        if (latency := node_latencies[identifier]) is not None
     }
+    if len(known_node_latencies) != len(reachable_node_ids):
+        return None, (), ()
     reachable_edges = [
         edge
         for edge in sync_edges
