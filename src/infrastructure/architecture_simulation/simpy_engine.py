@@ -43,7 +43,7 @@ class SimPySingleNodeEngine:
         request_index: int,
         request: ScheduledRequest,
         completed: dict[int, CompletedRequestObservation],
-    ) -> Generator[simpy.events.Event, None, None]:
+    ) -> Generator[simpy.events.Event]:
         """Wait for arrival, acquire one channel, serve, and release it."""
         yield environment.timeout(request.arrival_seconds)
         arrival = environment.now
