@@ -24,7 +24,7 @@ class TestWithLlmUpdates:
 
         assert updated is not settings
         assert updated.llm is not settings.llm
-        assert updated.llm.temperature == 0.7
+        assert updated.llm.temperature == pytest.approx(0.7)
         assert updated.llm.max_tokens == 512
         assert updated.llm.context_window_tokens == 4096
         assert updated.llm.structured_output_mode is StructuredOutputMode.PROMPT
@@ -47,7 +47,7 @@ class TestWithLlmUpdates:
 
         assert updated.llm.temperature == 0
         assert updated.llm.structured_output_mode is StructuredOutputMode.JSON_OBJECT
-        assert settings.llm.temperature == 0.7
+        assert settings.llm.temperature == pytest.approx(0.7)
 
     @pytest.mark.parametrize(
         "updates",

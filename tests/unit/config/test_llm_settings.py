@@ -26,7 +26,7 @@ class TestLlmSettings:
     def test_accepts_valid_values(self) -> None:
         settings: LlmSettings = LlmSettings(**_VALID_KWARGS)
         assert settings.model == "lm_studio/qwen3-8b"
-        assert settings.temperature == 0.2
+        assert settings.temperature == pytest.approx(0.2)
         assert settings.structured_output_mode is StructuredOutputMode.PROMPT
 
     def test_rejects_temperature_out_of_bounds(self) -> None:

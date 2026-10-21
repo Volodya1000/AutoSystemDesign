@@ -57,7 +57,7 @@ def _chain_graph(*nodes: AnyNode) -> ArchitectureGraph:
 class TestSaturationThresholdConstant:
     def test_threshold_is_98_percent(self) -> None:
         """Roadmap F4 pins the threshold at 98%: no config, no tuning."""
-        assert SATURATION_THRESHOLD == 0.98
+        assert SATURATION_THRESHOLD == pytest.approx(0.98)
 
 
 # -------------------------------------------------------- below threshold

@@ -51,9 +51,9 @@ def test_build_workload_does_not_mutate_candidates_or_verified_excerpts() -> Non
     result = build_workload(extracted, verified_excerpts)
 
     assert result.value is not None
-    assert result.value.baseline_requests_per_second == 120.0
-    assert result.value.peak_requests_per_second == 400.0
-    assert result.value.read_ratio == 0.7
+    assert result.value.baseline_requests_per_second == pytest.approx(120.0)
+    assert result.value.peak_requests_per_second == pytest.approx(400.0)
+    assert result.value.read_ratio == pytest.approx(0.7)
     assert result.field_evidence == (
         ("workload.baseline_requests_per_second", baseline),
         ("workload.peak_requests_per_second", peak),
