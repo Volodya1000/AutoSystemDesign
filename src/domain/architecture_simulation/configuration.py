@@ -9,7 +9,7 @@ class SimulationConfiguration(BaseModel):
     This nested model is read through the root Pydantic AppSettings object;
     environment variables use ASD_SIMULATION__FIELD_NAME. Neither virtual
     time nor stochastic seed is inferred from the host machine's clock.
-    
+
     Only parameters the user can actually vary are configurable here.
     The V1 arrival, service-time, and horizon semantics are model
     assumptions documented in MODEL_SEMANTICS.md, not fake choices.
