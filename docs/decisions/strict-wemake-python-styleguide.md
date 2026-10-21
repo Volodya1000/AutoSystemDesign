@@ -11,6 +11,6 @@ uv run pre-commit run wemake-python-styleguide --all-files
 
 Both the local pre-commit hook and CI check **all** project Python code, including tests and scripts. Neither check accepts an existing-violations baseline. A violation fails the check.
 
-WPS options are in `setup.cfg`. Never mask a violation using `noqa`, `ignore`, `extend-ignore`, `per-file-ignores`, a file exclusion, a reduced set of checks, or a non-failing exit code. Refactor the offending code and retain runtime behavior and type annotations.
+WPS options are in `setup.cfg`. WPS suppression via `noqa` is explicitly forbidden. Never mask a violation using `noqa`, `ignore`, `extend-ignore`, `per-file-ignores`, a file exclusion, a reduced set of checks, or a non-failing exit code. Refactor the offending code and retain runtime behavior and type annotations.
 
 `uvx --from` installs a pinned standalone lint tool. This keeps the application dependency graph and its `uv.lock` unchanged, without compromising repeatability of the WPS version. Use `uv run` for the remaining checks.
