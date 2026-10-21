@@ -20,6 +20,8 @@
 | [#107](https://github.com/Volodya1000/AutoSystemDesign/pull/107) | инвариант | Почему число независимых каналов не может превышать лимит запросов, одновременно находящихся в работе. |
 | [#108](https://github.com/Volodya1000/AutoSystemDesign/pull/108) | обучение и типизация | Индекс всех PR, маршрут чтения, теория Кендалла/очередей с нуля, формулы в docstring и более строгая типизация тестовой фабрики. |
 | [#109](https://github.com/Volodya1000/AutoSystemDesign/pull/109) | 11 | Детерминированная сортировка findings, привязка к узлам, одинаковый JSON для переставленных графов и регрессия альтернативных cache fallback. |
+| [#110](https://github.com/Volodya1000/AutoSystemDesign/pull/110) | 12 | PDF из канонического JSON, табличный отчёт с кириллицей, бинарный writer и graceful degradation при сбое PDF. |
+| [#111](https://github.com/Volodya1000/AutoSystemDesign/pull/111) | подготовка 13 | Чек-лист приёмки корневого #90, четыре реалистичных YAML-примера, CLI-проверка сохранённых артефактов и шаблон оценки логов. |
 
 ## Как связаны PR
 
