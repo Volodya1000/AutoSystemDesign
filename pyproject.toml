@@ -131,5 +131,5 @@ name = "cz_conventional_commits"
 [tool.towncrier]
 directory = "changelog.d"
 filename = "CHANGELOG.md"
-start_string = "<!-- towncrier release notes start -->\\n"
+start_string = "<!-- towncrier release notes start -->\n"
 title_format = "## {version} ({project_date})"
