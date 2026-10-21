@@ -6,7 +6,8 @@ import json
 from typing import TYPE_CHECKING
 
 from domain.models.api import ApiDesign
-from domain.models.sequence import InteractionScenario, MessageStep
+from domain.models.ast_steps import MessageStep
+from domain.models.sequence import InteractionScenario
 from infrastructure.llm.models import Message, MessageRole
 from infrastructure.prompts._c4_context import render_c4_components
 from infrastructure.prompts._feedback import render_feedback
