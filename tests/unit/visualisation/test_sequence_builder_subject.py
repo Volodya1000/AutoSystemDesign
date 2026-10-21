@@ -11,6 +11,8 @@ Covers:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pytest
 
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
@@ -19,13 +21,14 @@ from domain.models.enums import NodeType
 from domain.models.sequence import (
     ComponentLifeline,
     InteractionScenario,
+    ScenarioLifeline,
     UserLifeline,
 )
 from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml.sequence_builder import (
     SequenceDiagramBuilder,
 )
-from tests.unit.test_structural_validator import create_test_node
+from tests.factories import create_test_node
 
 pytestmark = pytest.mark.unit
 
@@ -50,7 +53,7 @@ def _component(lifeline_id: str, node_id: str, display: str) -> ComponentLifelin
     )
 
 
-def _scenario(lifelines: list) -> InteractionScenario:
+def _scenario(lifelines: Sequence[ScenarioLifeline]) -> InteractionScenario:
     """Build a scenario in which every lifeline participates in a message.
 
     Chained messages ensure no lifeline is left unused, satisfying the
