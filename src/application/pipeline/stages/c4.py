@@ -7,9 +7,11 @@ import time
 from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
+from application.requirement_coverage import build_requirement_coverage_report
 from application.pipeline.stage import StageId
 from application.results import GenerationStatus
 from domain.specifications.metrics import compute_project_metrics, format_metrics_title
+from domain.models.requirement_coverage import RequirementCheckStatus
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -57,6 +59,24 @@ class C4Stage:
         warnings: list[str] = []
         graph: ArchitectureGraph | None = result.graph
 
+        if scenario.requirements:
+            coverage = build_requirement_coverage_report(scenario, result)
+            artifacts.append(
+                context.writer.write_text(
+                    context.out_dir / f"{scenario.identifier}_nfr_coverage.json",
+                    coverage.model_dump_json(indent=2),
+                )
+            )
+            unchecked = sum(
+                item.status is RequirementCheckStatus.NOT_EVALUATED
+                for item in coverage.requirements
+            )
+            if unchecked:
+                warnings.append(
+                    f"{unchecked} NFR requirement(s) not evaluated; "
+                    "see the NFR coverage JSON artifact"
+                )
+
         # Persist even an invalid graph: it is the primary diagnostic artifact.
         if graph is not None:
             artifacts.append(
@@ -75,6 +95,7 @@ class C4Stage:
                 artifacts=tuple(artifacts),
                 payload=None,
                 message="C4 architecture generation failed",
+                warnings=tuple(warnings),
             )
 
         if self._renderer is not None:

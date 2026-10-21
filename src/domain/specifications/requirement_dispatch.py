@@ -13,6 +13,11 @@ from domain.exceptions.model_validation_errors import (
     ModelValidationCode,
     ModelValidationError,
 )
+from domain.models.requirement_coverage import (
+    RequirementAssessment,
+    RequirementCheckReason,
+    RequirementCheckStatus,
+)
 from domain.specifications.interfaces import (
     RequirementValidator,
     ScenarioValidator,
@@ -31,9 +36,8 @@ if TYPE_CHECKING:
 class RequirementValidationDispatcher(ScenarioValidator):
     """Adapts a set of RequirementValidator instances into one ScenarioValidator.
 
-    Requirements without a registered validator are silently skipped, so
-    partially supported scenarios keep working: adding support for a new
-    requirement kind means registering one more validator, nothing else.
+    Requirements without a registered validator produce non-blocking,
+    traceable NOT_EVALUATED assessments. Validation errors still drive repair.
     """
 
     def __init__(self, validators: Sequence[RequirementValidator[Any]]) -> None:
@@ -51,11 +55,60 @@ class RequirementValidationDispatcher(ScenarioValidator):
     def validate(
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> ValidationResult:
-        """Run every requirement through its registered validator, in order."""
+        """Run each distinct requirement occurrence, preserving its identity."""
         errors: list[ArchitectureValidationError] = []
-        for requirement in scenario.requirements:
+        assessments: list[RequirementAssessment] = []
+        for index, requirement in enumerate(scenario.requirements):
+            identifier = f"requirements[{index}]"
+            kind = getattr(
+                requirement, "type_identifier", type(requirement).__name__
+            )
             validator = self._by_type.get(type(requirement))
             if validator is None:
+                assessments.append(
+                    RequirementAssessment(
+                        requirement_identifier=identifier,
+                        type_identifier=kind,
+                        status=RequirementCheckStatus.NOT_EVALUATED,
+                        reason=_unsupported_reason(kind, scenario.workload is None),
+                    )
+                )
                 continue
-            errors.extend(validator.validate(graph, requirement))
-        return ValidationResult(errors=errors)
+
+            violations = validator.validate(graph, requirement)
+            errors.extend(violations)
+            assessments.append(
+                RequirementAssessment(
+                    requirement_identifier=identifier,
+                    type_identifier=kind,
+                    status=(
+                        RequirementCheckStatus.VIOLATED
+                        if violations
+                        else RequirementCheckStatus.SATISFIED
+                    ),
+                    validator_identifier=type(validator).__name__,
+                )
+            )
+        return ValidationResult(
+            errors=errors, requirement_assessments=assessments
+        )
+
+
+def _unsupported_reason(
+    type_identifier: str, workload_missing: bool
+) -> RequirementCheckReason:
+    """Use explicit capability boundaries, not metric-name similarity."""
+    workload_dependent = {
+        "latency",
+        "queue_size_percentile",
+        "resource_utilization",
+    }
+    if workload_missing and type_identifier in workload_dependent:
+        return RequirementCheckReason.MISSING_WORKLOAD
+    if type_identifier in {"latency", "queue_size_percentile"}:
+        return RequirementCheckReason.PERCENTILE_UNMODELED
+    if type_identifier == "resource_utilization":
+        return RequirementCheckReason.TARGET_SCOPE_UNSPECIFIED
+    if type_identifier == "availability":
+        return RequirementCheckReason.RELIABILITY_MODEL_UNAVAILABLE
+    return RequirementCheckReason.NO_VALIDATOR
