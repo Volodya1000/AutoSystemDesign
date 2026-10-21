@@ -5,6 +5,7 @@ from __future__ import annotations
 from html import escape
 from io import BytesIO
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
@@ -13,7 +14,6 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import (
     Flowable,
     LongTable,
@@ -26,6 +26,9 @@ from reportlab.platypus import (
 from application.performance_analysis.protocols import PdfRenderingUnavailableError
 from domain.performance_analysis.report import PerformanceAnalysisReport
 
+if TYPE_CHECKING:
+    from reportlab.pdfgen.canvas import Canvas
+
 _FONT_NAME = "ASDPerformanceSans"
 _FONT_PATHS: tuple[Path, ...] = (
     Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
@@ -33,7 +36,7 @@ _FONT_PATHS: tuple[Path, ...] = (
     Path("C:/Windows/Fonts/arial.ttf"),
     Path("/Library/Fonts/Arial Unicode.ttf"),
 )
-_EMPTY_METRIC = "Не оценено"
+_EMPTY_METRIC = "нет оценки"
 _STATUS_LABELS: dict[str, str] = {
     "complete": "Полный",
     "partial": "Частичный (есть ограничения модели)",
@@ -75,7 +78,7 @@ class PerformanceReportPdfRenderer:
             author="AutoSystemDesign",
         )
         story: list[Flowable] = [
-            Paragraph("Отчёт об анализе производительности", styles["title"]),
+            Paragraph("Анализ производительности", styles["title"]),
             Spacer(1, 5 * mm),
             Paragraph(
                 f"Сценарий: {escape(report.scenario_identifier)}",
@@ -107,7 +110,7 @@ class PerformanceReportPdfRenderer:
             Spacer(1, 3 * mm),
             Paragraph("Метрики узлов", styles["heading"]),
         ]
-        headers = ("Узел", "RPS", "Мощн. RPS", "Загр.", "Очередь, мс", "Ответ, мс")
+        headers = ("Узел", "RPS", "Мощн. RPS", "Доля", "Очередь, мс", "Ответ, мс")
         rows: list[list[Paragraph]] = [
             [Paragraph(cell, styles["table_header"]) for cell in headers]
         ]
@@ -199,7 +202,7 @@ class PerformanceReportPdfRenderer:
                 Paragraph(
                     "Конечные буферы, неизвестные каналы обслуживания и "
                     "переполнение могут делать часть метрик неприменимой. "
-                    "«Не оценено» в таблице соответствует null в JSON, а не нулю.",
+                    "Значение «нет оценки» означает null в JSON, а не ноль.",
                     styles["body"],
                 ),
                 Paragraph(
@@ -211,8 +214,8 @@ class PerformanceReportPdfRenderer:
         )
         doc.build(
             story,
-            onFirstPage=lambda canvas, document: _draw_footer(canvas, font),
-            onLaterPages=lambda canvas, document: _draw_footer(canvas, font),
+            onFirstPage=lambda canvas, _document: _draw_footer(canvas, font),
+            onLaterPages=lambda canvas, _document: _draw_footer(canvas, font),
         )
         return buffer.getvalue()
 
