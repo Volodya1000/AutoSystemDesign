@@ -12,7 +12,7 @@ class ConnectionType(NamedTuple):
 
 # Immutable by design: the default rule set is shared module-wide.
 DEFAULT_ALLOWED_CONNECTION_TYPES: frozenset[ConnectionType] = frozenset(
-    {
+    (
         # Entry points
         ConnectionType(source=NodeType.CLIENT, target=NodeType.LOAD_BALANCER),
         ConnectionType(source=NodeType.CLIENT, target=NodeType.COMPUTE),
@@ -25,5 +25,5 @@ DEFAULT_ALLOWED_CONNECTION_TYPES: frozenset[ConnectionType] = frozenset(
         ConnectionType(source=NodeType.COMPUTE, target=NodeType.MESSAGE_BROKER),
         # Asynchronous consumer workers
         ConnectionType(source=NodeType.MESSAGE_BROKER, target=NodeType.COMPUTE),
-    }
+    )
 )

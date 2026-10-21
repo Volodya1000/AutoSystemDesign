@@ -13,4 +13,4 @@ class IntegrationSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     generation_runs: int = Field(default=3, ge=1, le=10)
-    min_single_shot_success_rate: float = Field(default=1.0, ge=0.0, le=1.0)
+    min_single_shot_success_rate: float = Field(default=1.0, ge=0, le=1.0)

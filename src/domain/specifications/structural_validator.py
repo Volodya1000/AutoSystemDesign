@@ -28,9 +28,9 @@ class StructuralTopologyValidator(BaseValidator):
         allowed_connection_types: frozenset[ConnectionType] | None = None,
     ) -> None:
         self._allowed_connection_types: frozenset[ConnectionType] = (
-            frozenset(allowed_connection_types)
-            if allowed_connection_types is not None
-            else DEFAULT_ALLOWED_CONNECTION_TYPES
+            DEFAULT_ALLOWED_CONNECTION_TYPES
+            if allowed_connection_types is None
+            else frozenset(allowed_connection_types)
         )
 
     def validate(self, graph: ArchitectureGraph) -> ValidationResult:

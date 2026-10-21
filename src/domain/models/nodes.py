@@ -20,7 +20,7 @@ class BaseNode(BaseModel):
 
     @model_validator(mode="after")
     def _reject_direct_base_instantiation(self) -> "BaseNode":
-        if self.__class__ is BaseNode:  # pylint: disable=unidiomatic-typecheck
+        if type(self) is BaseNode:
             raise ModelValidationError(ModelValidationCode.ABSTRACT_BASE_NODE)
         return self
 
@@ -38,7 +38,7 @@ class CapacityNode(BaseNode):
 
     @model_validator(mode="after")
     def _reject_direct_capacity_instantiation(self) -> "CapacityNode":
-        if self.__class__ is CapacityNode:  # pylint: disable=unidiomatic-typecheck
+        if type(self) is CapacityNode:
             raise ModelValidationError(ModelValidationCode.ABSTRACT_CAPACITY_NODE)
         return self
 

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class ArtifactWriter(Protocol):
     """Persists textual artifacts (JSON ASTs, catalogs, etc.)."""
 
-    def write_text(self, path: Path, content: str) -> Path: ...
+    def write_text(self, path: Path, artifact_text: str) -> Path: ...
 
 
 class DiagramRenderer[SubjectT](Protocol):

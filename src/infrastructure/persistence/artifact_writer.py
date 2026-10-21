@@ -15,9 +15,9 @@ class FileSystemArtifactWriter:
     def __init__(self, *, log_writes: bool = True) -> None:
         self._log_writes: bool = log_writes
 
-    def write_text(self, path: Path, content: str) -> Path:
+    def write_text(self, path: Path, artifact_text: str) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8")
+        path.write_text(artifact_text, encoding="utf-8")
         if self._log_writes:
             _logger.info("Artifact written: %s", path)
         return path

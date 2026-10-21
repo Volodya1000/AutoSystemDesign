@@ -9,6 +9,6 @@ class InMemoryWriter:
     def __init__(self) -> None:
         self.writes: list[tuple[Path, str]] = []
 
-    def write_text(self, path: Path, content: str) -> Path:
-        self.writes.append((path, content))
+    def write_text(self, path: Path, artifact_text: str) -> Path:
+        self.writes.append((path, artifact_text))
         return path

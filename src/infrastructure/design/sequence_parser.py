@@ -28,8 +28,8 @@ def parse_interaction_scenario(
 ) -> InteractionScenario:
     """Parse and validate an interaction scenario against its optional C4 graph."""
     normalizer = (
-        partial(normalize_interaction_payload, graph=architecture_graph)
-        if architecture_graph is not None
-        else None
+        None
+        if architecture_graph is None
+        else partial(normalize_interaction_payload, graph=architecture_graph)
     )
     return parse_payload(payload, InteractionScenario, usage, normalizer=normalizer)
