@@ -8,14 +8,14 @@ from domain.models.api import ApiDesign, ApiParameter, DataType
 class OpenApiRenderer:
     """Converts domain ApiDesign model to OpenAPI 3.1.0 specification dictionary."""
 
-    def render_spec(self, api: ApiDesign) -> dict:
-        paths: dict[str, dict] = {}
+    def render_spec(self, api: ApiDesign) -> dict[str, object]:
+        paths: dict[str, dict[str, object]] = {}
 
         for op in api.operations:
             if op.path not in paths:
                 paths[op.path] = {}
 
-            op_spec: dict = {
+            op_spec: dict[str, object] = {
                 "operationId": op.operation_id,
                 "summary": op.summary,
                 "x-entrypoint-component": op.entrypoint_component_id,
@@ -48,9 +48,9 @@ class OpenApiRenderer:
                 }
 
             # Responses
-            responses_spec: dict[str, dict] = {}
+            responses_spec: dict[str, dict[str, object]] = {}
             for resp in op.responses:
-                resp_data: dict = {"description": resp.description}
+                resp_data: dict[str, object] = {"description": resp.description}
                 if resp.schema_ref and resp.content_type:
                     resp_data["content"] = {
                         resp.content_type: {
@@ -65,7 +65,7 @@ class OpenApiRenderer:
             paths[op.path][op.method.value] = op_spec
 
         # Components
-        components: dict[str, dict] = {"schemas": api.schemas}
+        components: dict[str, object] = {"schemas": api.schemas}
         components["securitySchemes"] = {
             "bearerAuth": {
                 "type": "http",
@@ -86,14 +86,14 @@ class OpenApiRenderer:
         }
 
     @staticmethod
-    def _render_parameter(param: ApiParameter) -> dict:
-        schema: dict = {"type": param.data_type.value}
+    def _render_parameter(param: ApiParameter) -> dict[str, object]:
+        schema: dict[str, object] = {"type": param.data_type.value}
         if param.format:
             schema["format"] = param.format
         if param.data_type == DataType.ARRAY and param.item_type:
             schema["items"] = {"type": param.item_type.value}
 
-        result: dict = {
+        result: dict[str, object] = {
             "name": param.name,
             "in": param.in_location.value,
             "required": param.required,
