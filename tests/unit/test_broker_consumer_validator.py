@@ -8,6 +8,8 @@ multi-broker graphs.
 
 from __future__ import annotations
 
+from itertools import starmap
+
 import pytest
 
 from domain.exceptions.architecture_errors import (
@@ -55,7 +57,7 @@ def _consumer(identifier: str) -> ComputeNode:
 def _graph(*nodes: AnyNode, edges_pairs: list[tuple[str, str]]) -> ArchitectureGraph:
     return ArchitectureGraph(
         nodes=list(nodes),
-        edges=[create_test_edge(src, dst) for src, dst in edges_pairs],
+        edges=list(starmap(create_test_edge, edges_pairs)),
     )
 
 
