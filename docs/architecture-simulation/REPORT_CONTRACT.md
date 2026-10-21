@@ -36,8 +36,7 @@
     "measurement_seconds": 3600,
     "replications": 20,
     "base_seed": 12345,
-    "arrival_process": "poisson",
-    "service_distribution": "gamma_moments"
+    "max_events_per_replication": 5000000
   },
   "experiments": [
     {
@@ -74,7 +73,6 @@
       "percentile": 99.0,
       "observed_value": 510.0,
       "status": "inconclusive",
-      "confidence_level": 0.95,
       "confidence_interval": null,
       "reason_code": "insufficient_statistical_evidence"
     },
