@@ -19,6 +19,8 @@ class ArtifactWriter(Protocol):
 
     def write_text(self, path: Path, content: str) -> Path: ...
 
+    def write_bytes(self, path: Path, content: bytes) -> Path: ...
+
 
 class DiagramRenderer[SubjectT](Protocol):
     """Renders a diagram for a domain subject, best-effort.

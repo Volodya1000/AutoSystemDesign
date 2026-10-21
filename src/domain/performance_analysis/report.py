@@ -1,6 +1,7 @@
 """Define the structured result contract for performance analysis."""
 
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -42,6 +43,7 @@ class PerformanceFindingCode(StrEnum):
     METRIC_UNAVAILABLE = "metric_unavailable"
     UNSUPPORTED_MODEL = "unsupported_model"
     LATENCY_NOT_EVALUATED = "latency_not_evaluated"
+    BOUNDED_QUEUE_UNMODELED = "bounded_queue_unmodeled"
 
 
 class NodePerformanceMetrics(BaseModel):
@@ -116,13 +118,32 @@ class PerformanceAnalysisReport(BaseModel):
     """Collect the machine-readable performance analysis result for a scenario.
 
     Keep only fields that have an agreed meaning and an identified producer.
-    Assumptions and schema versioning can be added when their contracts and
-    compatibility requirements are defined.
+    The schema_version field is a stable literal contract version; older
+    reports without that field remain compatible with the v1 model.
     """
 
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
     scenario_identifier: str = Field(min_length=1)
+    schema_version: Literal["1.0"] = Field(
+        default="1.0",
+        description=(
+            "Version of the published performance JSON contract. "
+            "Legacy payloads without this field are interpreted as 1.0."
+        ),
+    )
     status: PerformanceAnalysisStatus
     nodes: list[NodePerformanceMetrics] = Field(default_factory=list)
     findings: list[PerformanceFinding] = Field(default_factory=list)
+    estimated_longest_synchronous_path_mean_milliseconds: float | None = Field(
+        default=None,
+        ge=0.0,
+        description=(
+            "Maximum of per-path mean estimates over synchronous client paths. "
+            "Not the mean completion time of a parallel fan-out request."
+        ),
+    )
+    critical_path_node_identifiers: list[str] = Field(
+        default_factory=list,
+        description="Node identifiers of the path producing the maximum mean.",
+    )

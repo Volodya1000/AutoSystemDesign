@@ -85,6 +85,32 @@ uv run python scripts/generate_pipeline.py \\
 того же вызова, добавив `--run-pipeline`. Для пропуска рендеринга добавьте также
 `--no-diagram`; каталог артефактов можно задать через `--pipeline-out-dir output/design`.
 
+## Изучение анализа производительности
+
+Если вы впервые читаете расчёты нагрузки и очередей, начните не с PR, а с
+[учебной карты фичи](docs/performance-analysis/README.md).
+Там есть [объяснение M/M/1, M/M/c, M/M/c/K и аппроксимаций с нуля](docs/performance-analysis/QUEUEING_THEORY_FOR_BEGINNERS.md)
+и [указатель всех pull request с причинами изменений](docs/performance-analysis/PR_INDEX.md).
+Сам подробный план реализации находится в
+[ROADMAP.md](docs/performance-analysis/ROADMAP.md).
+
+После стадии C4 анализ производительности сохраняет `<scenario>_performance_analysis.json`
+и, когда доступен системный Unicode TrueType-шрифт, создаёт рядом PDF.
+PDF использует те же значения, что JSON, и не делает новых вычислений.
+Подробнее: [PDF-отчёт](docs/performance-analysis/12-pdf-report.md).
+
+Для приёмки всей функции используется
+[чек-лист корневого PR](docs/performance-analysis/ROOT_PR_ACCEPTANCE.md)
+и [реальные YAML-сценарии](scenarios/performance/README.md).
+Выводы из логов оцениваются по наличию обязательных JSON/PDF и корректной
+математике, а не только по нулевому коду завершения.
+
+JSON-отчёт анализа производительности имеет версию контракта `1.0`.
+Его [публичная JSON Schema](docs/performance-analysis/report.schema.json)
+выводится из Pydantic-модели командой
+`uv run python scripts/export_performance_schema.py --write`.
+CI сверяет сохранённую схему с моделью для предотвращения случайного изменения.
+
 ## Этапы конвейера
 
 1. **C4**: генерация и проверка графа архитектуры.
