@@ -24,8 +24,9 @@ repos:
     rev: v0.16.8
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--no-fix]
       - id: ruff-format
+        args: [--check]
 
   - repo: local
     hooks:
