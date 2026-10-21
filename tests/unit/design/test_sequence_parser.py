@@ -2,6 +2,8 @@
 
 import json
 
+from itertools import starmap
+
 import pytest
 
 from application.exceptions.generation_exceptions import DesignProposalParsingError
@@ -52,10 +54,7 @@ def _payload(lifelines: list[dict[str, str]], steps: list[dict[str, object]]) ->
 
 def _graph(*node_ids: tuple[str, NodeType]) -> ArchitectureGraph:
     return ArchitectureGraph(
-        nodes=[
-            create_test_node(identifier, node_type)
-            for identifier, node_type in node_ids
-        ],
+        nodes=list(starmap(create_test_node, node_ids)),
         edges=[],
     )
 
