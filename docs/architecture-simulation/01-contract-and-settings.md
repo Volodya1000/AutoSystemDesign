@@ -11,7 +11,7 @@
 
 ## Ключевые классы и файлы
 
-- [configuration.py](../../src/domain/architecture_simulation/configuration.py): `SimulationConfiguration`, выбор распределений и горизонта.
+- [configuration.py](../../src/domain/architecture_simulation/configuration.py): `SimulationConfiguration`, числовые параметры виртуального эксперимента.
 - [report.py](../../src/domain/architecture_simulation/report.py): `SimulationReport`, `SimulationExperiment`, `RequirementEvaluation`, `LatencyQuantiles` и связанные типы.
 - [root.py](../../src/config/root.py): поле `AppSettings.simulation`, загружаемое существующим **Pydantic Settings**, без создания второго загрузчика.
 - [test_report.py](../../tests/unit/architecture_simulation/test_report.py): сериализация, границы, инварианты.
@@ -66,15 +66,21 @@ simulation:
   replications: 20
   base_seed: 12345
   max_events_per_replication: 5000000
-  arrival_process: poisson
-  service_distribution: gamma_moments
-  horizon_policy: stop_at_horizon
 ```
 
 Для конфигурации окружением уже работает правило корневого `AppSettings`:
 `ASD_SIMULATION__REPLICATIONS=7` или `ASD_SIMULATION__BASE_SEED=0`.
 Параметры — типизированные значения Pydantic с ограничениями.
 Новый `BaseSettings` и отдельный парсер YAML не добавляются.
+
+В V1 ещё нельзя выбрать другой закон поступления, семейство обслуживания
+или политику завершения измерения. Поэтому их **нет среди настроек**.
+Сейчас приняты модельные допущения: пуассоновский входной поток,
+постоянное обслуживание при нулевой дисперсии и гамма-распределение
+при положительной, остановка на границе измерительного окна с учётом
+`unfinished_requests`. Подробности: [семантика модели](MODEL_SEMANTICS.md).
+Когда появится действительно поддерживаемая альтернатива, вместе с её
+реализацией, тестами и описанием контракта появится параметр выбора.
 
 ## Ограничения и решения на будущее
 

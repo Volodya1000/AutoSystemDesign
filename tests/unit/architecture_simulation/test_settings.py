@@ -42,9 +42,21 @@ def test_simulation_settings_can_be_overridden_from_environment(
     assert settings.simulation.base_seed == 0
 
 
-def test_simulation_settings_reject_an_unknown_parameter() -> None:
+@pytest.mark.parametrize(
+    ("field_name", "value"),
+    [
+        ("unknown", 5),
+        ("arrival_process", "poisson"),
+        ("service_distribution", "gamma_moments"),
+        ("horizon_policy", "stop_at_horizon"),
+    ],
+)
+def test_simulation_settings_reject_unsupported_options(
+    field_name: str,
+    value: str | int,
+) -> None:
     with pytest.raises(ValidationError):
-        SimulationConfiguration.model_validate({"unknown": 5})
+        SimulationConfiguration.model_validate({field_name: value})
 
 
 def test_settings_reject_invalid_replication_count() -> None:
