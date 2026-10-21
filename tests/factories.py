@@ -1,6 +1,6 @@
 """Typed factories for architecture topology tests."""
 
-from typing import Any, TypedDict, Unpack
+from typing import TypedDict, Unpack
 
 from domain.models.edges import Edge
 from domain.models.enums import EdgeRoutingMode, NodeType
@@ -18,8 +18,19 @@ from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import AnyNode, ArchitectureGraph
 
 
-def _capacity_fields(replicas_count: int) -> dict[str, Any]:
-    """Return required capacity attributes shared by compute-like node models."""
+class _CapacityFields(TypedDict):
+    """Typed shared capacity defaults used by test node factories."""
+
+    replicas_count: int
+    maximum_concurrency: int
+    maximum_queue_size: int
+    mean_processing_time_milliseconds: float
+    standard_deviation_processing_time: float
+    monthly_cost_usd: float
+
+
+def _capacity_fields(replicas_count: int) -> _CapacityFields:
+    """Return strictly typed defaults for compute-like test nodes."""
     return {
         "replicas_count": replicas_count,
         "maximum_concurrency": 100,
@@ -44,18 +55,23 @@ def create_test_compute_node(
     identifier: str, **overrides: Unpack[_CapacityOverrides]
 ) -> ComputeNode:
     """Build a compute node with optional capacity values for focused tests."""
-    field_names = {
-        "concurrency": "maximum_concurrency",
-        "mean_ms": "mean_processing_time_milliseconds",
-        "std_ms": "standard_deviation_processing_time",
-        "service_channels_per_replica": "service_channels_per_replica",
-        "queue_size": "maximum_queue_size",
-        "replicas": "replicas_count",
-        "cost": "monthly_cost_usd",
-    }
-    capacity = _capacity_fields(replicas_count=1)
-    capacity.update({field_names[name]: value for name, value in overrides.items()})
-    return ComputeNode(identifier=identifier, **capacity)
+    defaults = _capacity_fields(replicas_count=1)
+    return ComputeNode(
+        identifier=identifier,
+        replicas_count=overrides.get("replicas", defaults["replicas_count"]),
+        maximum_concurrency=overrides.get(
+            "concurrency", defaults["maximum_concurrency"]
+        ),
+        maximum_queue_size=overrides.get("queue_size", defaults["maximum_queue_size"]),
+        service_channels_per_replica=overrides.get("service_channels_per_replica"),
+        mean_processing_time_milliseconds=overrides.get(
+            "mean_ms", defaults["mean_processing_time_milliseconds"]
+        ),
+        standard_deviation_processing_time=overrides.get(
+            "std_ms", defaults["standard_deviation_processing_time"]
+        ),
+        monthly_cost_usd=overrides.get("cost", defaults["monthly_cost_usd"]),
+    )
 
 
 class UnsupportedTestNodeTypeError(ValueError):

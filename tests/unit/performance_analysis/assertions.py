@@ -11,6 +11,6 @@ def assert_unstable_queueing_metrics(result: QueueingMetrics) -> None:
     assert result.mean_queue_wait_milliseconds is None
     assert result.mean_response_time_milliseconds is None
 
-    serialized = json.loads(result.model_dump_json())
+    serialized: dict[str, object] = json.loads(result.model_dump_json())
     assert serialized["mean_queue_wait_milliseconds"] is None
     assert serialized["mean_response_time_milliseconds"] is None

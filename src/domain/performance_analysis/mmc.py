@@ -18,12 +18,32 @@ def compute_mmc_metrics(
     service_rate_requests_per_second: float,
     server_count: int,
 ) -> QueueingMetrics:
-    """Calculate mean waiting and response times for an M/M/c queue.
+    """Calculate exact steady-state M/M/c means with Erlang C.
 
-    Rates are measured in requests per second. The model assumes Poisson
-    arrivals, exponential service times, identical independent servers, an
-    unbounded waiting room, and a steady state. server_count is the total
-    number of independent service channels, not a concurrency limit.
+    Kendall's A/S/c notation: M means Poisson arrivals, the second M means
+    exponentially distributed service times, and c is server_count:
+    independently serving channels fed by ONE shared FIFO queue.
+
+    lambda = arrival_rate_requests_per_second (requests/second)
+    mu     = service_rate_requests_per_second (per-channel requests/second)
+    c      = server_count (not maximum in-flight requests)
+    a      = lambda / mu     # offered traffic in server equivalents
+    rho    = lambda / (c*mu) # utilization per independent server
+
+    The Erlang-C probability that an arriving request must wait is:
+
+        term = a**c / (factorial(c) * (1-rho))
+        Pwait = term / (sum(a**k / factorial(k) for k in range(c)) + term)
+
+    Average queue waiting and response time (in seconds) are:
+
+        Wq = Pwait / (c*mu-lambda)
+        W  = Wq + 1/mu
+
+    Multiply by 1000 for milliseconds. We use logarithms in the Erlang-C
+    calculation to avoid overflow from factorials for large c. Steady-state
+    values require lambda < c*mu and an unlimited FIFO waiting room.
+    See docs/performance-analysis/QUEUEING_THEORY_FOR_BEGINNERS.md.
     """
     _validate_server_count(server_count)
     validate_queueing_rates(
@@ -95,7 +115,12 @@ def _erlang_c_probability_of_waiting(
     utilization_ratio: float,
     server_count: int,
 ) -> float:
-    """Compute Erlang C probability using log-scaled terms."""
+    """Evaluate Erlang-C P(wait) without huge factorials or powers.
+
+    Direct a**c and c! can overflow for large c. Compute the corresponding
+    logarithms, shift by the largest term, and sum scaled exponentials.
+    All three parameters are unitless (a=lambda/mu, rho=lambda/(c*mu)).
+    """
     log_offered_load = log(offered_load)
     log_waiting_term = (
         server_count * log_offered_load

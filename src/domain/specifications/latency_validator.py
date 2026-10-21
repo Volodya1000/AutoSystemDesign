@@ -159,6 +159,21 @@ def _calculate_ggc_wait_ms(
     incoming_rps: float,
     server_count: int,
 ) -> float | None:
+    """Approximate average G/G/c queue wait via the selected Allen-Cunneen form.
+
+    mean/std: mean and standard deviation of service time, milliseconds;
+    incoming_rps: lambda, requests/second; server_count: c channels.
+    rho = lambda * mean / (1000*c), cs^2 = (std/mean)^2, ca^2 = 1
+    (Poisson arrivals are ASSUMED because arrival variance is unavailable).
+
+        Wq_ms ~= (ca^2+cs^2)/2
+                 * rho**(sqrt(2*(c+1))-1) / (c*(1-rho)) * mean
+
+    For one server with ca^2=1, this matches Pollaczek-Khinchine M/G/1:
+        Wq = lambda * E[S^2] / (2*(1-rho)), with S measured in seconds.
+    For c>1 this is an approximation, NOT exact Erlang C.
+    None means a finite justified value cannot be obtained.
+    """
     total_service_rate = server_count * 1000.0 / mean
     if not math.isfinite(total_service_rate) or total_service_rate <= 0.0:
         return None

@@ -17,7 +17,11 @@ class QueueingStatus(StrEnum):
 
 
 class QueueingMetrics(BaseModel):
-    """Finite metrics from a queueing model.
+    """Finite, typed mean metrics from one queueing model.
+
+    Each rate is measured in requests/second, each time in milliseconds.
+    A stable queue produces two finite time estimates. This domain result
+    intentionally contains no p95/p99 claim or measured production latency.
 
     An unstable system has no finite steady-state waiting-time estimate, so
     both time fields must be null. Utilization is allowed to exceed one to
