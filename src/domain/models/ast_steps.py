@@ -75,9 +75,8 @@ class AltStep(BaseModel):
                     raise ModelValidationError(
                         ModelValidationCode.ALT_ELSE_BRANCH_MUST_BE_LAST
                     )
-            else:
-                if not branch.condition.strip():
-                    raise ModelValidationError(
+            elif not branch.condition.strip():
+                raise ModelValidationError(
                         ModelValidationCode.ALT_CONDITION_MUST_NOT_BE_EMPTY
                     )
 
