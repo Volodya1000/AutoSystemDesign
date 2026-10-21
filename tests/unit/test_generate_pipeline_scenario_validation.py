@@ -17,10 +17,10 @@ pytestmark = pytest.mark.unit
         ("requrements: []", "requrements"),
         ("worklod: {}", "worklod"),
         (
-            "workload:\n"
-            "  baseline_requests_per_second: 10\n"
-            "  peak_requests_per_second: 20\n"
-            "  read_rato: 0.6",
+            """workload:
+  baseline_requests_per_second: 10
+  peak_requests_per_second: 20
+  read_rato: 0.6""",
             "workload.read_rato",
         ),
     ],
