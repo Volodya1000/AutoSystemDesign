@@ -39,8 +39,14 @@ markers = [
     "integration: tests that call a real LLM via LM Studio",
 ]
 
+[tool.ruff]
+preview = true
+
 [tool.ruff.lint]
-# Add design-oriented checks while keeping Ruff's existing default rules.
+# Experimental baseline: all available checks except docstring/style and formatter conflicts.
+select = ["ALL"]
+ignore = ["D", "DOC", "COM812", "ISC001"]
+# Previously selected rules retained as documentation (will be removed after diagnosis).
 extend-select = [
     "A",     # Prevent shadowing Python builtins.
     "ANN202", # Require return annotations on private functions.
@@ -111,16 +117,7 @@ strict = true
 mypy_path = "src"
 
 [tool.pylint."messages control"]
-disable = [
-    "import-outside-toplevel",
-    "inconsistent-return-statements",
-    "missing-docstring",
-    "redefined-outer-name",
-    "too-few-public-methods",
-    "too-many-arguments",
-    "too-many-positional-arguments",
-    "unused-argument",
-]
+disable = ["missing-docstring"]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
