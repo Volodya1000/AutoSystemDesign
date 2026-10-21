@@ -266,6 +266,7 @@ def test_infinite_latency_is_reported_as_unavailable_not_serialized() -> None:
     )
     assert type(report).model_validate_json(report.model_dump_json()) == report
 
+
 def test_multiple_cache_miss_fallbacks_report_equal_split_assumption() -> None:
     """Multiple fallback databases have unknown alternative routing weights."""
     graph = ArchitectureGraph(
