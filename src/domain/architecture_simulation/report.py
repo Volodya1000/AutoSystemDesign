@@ -190,7 +190,10 @@ class RequirementEvaluation(SimulationDataModel):
             raise ValueError(message)
         if (
             self.status is RequirementVerdict.NOT_EVALUATED
-            and (self.observed_value is not None or self.confidence_interval is not None)
+            and (
+                self.observed_value is not None
+                or self.confidence_interval is not None
+            )
         ):
             message = "unsupported requirement cannot contain observations"
             raise ValueError(message)
