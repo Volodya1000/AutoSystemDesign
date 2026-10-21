@@ -25,7 +25,7 @@ irrelevant to this rule -- cycle detection belongs to
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
@@ -100,5 +100,6 @@ def check_cache_usage(
 class CacheUsageValidator(BaseValidator):
     """Flags write-only caches and caches whose miss path is broken."""
 
+    @override
     def validate(self, graph: ArchitectureGraph) -> ValidationResult:
         return ValidationResult(errors=check_cache_usage(graph))

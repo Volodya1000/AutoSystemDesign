@@ -10,6 +10,8 @@ Matching requirements to validators is the dispatcher's job
 (RequirementValidationDispatcher), not this class's.
 """
 
+from typing import override
+
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
     BudgetExceededError,
@@ -29,6 +31,7 @@ class BudgetRequirementValidator(RequirementValidator[BudgetRequirement]):
 
     requirement_type = BudgetRequirement
 
+    @override
     def validate(
         self, graph: ArchitectureGraph, requirement: BudgetRequirement
     ) -> list[ArchitectureValidationError]:

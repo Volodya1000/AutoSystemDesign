@@ -26,12 +26,14 @@ _logger = logging.getLogger("pipeline.report")
 class LoggingGenerationReporter:
     """Adapter: GenerationReporter port -> logging helpers."""
 
+    @staticmethod
     def attempts[PayloadT](
-        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+        attempts: Sequence[GenerationAttempt[PayloadT]], label: str
     ) -> None:
         log_attempts(attempts, label)
 
-    def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:
+    @staticmethod
+    def tokens(usage: TokenUsage, generation_seconds: float) -> None:
         log_token_totals(usage, generation_seconds)
 
 

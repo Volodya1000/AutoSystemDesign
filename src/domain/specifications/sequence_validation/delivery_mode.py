@@ -22,8 +22,8 @@ _ASYNC_MESSAGE_KINDS: frozenset[str] = frozenset({"event", "notification"})
 class DeliveryModeValidator:
     """Require event and notification messages to use asynchronous delivery."""
 
+    @staticmethod
     def validate_scenario(
-        self,
         scenario: InteractionScenario,
         catalog: ProjectRolesCatalog,
         graph: ArchitectureGraph,

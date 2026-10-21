@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from domain.exceptions.sequence_errors import SequenceIntegrityError
 from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 class SequenceIntegrityValidator(SequenceCatalogValidator, SequenceScenarioValidator):
     """Validate references between the roles catalog, architecture and scenario."""
 
+    @override
     def validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult:
         errors: list[ArchitectureValidationError] = []
         seen_roles: set[str] = set()
@@ -31,6 +32,7 @@ class SequenceIntegrityValidator(SequenceCatalogValidator, SequenceScenarioValid
             seen_roles.add(role.role_id)
         return ValidationResult(errors=errors)
 
+    @override
     def validate_scenario(
         self,
         scenario: InteractionScenario,

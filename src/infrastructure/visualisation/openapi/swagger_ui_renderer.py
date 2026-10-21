@@ -40,7 +40,8 @@ class SwaggerUiRenderer:
     array.
     """
 
-    def render_html(self, spec_dict: dict[str, Any], title: str) -> str:
+    @staticmethod
+    def render_html(spec_dict: dict[str, Any], title: str) -> str:
         embedded_spec: dict[str, Any] = dereference_internal_refs(spec_dict)
         safe_spec: str = safe_json_for_script(embedded_spec)
         escaped_title: str = html.escape(title)

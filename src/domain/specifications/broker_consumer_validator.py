@@ -22,7 +22,7 @@ irrelevant to this rule -- cycle detection belongs to
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
@@ -86,5 +86,6 @@ def check_message_broker_linkage(
 class MessageBrokerConsumerValidator(BaseValidator):
     """Flags brokers missing a producer, a consumer, or using one node for both."""
 
+    @override
     def validate(self, graph: ArchitectureGraph) -> ValidationResult:
         return ValidationResult(errors=check_message_broker_linkage(graph))

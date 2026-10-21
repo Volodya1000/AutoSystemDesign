@@ -21,8 +21,8 @@ if TYPE_CHECKING:
 class ClientOwnershipValidator:
     """Reject client lifelines used by multiple distinct business roles."""
 
+    @staticmethod
     def validate_scenario(
-        self,
         scenario: InteractionScenario,
         catalog: ProjectRolesCatalog,
         graph: ArchitectureGraph,

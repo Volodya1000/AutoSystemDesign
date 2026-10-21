@@ -2,6 +2,7 @@
 """Markdown document reader."""
 
 from pathlib import Path
+from typing import override
 
 from application.document_reader import DocumentInputError, DocumentReader
 
@@ -9,6 +10,7 @@ from application.document_reader import DocumentInputError, DocumentReader
 class MarkdownReader(DocumentReader):
     """Read UTF-8 Markdown without modifying its semantic content."""
 
+    @override
     def read_text(self, path: Path) -> str:
         if path.suffix.lower() not in {".md", ".markdown"}:
             raise DocumentInputError(f"Unsupported Markdown extension: {path.suffix}")

@@ -24,8 +24,9 @@ class DiagramFileWriter:
     lets channels that never touch disk (HTTP APIs, UIs) skip it.
     """
 
+    @staticmethod
     def write(
-        self, artifacts: DiagramArtifacts, output_dir: Path, base_name: str
+        artifacts: DiagramArtifacts, output_dir: Path, base_name: str
     ) -> list[Path]:
         """Write the artifacts; returns the list of created file paths.
 

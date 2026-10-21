@@ -59,8 +59,9 @@ class ApiDesignValidator:
 
         return ValidationResult(errors=errors)
 
+    @staticmethod
     def _validate_routes_and_identifiers(
-        self, operations: list[ApiOperation]
+        operations: list[ApiOperation]
     ) -> list[ArchitectureValidationError]:
         errors: list[ArchitectureValidationError] = []
         seen_operation_ids: set[str] = set()
@@ -85,8 +86,9 @@ class ApiDesignValidator:
 
         return errors
 
+    @staticmethod
     def _validate_path_parameters(
-        self, operations: list[ApiOperation]
+        operations: list[ApiOperation]
     ) -> list[ArchitectureValidationError]:
         errors: list[ArchitectureValidationError] = []
 
@@ -116,8 +118,9 @@ class ApiDesignValidator:
 
         return errors
 
+    @staticmethod
     def _validate_schema_refs(
-        self, operations: list[ApiOperation], available_schemas: set[str]
+        operations: list[ApiOperation], available_schemas: set[str]
     ) -> list[ArchitectureValidationError]:
         errors: list[ArchitectureValidationError] = []
 
@@ -147,8 +150,9 @@ class ApiDesignValidator:
 
         return errors
 
+    @staticmethod
     def _validate_component_linkage(
-        self, operations: list[ApiOperation], valid_node_ids: set[str]
+        operations: list[ApiOperation], valid_node_ids: set[str]
     ) -> list[ArchitectureValidationError]:
         errors: list[ArchitectureValidationError] = []
 
@@ -172,8 +176,9 @@ class ApiDesignValidator:
 
         return errors
 
+    @staticmethod
     def _validate_requirements(
-        self, operations: list[ApiOperation], expected_requirement_ids: AbstractSet[str]
+        operations: list[ApiOperation], expected_requirement_ids: AbstractSet[str]
     ) -> list[ArchitectureValidationError]:
         if not expected_requirement_ids:
             return []

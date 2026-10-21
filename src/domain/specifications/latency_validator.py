@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
@@ -202,6 +202,7 @@ def compute_critical_path(
 class LatencySloValidator(ScenarioValidator):
     """Checks the critical path against every LatencyRequirement."""
 
+    @override
     def validate(
         self,
         graph: ArchitectureGraph,

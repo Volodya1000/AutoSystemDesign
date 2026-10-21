@@ -7,7 +7,7 @@ or above it has an infinite queue and will collapse at peak load.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
@@ -69,6 +69,7 @@ def compute_node_utilization(
 class CapacitySaturationValidator(ScenarioValidator):
     """Reports CapacitySaturationError for every node above the threshold."""
 
+    @override
     def validate(
         self,
         graph: ArchitectureGraph,
