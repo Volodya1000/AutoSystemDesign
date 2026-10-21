@@ -1,10 +1,4 @@
-"""Ordered execution of stages. Contains no domain logic.
-
-Exit-code contract:
-    0 - every stage produced its required artifacts (SUCCEEDED or PARTIAL)
-    1 - at least one stage FAILED (required artifacts missing)
-    2 - configuration, scenario, or LLM endpoint failure (handled by CLI)
-"""
+"""Ordered execution of stages; process exit codes belong to CLI callers."""
 
 from __future__ import annotations
 
@@ -14,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.result import PipelineRunResult
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -71,7 +66,7 @@ class PipelineRunner:
         scenario: DesignScenario,
         out_dir: Path,
         writer: ArtifactWriterProtocol,
-    ) -> int:
+    ) -> PipelineRunResult:
         upstream: dict[StageId, StageOutcome[object]] = {}
         outcomes: list[StageOutcome[object]] = []
 
@@ -88,16 +83,11 @@ class PipelineRunner:
             upstream[stage.name] = outcome
 
             if outcome.status is StageStatus.FAILED:
-                self._reporter.report(outcomes)
-                return 1
+                break
 
-        self._reporter.report(outcomes)
-        # PARTIAL is not a failure: diagram rendering is best-effort by
-        # design. Required artifacts (JSON graph, roles catalog, ASTs) are
-        # produced whenever the stage is not FAILED. Callers that want to
-        # gate on diagrams should inspect the summary line instead of the
-        # exit code.
-        return 0
+        result = PipelineRunResult(outcomes=tuple(outcomes))
+        self._reporter.report(result.outcomes)
+        return result
 
     @staticmethod
     def _validate_stages(stages: tuple[PipelineStageProtocol, ...]) -> None:

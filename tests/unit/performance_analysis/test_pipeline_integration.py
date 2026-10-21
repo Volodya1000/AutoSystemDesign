@@ -8,6 +8,7 @@ import pytest
 from pypdf import PdfReader
 
 from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.result import PipelineRunResult
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stage import StageId
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
@@ -59,14 +60,11 @@ class _FixedC4Stage:
         )
 
 
-class _RecordingReporter:
-    """Collect runner outcomes without logging or network calls."""
-
-    def __init__(self) -> None:
-        self.outcomes: list[StageOutcome[object]] = []
+class _SilentReporter:
+    """Render no output; callers inspect the returned pipeline result."""
 
     def report(self, outcomes: Sequence[StageOutcome[object]]) -> None:
-        self.outcomes = list(outcomes)
+        del outcomes
 
 
 def _graph(*, mean_ms: float = 50.0, with_fanout: bool = False) -> ArchitectureGraph:
@@ -109,17 +107,16 @@ def _run(
     output_directory: Path,
     scenario: DesignScenario,
     graph: ArchitectureGraph,
-) -> tuple[int, _RecordingReporter, PerformanceAnalysisReport]:
+) -> tuple[PipelineRunResult, PerformanceAnalysisReport]:
     """Execute the actual two-stage pipeline and read persisted JSON."""
-    reporter = _RecordingReporter()
     pipeline = PipelineRunner(
         stages=[
             _FixedC4Stage(graph),
             PerformanceAnalysisStage(pdf_renderer=PerformanceReportPdfRenderer()),
         ],
-        reporter=reporter,
+        reporter=_SilentReporter(),
     )
-    result_code = pipeline.run(
+    result = pipeline.run(
         scenario,
         output_directory,
         FileSystemArtifactWriter(log_writes=False),
@@ -128,7 +125,7 @@ def _run(
     report = PerformanceAnalysisReport.model_validate_json(
         report_path.read_text(encoding="utf-8")
     )
-    return result_code, reporter, report
+    return result, report
 
 
 def _scenario(
@@ -156,18 +153,18 @@ def test_linear_mm1_metrics_match_hand_calculation_in_json_and_pdf(
 ) -> None:
     """At lambda=10, mu=20, calculate 50ms wait and 100ms response."""
     identifier = "linear"
-    exit_code, reporter, report = _run(
+    result, report = _run(
         tmp_path,
         _scenario(identifier, 10.0),
         _graph(),
     )
 
-    assert exit_code == 0
-    assert [outcome.name for outcome in reporter.outcomes] == [
+    assert result.status is StageStatus.SUCCEEDED
+    assert [outcome.name for outcome in result.outcomes] == [
         StageId.C4,
         StageId.PERFORMANCE_ANALYSIS,
     ]
-    assert all(outcome.status is StageStatus.SUCCEEDED for outcome in reporter.outcomes)
+    assert all(outcome.status is StageStatus.SUCCEEDED for outcome in result.outcomes)
     assert report.status is PerformanceAnalysisStatus.PARTIAL
     service = next(node for node in report.nodes if node.node_identifier == "service")
     assert service.incoming_requests_per_second == pytest.approx(10.0)
@@ -188,14 +185,14 @@ def test_linear_mm1_metrics_match_hand_calculation_in_json_and_pdf(
 
 
 def test_absent_workload_still_produces_json_and_pdf(tmp_path: Path) -> None:
-    exit_code, reporter, report = _run(
+    result, report = _run(
         tmp_path,
         _scenario("no_workload", None),
         _graph(),
     )
 
-    assert exit_code == 0
-    assert reporter.outcomes[-1].status is StageStatus.SUCCEEDED
+    assert result.status is StageStatus.SUCCEEDED
+    assert result.outcomes[-1].status is StageStatus.SUCCEEDED
     assert report.status is PerformanceAnalysisStatus.UNAVAILABLE
     assert report.findings[0].finding_code is PerformanceFindingCode.WORKLOAD_MISSING
     assert report.nodes[-1].estimated_mean_response_time_milliseconds is None
@@ -203,7 +200,7 @@ def test_absent_workload_still_produces_json_and_pdf(tmp_path: Path) -> None:
 
 
 def test_overload_has_no_invented_steady_state_wait(tmp_path: Path) -> None:
-    exit_code, reporter, report = _run(
+    result, report = _run(
         tmp_path,
         _scenario("overloaded", 30.0),
         _graph(),
@@ -215,8 +212,8 @@ def test_overload_has_no_invented_steady_state_wait(tmp_path: Path) -> None:
         for item in report.findings
         if "service" in item.affected_node_identifiers
     }
-    assert exit_code == 0
-    assert reporter.outcomes[-1].status is StageStatus.SUCCEEDED
+    assert result.status is StageStatus.SUCCEEDED
+    assert result.outcomes[-1].status is StageStatus.SUCCEEDED
     assert service.utilization_ratio == pytest.approx(1.5)
     assert service.estimated_mean_queue_wait_milliseconds is None
     assert service.estimated_mean_response_time_milliseconds is None
@@ -230,12 +227,12 @@ def test_two_runs_in_separate_directories_keep_their_own_results(
     stable_dir = tmp_path / "stable"
     overloaded_dir = tmp_path / "overloaded"
 
-    _, _, first = _run(
+    _, first = _run(
         stable_dir,
         _scenario("one", 10.0),
         _graph(with_fanout=True),
     )
-    _, _, second = _run(
+    _, second = _run(
         overloaded_dir,
         _scenario("two", 30.0),
         _graph(),

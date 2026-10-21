@@ -28,6 +28,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
+from application.pipeline.outcome import StageStatus
 from config.logging import configure_logging
 from config.root import AppSettings, load_app_settings
 from domain.models import DesignScenario
@@ -67,7 +68,10 @@ def main() -> int:
             image_format=image_format,
             render_diagrams=not args.no_diagram,
         )
-        return wiring.runner.run(scenario, out_dir, wiring.writer)
+        result = wiring.runner.run(scenario, out_dir, wiring.writer)
+        # PARTIAL preserves the historical success exit code: optional
+        # rendering errors must not fail a CLI invocation.
+        return 1 if result.status is StageStatus.FAILED else 0
     except LlmConnectionError:
         _logger.exception("LLM endpoint failure")
         return 2

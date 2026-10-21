@@ -228,10 +228,11 @@ def test_legacy_pipeline_skips_sequence_and_api_but_keeps_c4_successful(
         reporter=pipeline_reporter,
     )
 
-    exit_code = runner.run(scenario, tmp_path, writer)
+    result = runner.run(scenario, tmp_path, writer)
 
-    assert exit_code == 0
-    outcomes = pipeline_reporter.reports[-1]
+    assert result.status is StageStatus.SUCCEEDED
+    outcomes = result.outcomes
+    assert tuple(pipeline_reporter.reports[-1]) == outcomes
     assert [(outcome.name, outcome.status) for outcome in outcomes] == [
         (StageId.C4, StageStatus.SUCCEEDED),
         (StageId.SEQUENCE, StageStatus.SUCCEEDED),
