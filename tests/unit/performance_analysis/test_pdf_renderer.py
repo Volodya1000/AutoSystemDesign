@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from io import BytesIO
+from typing import TYPE_CHECKING
 
 import pytest
 from pypdf import PdfReader
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -97,5 +97,5 @@ def test_unavailable_report_shows_honest_missing_metrics() -> None:
     text = "\n".join(page.extract_text() for page in reader.pages)
 
     assert "Недоступен" in text
-    assert "Не оценено" in text
+    assert "нет оценки" in text
     assert "Диагностических выводов нет" in text
