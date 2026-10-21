@@ -125,7 +125,7 @@ def check_acyclicity(
             adjacency_list[edge.source_identifier].append(edge.target_identifier)
 
     # 0 = unvisited, 1 = visiting (in active recursion stack), 2 = visited
-    visit_state: dict[str, int] = {identifier: 0 for identifier in node_identifiers}
+    visit_state: dict[str, int] = dict.fromkeys(node_identifiers, 0)
     cycle_errors: list[ArchitectureValidationError] = []
 
     def depth_first_search(current_identifier: str, current_path: list[str]) -> None:
