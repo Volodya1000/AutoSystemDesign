@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from operator import itemgetter
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -35,7 +36,7 @@ def compute_project_metrics(
     utilization = compute_node_utilization(graph, scenario) if scenario.workload else {}
     if utilization:
         max_node_id, max_utilization = max(
-            utilization.items(), key=lambda item: item[1]
+            utilization.items(), key=itemgetter(1)
         )
     else:
         max_node_id = None
