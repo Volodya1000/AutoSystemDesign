@@ -49,7 +49,9 @@ requirements:
 
 
 class NullGenerationReporter:
-    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None:
+    def attempts[PayloadT](
+        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+    ) -> None:
         del attempts, label
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:
