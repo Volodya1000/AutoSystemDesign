@@ -43,69 +43,16 @@ markers = [
 preview = true
 
 [tool.ruff.lint]
-# Experimental baseline: all available checks except docstring/style and formatter conflicts.
+# Temporarily evaluate all Ruff rules except docstrings and Ruff formatter conflicts.
 select = ["ALL"]
-ignore = ["D", "DOC", "COM812", "ISC001"]
-# Previously selected rules retained as documentation (will be removed after diagnosis).
-extend-select = [
-    "A",     # Prevent shadowing Python builtins.
-    "ANN202", # Require return annotations on private functions.
-    "B",     # Bugbear: likely bugs and error-prone constructs.
-    "C90",   # McCabe: excessive cyclomatic complexity.
-    "FBT",   # Boolean traps in function interfaces and calls.
-    "PERF",  # Avoid common performance anti-patterns.
-    "PIE",   # Remove unnecessary code constructs.
-    "RET",   # Consistent, explicit return paths.
-    "SIM",   # Simplify unnecessarily complicated control flow.
-    "TC",    # Type-checking import and annotation rules.
-    "TID",   # Keep imports explicit and maintainable.
-    "TRY400", # Prefer logging.exception when reporting an active exception.
-    "TRY401", # Avoid redundant exception objects in logging.exception calls.
-    "PLR0911", # Keep functions from accumulating too many return paths.
-    "PLR0912", # Keep branching logic manageable.
-    "PLR0913", # Keep function interfaces small.
-    "PLR0914", # Keep functions from accumulating too many local variables.
-    "PLR0915", # Keep functions focused on one responsibility.
-    "PLR1702", # Keep control flow from becoming deeply nested.
-    "PLR0917", # Avoid APIs that require many positional arguments.
-    "PLR1714", # Replace repeated equality checks with membership tests.
-    "SLF",    # Enforce encapsulation by preventing private-member access.
-    "ARG005", # Remove unused lambda parameters.
-    "ANN401", # Avoid unconstrained Any annotations.
-    "RUF001", # Avoid ambiguous Unicode in string literals.
-    "S101", # Prevent production code from relying on assert for validation.
-    "T201", # Route user-facing output through logging instead of print.
-    "S603",  # Audit subprocess calls even when shell execution is disabled.
-    "S607",   # Review subprocess calls using partial executable paths.
-    "S310",  # Audit potentially unsafe URL-opening calls.
-    "EM101", # Keep exception messages in named variables for tracebacks.
-    "PLC0415", # Keep imports at module scope unless laziness is intentional.
-    "PT011",  # Require specific exception expectations in pytest.
-    "RUF043", # Avoid ambiguous regular expressions in pytest.raises.
-    "INP001", # Require explicit package markers for source, scripts, and tests.
-    "ARG001", # Remove unused function arguments.
-    "ARG002", # Remove unused method arguments.
-    "PT018", # Keep each pytest assertion focused.
-    "PT006", # Use explicit parameterization argument names.
-    "ANN001", # Require parameter type annotations.
-    "ANN002", # Require annotations for variadic positional arguments.
-    "UP042",  # Prefer StrEnum for string enums.
-    "ERA001", # Remove commented-out code.
-    "D205", # Require a blank line between docstring summary and body.
-    "D401", # Require docstrings to use imperative mood.
-    "PLR2004", # Replace unexplained magic values with named constants.
-    "D404", # Avoid starting docstrings with "This".
-    "RUF002", # Avoid ambiguous Unicode in docstrings.
-    "RUF005", # Prefer clearer sequence concatenation.
-    "E501",   # Apply the configured 88-column line limit consistently.
-]
+ignore = ["D", "DOC", "missing-trailing-comma", "single-line-implicit-string-concatenation"]
 # Fix all enabled lint findings without inline suppressions.
 allowed-confusables = ["а", "е", "о", "р", "с", "С"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-    "S101",    # Allow assertions in tests.
-    "PLR2004", # Keep readable literal expectations in tests.
+    "assert",    # Allow assertions in tests.
+    "magic-value-comparison", # Keep readable literal expectations in tests.
 ]
 
 [tool.ruff.lint.mccabe]
