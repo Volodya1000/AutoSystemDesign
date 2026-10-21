@@ -8,7 +8,7 @@ from domain.exceptions.sequence_errors import SequenceIntegrityError
 from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
 from domain.specifications.interfaces import ValidationResult
 
-from .protocols import SequenceCatalogValidator, SequenceScenarioValidator
+from domain.specifications.sequence_validation.protocols import SequenceCatalogValidator, SequenceScenarioValidator
 
 if TYPE_CHECKING:
     from domain.exceptions.architecture_errors import ArchitectureValidationError

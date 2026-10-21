@@ -1,9 +1,9 @@
 """Sequence-diagram validation rules and interfaces."""
 
-from .client_ownership import ClientOwnershipValidator
-from .delivery_mode import DeliveryModeValidator
-from .integrity import SequenceIntegrityValidator
-from .protocols import SequenceCatalogValidator, SequenceScenarioValidator
+from domain.specifications.sequence_validation.client_ownership import ClientOwnershipValidator
+from domain.specifications.sequence_validation.delivery_mode import DeliveryModeValidator
+from domain.specifications.sequence_validation.integrity import SequenceIntegrityValidator
+from domain.specifications.sequence_validation.protocols import SequenceCatalogValidator, SequenceScenarioValidator
 
 __all__ = [
     "ClientOwnershipValidator",

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from domain.exceptions.sequence_errors import AsyncDeliveryModeError
 from domain.specifications.interfaces import ValidationResult
 
-from .helpers import iter_message_steps
+from domain.specifications.sequence_validation.helpers import iter_message_steps
 
 if TYPE_CHECKING:
     from domain.exceptions.architecture_errors import ArchitectureValidationError
