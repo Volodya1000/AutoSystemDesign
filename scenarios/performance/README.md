@@ -32,6 +32,22 @@ uv run python scripts/generate_pipeline.py --scenario scenarios/performance/help
 **JSON обязателен**, PDF должен появляться при доступном системном шрифте.
 Ошибки необязательного PDF должны оставлять JSON и объяснение warning.
 
+## Машинная проверка сохранённых артефактов
+
+После выполнения реального прогона можно проверить JSON/PDF без повторного вызова LLM:
+
+```bash
+uv run python scripts/check_performance_acceptance.py --out-dir output/acceptance/checkout --scenario checkout_baseline --require-pdf
+uv run python scripts/check_performance_acceptance.py --out-dir output/acceptance/catalog --scenario catalog_read_heavy --require-pdf
+uv run python scripts/check_performance_acceptance.py --out-dir output/acceptance/notifications --scenario notifications_spiky --require-pdf
+uv run python scripts/check_performance_acceptance.py --out-dir output/acceptance/helpdesk --scenario helpdesk_no_workload --expect-status unavailable --require-pdf
+```
+
+Код выхода **0** означает, что локальные артефакты прошли структурные проверки;
+**1** означает отказ. Даже успешная проверка файлов **не доказывает** правильность
+LLM-архитектуры, end-to-end стадий и соблюдение p95/p99. Сверяйте вывод с полным
+логом и [корневым чек-листом](../../docs/performance-analysis/ROOT_PR_ACCEPTANCE.md).
+
 ## Матрица ожиданий
 
 | YAML | Фокус | Обязательное поведение |
