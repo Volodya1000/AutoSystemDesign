@@ -13,7 +13,7 @@ class BaseRequirement(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     def is_met_requirement(self, actual_value: float) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class ThresholdRequirement(BaseRequirement):
