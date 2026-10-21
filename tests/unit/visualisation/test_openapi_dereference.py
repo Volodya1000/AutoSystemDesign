@@ -111,7 +111,8 @@ class TestCycles:
             "items"
         ]
         assert items["type"] == "object"
-        assert "Recursive" in items["description"]
+        nested_items = items["properties"]["children"]["items"]
+        assert "Recursive" in nested_items["description"]
         assert "$ref" not in json.dumps(result)
 
     def test_mutual_cycle_collapses_to_stub(self) -> None:
@@ -132,7 +133,8 @@ class TestCycles:
         result = dereference_internal_refs(spec)
         inner_a = result["components"]["schemas"]["B"]["properties"]["a"]
         assert inner_a["type"] == "object"
-        assert "Recursive" in inner_a["description"]
+        inner_b = inner_a["properties"]["b"]
+        assert "Recursive" in inner_b["properties"]["a"]["description"]
 
     def test_root_pointer_terminates(self) -> None:
         # "$ref": "#" points at the whole document; pathological input, but
