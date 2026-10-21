@@ -44,9 +44,7 @@ def _ordered_findings(findings: list[PerformanceFinding]) -> list[PerformanceFin
     normalized = [
         finding.model_copy(
             update={
-                "affected_node_identifiers": sorted(
-                    finding.affected_node_identifiers
-                )
+                "affected_node_identifiers": sorted(finding.affected_node_identifiers)
             }
         )
         for finding in findings
