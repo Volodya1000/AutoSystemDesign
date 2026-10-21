@@ -35,6 +35,7 @@ class _CapacityOverrides(TypedDict, total=False):
     mean_ms: float
     std_ms: float
     service_channels_per_replica: int | None
+    queue_size: int
     replicas: int
     cost: float
 
@@ -48,6 +49,7 @@ def create_test_compute_node(
         "mean_ms": "mean_processing_time_milliseconds",
         "std_ms": "standard_deviation_processing_time",
         "service_channels_per_replica": "service_channels_per_replica",
+        "queue_size": "maximum_queue_size",
         "replicas": "replicas_count",
         "cost": "monthly_cost_usd",
     }
