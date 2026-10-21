@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from application.pipeline.outcome import StageOutcome
-
     from application.results import GenerationAttempt
     from application.usage import TokenUsage
 
