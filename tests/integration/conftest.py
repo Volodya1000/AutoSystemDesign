@@ -20,19 +20,20 @@ from infrastructure.llm.client import LiteLlmClient
 _TEST_CONFIG_FILE: str = "config.test.yaml"
 
 
-@pytest.fixture(scope="session")
-def app_settings() -> AppSettings:
+@pytest.fixture(scope="session", name="app_settings")
+def _app_settings_fixture() -> AppSettings:
     """Load test settings (config.test.yaml + .env); skips when unset."""
     with pytest.MonkeyPatch.context() as patcher:
         patcher.setenv(CONFIG_FILE_ENV_VAR, _TEST_CONFIG_FILE)
         try:
-            return load_app_settings()
+            settings: AppSettings = load_app_settings()
         except ValidationError as error:
             pytest.skip(f"Settings are not configured (.env / ASD_* env vars): {error}")
+        return settings
 
 
-@pytest.fixture(scope="session")
-def gate_settings(app_settings: AppSettings) -> AppSettings:
+@pytest.fixture(scope="session", name="gate_settings")
+def _gate_settings_fixture(app_settings: AppSettings) -> AppSettings:
     """Temperature pinned to 0.0 for deterministic capability gating."""
     return with_llm_updates(app_settings, temperature=0.0)
 
