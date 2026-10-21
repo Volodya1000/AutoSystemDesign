@@ -38,11 +38,11 @@ _ALL_METRIC_FIELDS: tuple[str, ...] = (
     "maximum_value",
 )
 _REQUIRED_METRIC_FIELDS: Mapping[MetricType, frozenset[str]] = MappingProxyType({
-    "latency": frozenset({"threshold_value", "percentile"}),
-    "queue_size_percentile": frozenset({"threshold_value", "percentile"}),
-    "budget": frozenset({"threshold_value"}),
-    "availability": frozenset({"threshold_value"}),
-    "resource_utilization": frozenset({"minimum_value", "maximum_value"}),
+    "latency": frozenset(("threshold_value", "percentile")),
+    "queue_size_percentile": frozenset(("threshold_value", "percentile")),
+    "budget": frozenset(("threshold_value",)),
+    "availability": frozenset(("threshold_value",)),
+    "resource_utilization": frozenset(("minimum_value", "maximum_value")),
 })
 
 

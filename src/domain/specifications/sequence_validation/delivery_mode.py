@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from domain.models.sequence import InteractionScenario
     from domain.models.topology import ArchitectureGraph
 
-_ASYNC_MESSAGE_KINDS: frozenset[str] = frozenset({"event", "notification"})
+_ASYNC_MESSAGE_KINDS: frozenset[str] = frozenset(("event", "notification"))
 
 
 class DeliveryModeValidator:

@@ -35,7 +35,7 @@ from config.visualisation import VisualisationSettings
 
 CONFIG_FILE_ENV_VAR: Final[str] = "APP_CONFIG_FILE"
 _DEFAULT_CONFIG_FILE: Final[Path] = Path("config.yaml")
-_ENV_OWNED_FIELDS: Final[frozenset[str]] = frozenset({"base_url", "api_key"})
+_ENV_OWNED_FIELDS: Final[frozenset[str]] = frozenset(("base_url", "api_key"))
 
 
 class ConfigFileValidationError(ValueError):
