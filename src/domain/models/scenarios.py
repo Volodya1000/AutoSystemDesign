@@ -1,10 +1,4 @@
-from pydantic import (
-    AliasChoices,
-    BaseModel,
-    ConfigDict,
-    Field,
-    model_validator,
-)
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from domain.exceptions.model_validation_errors import (
     ModelValidationCode,
@@ -34,11 +28,10 @@ class WorkloadProfile(BaseModel):
 
 
 class DesignScenario(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+    model_config = ConfigDict(extra="forbid")
 
     identifier: str = Field(
         default="project",
-        validation_alias=AliasChoices("identifier", "project_name"),
         min_length=1,
         pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$",
     )
