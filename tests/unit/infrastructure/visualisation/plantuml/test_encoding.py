@@ -6,7 +6,6 @@ import zlib
 import pytest
 
 from infrastructure.visualisation.plantuml.encoding import (
-    _PLANTUML_ALPHABET,
     build_kroki_url,
     build_plantuml_url,
     encode_kroki_text,
@@ -16,6 +15,9 @@ from infrastructure.visualisation.plantuml.models import DiagramImageFormat
 
 pytestmark = pytest.mark.unit
 
+# Independent reference alphabet from the PlantUML server encoding specification.
+_REFERENCE_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+
 
 def _decode_plantuml_token(token: str) -> str:
     """Decode the PlantUML 6-bit alphabet for a round-trip assertion."""
@@ -24,7 +26,7 @@ def _decode_plantuml_token(token: str) -> str:
     output = bytearray()
 
     for character in token:
-        bit_buffer = (bit_buffer << 6) | _PLANTUML_ALPHABET.index(character)
+        bit_buffer = (bit_buffer << 6) | _REFERENCE_ALPHABET.index(character)
         bit_count += 6
         while bit_count >= 8:
             bit_count -= 8
@@ -45,7 +47,7 @@ def test_plantuml_encoding_round_trips_utf8_source(source: str) -> None:
     token = encode_plantuml_text(source)
 
     assert token
-    assert set(token) <= set(_PLANTUML_ALPHABET)
+    assert set(token) <= set(_REFERENCE_ALPHABET)
     assert _decode_plantuml_token(token) == source
 
 
