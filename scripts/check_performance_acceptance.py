@@ -38,11 +38,12 @@ def _check_report(
     identifiers = [node.node_identifier for node in report.nodes]
     if identifiers != sorted(set(identifiers)):
         failures.append("Node identifiers must be unique and sorted")
-    for finding in report.findings:
-        if finding.affected_node_identifiers != sorted(
-            finding.affected_node_identifiers
-        ):
-            failures.append("Affected node identifiers are not sorted")
+    failures.extend(
+        "Affected node identifiers are not sorted"
+        for finding in report.findings
+        if finding.affected_node_identifiers
+        != sorted(finding.affected_node_identifiers)
+    )
     for identifier in identifiers:
         codes = {
             finding.finding_code
