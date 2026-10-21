@@ -38,7 +38,9 @@ from infrastructure.agents.api_designer import ApiDesignerAgent
 from infrastructure.agents.designer import ArchitectureDesignerAgent
 from infrastructure.agents.sequence_designer import SequenceDesignerAgent
 from infrastructure.llm.client import LiteLlmClient
-from infrastructure.performance_analysis.pdf_renderer import PerformanceReportPdfRenderer
+from infrastructure.performance_analysis.pdf_renderer import (
+    PerformanceReportPdfRenderer,
+)
 from infrastructure.persistence.artifact_writer import FileSystemArtifactWriter
 from infrastructure.reporting import LoggingGenerationReporter, LoggingPipelineReporter
 from infrastructure.visualisation.openapi.renderers import DefaultApiArtifactRenderer
