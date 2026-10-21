@@ -22,7 +22,9 @@ if TYPE_CHECKING:
     from domain.models.functional import FunctionalRequirement
     from domain.models.roles import ProjectRolesCatalog
     from domain.models.topology import ArchitectureGraph
-    from domain.specifications.sequence_validator import SequenceScenarioValidatorProtocol
+    from domain.specifications.sequence_validator import (
+        SequenceScenarioValidatorProtocol,
+    )
 
 
 class InteractionScenarioGenerator:

@@ -16,7 +16,9 @@ if TYPE_CHECKING:
     from application.protocols import SequenceDesignerProtocol
     from domain.exceptions.architecture_errors import ArchitectureValidationError
     from domain.models.scenarios import DesignScenario
-    from domain.specifications.sequence_validator import SequenceCatalogValidatorProtocol
+    from domain.specifications.sequence_validator import (
+        SequenceCatalogValidatorProtocol,
+    )
 
 
 class RolesCatalogGenerator:

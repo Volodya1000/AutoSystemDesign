@@ -15,7 +15,10 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.context import StageContext
-    from application.pipeline.protocols import DiagramRendererProtocol, GenerationReporterProtocol
+    from application.pipeline.protocols import (
+        DiagramRendererProtocol,
+        GenerationReporterProtocol,
+    )
     from application.pipeline.service_protocols import DesignGeneratorProtocol
     from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph

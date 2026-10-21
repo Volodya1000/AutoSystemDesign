@@ -29,7 +29,9 @@ class SequenceArtifactProcessor:
         self,
         renderer: DiagramRendererProtocol[SequenceDiagramSubject] | None,
     ) -> None:
-        self._renderer: DiagramRendererProtocol[SequenceDiagramSubject] | None = renderer
+        self._renderer: DiagramRendererProtocol[SequenceDiagramSubject] | None = (
+            renderer
+        )
 
     @staticmethod
     def persist_roles_catalog(

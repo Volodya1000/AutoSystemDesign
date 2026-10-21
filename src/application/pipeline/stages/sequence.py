@@ -26,7 +26,10 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.diagram_subjects import SequenceDiagramSubject
-    from application.pipeline.protocols import DiagramRendererProtocol, GenerationReporterProtocol
+    from application.pipeline.protocols import (
+        DiagramRendererProtocol,
+        GenerationReporterProtocol,
+    )
     from application.pipeline.sequence_artifact_models import SequenceArtifactResult
     from application.pipeline.service_protocols import SequenceGeneratorProtocol
     from application.results import GenerationAttempt, SequenceGenerationResult

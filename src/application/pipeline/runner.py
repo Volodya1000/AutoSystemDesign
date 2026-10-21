@@ -19,7 +19,10 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    from application.pipeline.protocols import ArtifactWriterProtocol, PipelineReporterProtocol
+    from application.pipeline.protocols import (
+        ArtifactWriterProtocol,
+        PipelineReporterProtocol,
+    )
     from application.pipeline.stage import PipelineStageProtocol, StageId
     from domain.models import DesignScenario
 

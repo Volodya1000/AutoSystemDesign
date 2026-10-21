@@ -16,7 +16,10 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from application.pipeline.protocols import ApiArtifactRendererProtocol, GenerationReporterProtocol
+    from application.pipeline.protocols import (
+        ApiArtifactRendererProtocol,
+        GenerationReporterProtocol,
+    )
     from application.pipeline.service_protocols import ApiGeneratorProtocol
     from domain.models.api import ApiDesign
     from domain.models.scenarios import DesignScenario
