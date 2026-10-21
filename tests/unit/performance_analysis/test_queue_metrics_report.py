@@ -7,6 +7,7 @@ from application.performance_analysis.report_builder import (
 )
 from domain.models.edges import Edge
 from domain.models.enums import EdgeRoutingMode, NodeType
+from domain.models.nodes import ComputeNode
 from domain.models.protocols import ASYNCHRONOUS_MESSAGE_QUEUE
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
@@ -30,7 +31,7 @@ def _scenario() -> DesignScenario:
     )
 
 
-def _service(identifier: str, mean_ms: float = 10.0):
+def _service(identifier: str, mean_ms: float = 10.0) -> ComputeNode:
     return create_test_compute_node(
         identifier,
         concurrency=100,
@@ -57,9 +58,7 @@ def test_linear_chain_reports_queue_wait_and_longest_mean_path() -> None:
     metrics = {metric.node_identifier: metric for metric in report.nodes}
 
     # M/M/1 equivalence: 20 RPS; service rates 100 and 50 RPS.
-    assert metrics["first"].estimated_mean_queue_wait_milliseconds == pytest.approx(
-        2.5
-    )
+    assert metrics["first"].estimated_mean_queue_wait_milliseconds == pytest.approx(2.5)
     assert metrics["second"].estimated_mean_queue_wait_milliseconds == pytest.approx(
         40.0 / 3.0
     )
