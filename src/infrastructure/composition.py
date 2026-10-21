@@ -63,7 +63,9 @@ if TYPE_CHECKING:
     from domain.models.topology import ArchitectureGraph
     from domain.specifications.interfaces import BaseValidator, ScenarioValidator
     from infrastructure.visualisation.plantuml import DiagramImageFormat
-    from infrastructure.visualisation.plantuml.protocols import DiagramSourceBuilderProtocol
+    from infrastructure.visualisation.plantuml.protocols import (
+        DiagramSourceBuilderProtocol,
+    )
 
 
 def build_design_generation_service(
@@ -212,7 +214,9 @@ def build_pipeline(
     resolved_settings: AppSettings = (
         settings if settings is not None else load_app_settings()
     )
-    c4_builder: DiagramSourceBuilderProtocol[ArchitectureGraph] = C4ContainerDiagramBuilder()
+    c4_builder: DiagramSourceBuilderProtocol[ArchitectureGraph] = (
+        C4ContainerDiagramBuilder()
+    )
     c4_renderer: PlantUmlDiagramRenderer[ArchitectureGraph] | None = _diagram_renderer(
         c4_builder,
         server=diagram_server,

@@ -29,7 +29,9 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from infrastructure.visualisation.plantuml.protocols import DiagramSourceBuilderProtocol
+    from infrastructure.visualisation.plantuml.protocols import (
+        DiagramSourceBuilderProtocol,
+    )
 
 _logger = logging.getLogger("pipeline.diagram")
 

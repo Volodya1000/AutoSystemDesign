@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class ArchitectureDesignerAgent:
-    """Adapter over the LLM transport implementing the ArchitectureDesignerProtocol port.
+    """LLM transport adapter implementing ArchitectureDesignerProtocol.
 
     Deliberately thin (SRP): selects the prompt strategy, applies sampling
     settings, delegates transport to the client and parsing to the parser.

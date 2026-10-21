@@ -21,7 +21,9 @@ from infrastructure.visualisation.plantuml.renderer import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from infrastructure.visualisation.plantuml.protocols import DiagramSourceBuilderProtocol
+    from infrastructure.visualisation.plantuml.protocols import (
+        DiagramSourceBuilderProtocol,
+    )
 
 
 class UnsupportedDiagramSubjectError(TypeError):
