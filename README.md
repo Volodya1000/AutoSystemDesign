@@ -99,6 +99,12 @@ uv run python scripts/generate_pipeline.py \\
 PDF использует те же значения, что JSON, и не делает новых вычислений.
 Подробнее: [PDF-отчёт](docs/performance-analysis/12-pdf-report.md).
 
+Для приёмки всей функции используется
+[чек-лист корневого PR](docs/performance-analysis/ROOT_PR_ACCEPTANCE.md)
+и [реальные YAML-сценарии](scenarios/performance/README.md).
+Выводы из логов оцениваются по наличию обязательных JSON/PDF и корректной
+математике, а не только по нулевому коду завершения.
+
 ## Этапы конвейера
 
 1. **C4**: генерация и проверка графа архитектуры.

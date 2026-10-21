@@ -5,10 +5,16 @@
 > [ссылки на все pull request](PR_INDEX.md). Этот ROADMAP описывает
 > **план работы**, а не порядок первого изучения формул.
 
-**Статус:** живой план реализации; PR 0–3 включены в интеграционную ветку #90, PR 4 реализован в ветке PR #99, PR 5 — в `fix/performance-latency-slo-semantics`, PR 6 — в `feat/performance-mm1-model`, PR 7 — в `feat/performance-mmc-model`, PR 8 — в `feat/performance-ggc-approximation-review`, PR 9 — в `feat/performance-queue-metrics-report`, PR 10 — в `feat/performance-bounded-queues`, PR 11 — в `feat/performance-report-diagnostics`, PR 12 — в текущей ветке.
+**Статус:** живой план реализации; PR 0–3 включены в интеграционную ветку #90, PR 4 реализован в ветке PR #99, PR 5 — в `fix/performance-latency-slo-semantics`, PR 6 — в `feat/performance-mm1-model`, PR 7 — в `feat/performance-mmc-model`, PR 8 — в `feat/performance-ggc-approximation-review`, PR 9 — в `feat/performance-queue-metrics-report`, PR 10 — в `feat/performance-bounded-queues`, PR 11 — в `feat/performance-report-diagnostics`, PR 12 — в `feat/performance-report-pdf`; подготовка критериев приёмки и YAML — в следующей ветке.
 **Тип документа:** техническое задание (ТЗ), план атомарных pull request
 **Область:** анализ нагрузки, пропускной способности, очередей и задержек архитектуры
 **Базовый PR с контрактом результата:** [#90 — Add performance analysis report contract](https://github.com/Volodya1000/AutoSystemDesign/pull/90)
+
+**Приёмка перед merge в master:** [ROOT_PR_ACCEPTANCE.md](ROOT_PR_ACCEPTANCE.md).
+Подготовительные [YAML-прогоны](../../scenarios/performance/README.md) проверяют
+архитектурный pipeline с настоящей LLM отдельно от числовых тестов без LLM.
+Правила оценки пользовательских логов и границы PASS описаны в чек-листе;
+до выполнения PR 13 и переноса всех дочерних изменений в #90 финальный merge запрещён.
 
 Документ является источником истины для последовательности работ. Перед началом каждого следующего PR необходимо сверяться с ним, отмечать выполненные критерии и обновлять ссылки на фактические файлы. Если реализация или исследование выявили неверное допущение, сначала обновляется ТЗ, затем код.
 
