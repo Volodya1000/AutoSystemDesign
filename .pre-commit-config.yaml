@@ -66,7 +66,7 @@ repos:
 
       - id: pylint
         name: pylint
-        entry: uv run pylint --disable=duplicate-code src tests scripts
+        entry: uv run pylint src tests scripts
         language: system
         pass_filenames: false
         always_run: true
