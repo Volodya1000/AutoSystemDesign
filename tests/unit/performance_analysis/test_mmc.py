@@ -108,3 +108,25 @@ def test_queueing_servers_are_not_inferred_from_maximum_concurrency() -> None:
     payload["service_channels_per_replica"] = 0
     with pytest.raises(ValidationError):
         ComputeNode.model_validate(payload)
+
+
+def test_independent_channels_cannot_exceed_inflight_limit() -> None:
+    """One in-flight request cannot occupy two independent service channels."""
+    with pytest.raises(ValidationError):
+        create_test_compute_node(
+            "service",
+            concurrency=1,
+            service_channels_per_replica=2,
+        )
+
+
+def test_equal_channel_and_inflight_counts_are_supported() -> None:
+    """The concurrency bound is inclusive for physical service channels."""
+    node = create_test_compute_node(
+        "service",
+        concurrency=2,
+        service_channels_per_replica=2,
+        replicas=3,
+    )
+
+    assert node.queueing_server_count == 6
