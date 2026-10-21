@@ -189,6 +189,10 @@ def _node_queue_wait_ms(node: CapacityNode, incoming_rps: float) -> float | None
         return None
     if incoming_rps == 0.0:
         return 0.0
+    if node.maximum_queue_size == 0:
+        # Waiting is impossible; the infinite-buffer queue estimate is invalid.
+        # Blocking/rejection probability is not modeled yet.
+        return None
     server_count = node.queueing_server_count
     if server_count is None or server_count > MAX_SUPPORTED_SERVER_COUNT:
         return None
