@@ -41,7 +41,7 @@ def test_cli_converts_pipeline_result_to_process_code(
     monkeypatch.setattr(
         generate_pipeline,
         "_parse_args",
-        MagicMock(return_value=Namespace(verbose=False, no_diagram=True)),
+        MagicMock(return_value=Namespace(verbose=False, no_diagram=True, scenario="fixture.yaml")),
     )
     monkeypatch.setattr(generate_pipeline, "configure_logging", MagicMock())
     monkeypatch.setattr(
