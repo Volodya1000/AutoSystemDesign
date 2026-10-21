@@ -68,7 +68,7 @@ def build_performance_analysis_report(
     )
     utilization_by_node: dict[str, float] = compute_node_utilization(graph, scenario)
     critical_path = compute_critical_path(graph, scenario)
-    latency_by_node: dict[str, float] = (
+    latency_by_node: dict[str, float | None] = (
         critical_path.node_latencies_ms if critical_path is not None else {}
     )
     node_metrics, unavailable_latency_nodes = _build_node_metrics(
