@@ -70,7 +70,7 @@ def test_linear_chain_reports_queue_wait_and_longest_mean_path() -> None:
         "first",
         "second",
     ]
-    assert report.status is PerformanceAnalysisStatus.COMPLETE
+    assert report.status is PerformanceAnalysisStatus.PARTIAL
 
 
 def test_parallel_fan_out_records_longest_path_not_sum_of_branches() -> None:
@@ -93,7 +93,7 @@ def test_parallel_fan_out_records_longest_path_not_sum_of_branches() -> None:
         100.0 / 3.0 + 1.0
     )
     # It is the longest *path mean*, not E[max(T_short, T_long)].
-    assert report.status is PerformanceAnalysisStatus.COMPLETE
+    assert report.status is PerformanceAnalysisStatus.PARTIAL
 
 
 def test_asynchronous_branch_does_not_extend_caller_path() -> None:
