@@ -25,7 +25,7 @@ from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml.sequence_builder import (
     SequenceDiagramBuilder,
 )
-from tests.unit.test_structural_validator import create_test_node
+from tests.factories import create_test_node
 
 pytestmark = pytest.mark.unit
 

@@ -29,7 +29,7 @@ from domain.specifications.cache_usage_validator import (
     CacheUsageValidator,
 )
 from domain.specifications.structural_validator import StructuralTopologyValidator
-from tests.unit.test_structural_validator import (
+from tests.factories import (
     create_test_node,
 )
 
