@@ -235,7 +235,6 @@ def test_workload_requirement_flag_is_not_part_of_scenario_payload() -> None:
     assert not AvailabilityRequirement(threshold_value=99.9).requires_workload
 
 
-
 def test_all_checked_requirements_produce_satisfied_coverage() -> None:
     """The aggregate is satisfied only if every NFR is checked and passed."""
     scenario: DesignScenario = _scenario(BudgetRequirement(threshold_value=200.0))
