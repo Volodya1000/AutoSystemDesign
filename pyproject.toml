@@ -66,6 +66,10 @@ mypy_path = "src"
 [tool.pylint."messages control"]
 disable = ["missing-docstring"]
 
+[tool.pylint.design]
+# Single-purpose validators, protocols, and adapters legitimately expose one operation.
+min-public-methods = 1
+
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
