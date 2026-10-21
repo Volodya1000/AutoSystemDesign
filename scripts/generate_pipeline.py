@@ -132,11 +132,11 @@ def _load_scenario(path: str) -> DesignScenario:
 def _resolve_visualisation(
     args: argparse.Namespace, settings: AppSettings
 ) -> tuple[Path, str, DiagramImageFormat]:
-    v = settings.visualisation
+    visualisation = settings.visualisation
     return (
-        Path(args.out_dir or v.diagram_dir),
-        args.diagram_server or v.server,
-        DiagramImageFormat(args.diagram_format or v.image_format),
+        Path(args.out_dir or visualisation.diagram_dir),
+        args.diagram_server or visualisation.server,
+        DiagramImageFormat(args.diagram_format or visualisation.image_format),
     )
 
 

@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -36,33 +37,41 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _extract_and_save(document: Path, output: Path) -> tuple[int, int]:
+    """Extract requirements and persist the validated diagnostic result."""
+    settings = load_app_settings()
+    service = DocumentRequirementsService(
+        reader=MarkdownReader(),
+        extractor=LlmDocumentRequirementExtractor(settings),
+    )
+    extraction_result = service.extract_file(document)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(
+            extraction_result.model_dump(mode="json"), ensure_ascii=False, indent=2
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return len(extraction_result.requirements), len(extraction_result.issues)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Extract claims, validate their citations, and write JSON diagnostics."""
     configure_logging(verbose=False)
     logger = logging.getLogger(__name__)
     args = build_parser().parse_args(argv)
     try:
-        settings = load_app_settings()
-        service = DocumentRequirementsService(
-            reader=MarkdownReader(),
-            extractor=LlmDocumentRequirementExtractor(settings),
-        )
-        result = service.extract_file(args.document)
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(
-            json.dumps(result.model_dump(mode="json"), ensure_ascii=False, indent=2)
-            + "\n",
-            encoding="utf-8",
-        )
+        requirements_count, issues_count = _extract_and_save(args.document, args.output)
     except (LlmConnectionError, OSError, ValueError):
         logger.exception("Document requirement extraction failed")
         return 2
 
-    logger.info("Extracted %d requirements.", len(result.requirements))
-    logger.info("Reported %d diagnostic issues.", len(result.issues))
+    logger.info("Extracted %d requirements.", requirements_count)
+    logger.info("Reported %d diagnostic issues.", issues_count)
     logger.info("JSON result: %s", args.output)
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())
