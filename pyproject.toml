@@ -9,6 +9,7 @@ dependencies = [
     "litellm>=1.104.2",
     "pydantic>=2.14.0",
     "pydantic-settings[yaml]>=2.15.0",
+    "reportlab>=4.4,<5",
 ]
 
 [dependency-groups]
