@@ -1,4 +1,4 @@
-"""LLM-backed implementation of the ArchitectureDesigner port."""
+"""LLM-backed implementation of the ArchitectureDesignerProtocol port."""
 
 from __future__ import annotations
 
@@ -14,19 +14,19 @@ from infrastructure.prompts.design_repair import build_repair_messages
 
 if TYPE_CHECKING:
     from config.root import AppSettings
-    from infrastructure.llm.protocols import CompletionClient
+    from infrastructure.llm.protocols import CompletionClientProtocol
 
 
 class ArchitectureDesignerAgent:
-    """Adapter over the LLM transport implementing the ArchitectureDesigner port.
+    """Adapter over the LLM transport implementing the ArchitectureDesignerProtocol port.
 
     Deliberately thin (SRP): selects the prompt strategy, applies sampling
     settings, delegates transport to the client and parsing to the parser.
     Infrastructure errors are not caught here.
     """
 
-    def __init__(self, client: CompletionClient, settings: AppSettings) -> None:
-        self._client: CompletionClient = client
+    def __init__(self, client: CompletionClientProtocol, settings: AppSettings) -> None:
+        self._client: CompletionClientProtocol = client
         self._settings = settings
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 

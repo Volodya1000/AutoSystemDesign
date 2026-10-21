@@ -16,22 +16,22 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 
 
-class ArchitectureDesigner(Protocol):
+class ArchitectureDesignerProtocol(Protocol):
     def propose(self, task: DesignTask) -> DesignProposal: ...
 
 
-class SequenceDesigner(Protocol):
+class SequenceDesignerProtocol(Protocol):
     def propose_roles(self, task: SequenceRoleTask) -> SequenceRoleProposal: ...
     def propose_interaction(
         self, task: SequenceInteractionTask
     ) -> SequenceInteractionProposal: ...
 
 
-class ApiDesigner(Protocol):
+class ApiDesignerProtocol(Protocol):
     def propose(self, task: ApiDesignTask) -> ApiDesignProposal: ...
 
 
-class ApiDesignValidatorPort(Protocol):
+class ApiDesignValidatorProtocol(Protocol):
     """Application-facing contract for semantic API design validation."""
 
     def validate(
