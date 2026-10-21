@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Pure validation functions for candidate values and source evidence."""
 
 import math

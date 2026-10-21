@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for PlantUML renderer selection, fallback and HTTP failures."""
 
 from __future__ import annotations

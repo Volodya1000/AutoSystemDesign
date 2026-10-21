@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Immutable result types produced by pipeline stages."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Typed result objects of the design, sequence, and API generation services."""
 
 from __future__ import annotations

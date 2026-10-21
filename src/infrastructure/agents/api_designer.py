@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """LLM agent implementing the ApiDesigner port."""
 
 from __future__ import annotations

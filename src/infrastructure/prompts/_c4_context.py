@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Rendering of C4 architecture components for LLM prompts.
 
 Two prompts (API design, sequence interaction) list the available C4 nodes

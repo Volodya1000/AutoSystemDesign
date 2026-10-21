@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Static regression tests for diagram source builder subject types."""
 
 from pathlib import Path

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Orchestration of the sequence-diagram generation stage."""
 
 import logging

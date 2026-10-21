@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Shared JSON-extraction and payload-parsing helpers for the design package.
 
 ``extract_json_payload`` strips markdown fences and Qwen-style think blocks

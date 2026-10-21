@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Tests for pure document-to-scenario transformation functions."""
 
 import pytest

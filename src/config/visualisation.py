@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Diagram rendering settings owned by config.yaml."""
 
 from typing import Final, Literal

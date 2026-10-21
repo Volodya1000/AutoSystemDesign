@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 import json
 import logging
 from pathlib import Path

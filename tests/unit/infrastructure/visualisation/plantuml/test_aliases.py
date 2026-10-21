@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for collision-safe PlantUML alias allocation."""
 
 import pytest

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Format a design scenario as plain text for logs and prompts."""
 
 from domain.models.scenarios import DesignScenario

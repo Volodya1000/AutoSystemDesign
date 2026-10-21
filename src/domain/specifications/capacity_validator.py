@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Capacity utilization: nodes must not exceed the saturation threshold.
 
 Pure module. The 98% threshold is hardcoded by the roadmap (F4): a node at

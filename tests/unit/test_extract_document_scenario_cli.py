@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 import asyncio
 import json
 import logging

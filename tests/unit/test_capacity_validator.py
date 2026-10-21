@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of CapacitySaturationValidator and compute_node_utilization.
 
 Numeric cases are computed by hand and documented in each test so the

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Application service coordinating evidence validation and scenario mapping."""
 
 from pathlib import Path

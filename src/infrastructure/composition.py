@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Single composition root for the application.
 
 Every service is wired here explicitly; there is no DI container. This

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Domain specification validator for REST API Design models."""
 
 from __future__ import annotations

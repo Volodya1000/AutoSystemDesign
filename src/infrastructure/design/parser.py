@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Architecture-graph parser.
 
 ``extract_json_payload`` is re-exported here for backward compatibility:

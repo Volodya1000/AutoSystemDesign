@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Backward-compatible imports for sequence validation rules.
 
 New code should import from :mod:`domain.specifications.sequence_validation`.

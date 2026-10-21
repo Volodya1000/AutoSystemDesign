@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for actionable context-window overflow diagnostics."""
 
 import litellm

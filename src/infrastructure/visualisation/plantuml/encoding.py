@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Wire formats of remote PlantUML-compatible diagram servers.
 
 Two URL formats are implemented, both computed offline with the

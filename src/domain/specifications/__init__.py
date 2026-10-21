@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 from domain.specifications.broker_consumer_validator import (
     MessageBrokerConsumerValidator,
     check_message_broker_linkage,

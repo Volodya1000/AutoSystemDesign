@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Fragments for sequence-diagram prompts: system prompt and schemas."""
 
 import json

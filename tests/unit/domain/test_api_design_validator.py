@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for semantic validation of generated API designs."""
 
 from typing import TypedDict, Unpack

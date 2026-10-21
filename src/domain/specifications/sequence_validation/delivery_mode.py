@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Delivery-mode rules for sequence messages."""
 
 from __future__ import annotations

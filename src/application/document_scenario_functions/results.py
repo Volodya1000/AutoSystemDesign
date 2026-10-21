@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Immutable results returned by pure scenario-mapping functions."""
 
 from dataclasses import dataclass

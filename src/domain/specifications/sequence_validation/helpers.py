@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Shared traversal helpers for sequence validation."""
 
 from __future__ import annotations

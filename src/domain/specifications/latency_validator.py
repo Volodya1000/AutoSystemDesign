@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Theoretical latency on the critical path via Allen-Cunneen approximation.
 
 Pure module. Computes per-node mean sojourn time (queue + service) and

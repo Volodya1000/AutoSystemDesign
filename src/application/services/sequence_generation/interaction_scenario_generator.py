@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Generate and validate one interaction scenario for a functional requirement."""
 
 from __future__ import annotations

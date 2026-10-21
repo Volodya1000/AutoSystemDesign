@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Prompt builder for repair iterations of the design loop."""
 
 from application.tasks import DesignTask

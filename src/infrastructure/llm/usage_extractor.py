@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Token-usage extraction from a raw litellm response.
 
 Extracted from ``LiteLlmClient`` so the provider-usage / token-counter

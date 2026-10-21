@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Prompt builders for the sequence-diagram generation stage."""
 
 import json

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Typed configuration errors for application services."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Diagram generation service joining source building and image rendering."""
 
 from __future__ import annotations

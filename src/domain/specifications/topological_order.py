@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Topological sorting shared by domain graph calculations."""
 
 from __future__ import annotations

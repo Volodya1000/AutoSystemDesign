@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Domain models for source-grounded requirement extraction."""
 
 from enum import StrEnum

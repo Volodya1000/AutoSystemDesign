@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """The only thing PipelineRunner knows about: a runnable stage."""
 
 from __future__ import annotations

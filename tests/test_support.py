@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Assertion helpers shared by document extraction unit tests."""
 
 from collections.abc import Iterable

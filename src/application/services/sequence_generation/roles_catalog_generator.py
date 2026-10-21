@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Generate and validate the project-wide business roles catalog."""
 
 from __future__ import annotations

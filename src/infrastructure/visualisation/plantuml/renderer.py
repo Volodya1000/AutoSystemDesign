@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """PlantUML image rendering: the port, the HTTP adapters and the resolver.
 
 Two public server protocols are implemented over plain GET requests:

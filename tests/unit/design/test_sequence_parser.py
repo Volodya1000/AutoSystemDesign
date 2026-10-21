@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Regression tests for reconciling sequence lifelines with C4 nodes."""
 
 import json

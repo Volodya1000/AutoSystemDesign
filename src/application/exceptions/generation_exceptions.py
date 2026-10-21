@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Application-level exceptions of the design generation loop."""
 
 from application.tasks import ProposalFailureDetail

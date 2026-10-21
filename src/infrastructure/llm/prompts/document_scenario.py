@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Behavioral instructions for mapping verified claims into scenario candidates."""
 
 SYSTEM_PROMPT: str = (

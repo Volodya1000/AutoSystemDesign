@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 from typing import Annotated
 
 from pydantic import BaseModel, Field

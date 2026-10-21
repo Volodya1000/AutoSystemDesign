@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Prompt builder for REST API Design generation and repair cycles."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """LLM adapter for mapping verified claims to scenario-shaped candidates."""
 
 from domain.document_requirements import DocumentRequirements

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Shared isolation for all unit tests: hermetic, no repo config files."""
 
 import os

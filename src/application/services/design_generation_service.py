@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Orchestration of the generate -> validate -> repair loop."""
 
 from collections.abc import Sequence

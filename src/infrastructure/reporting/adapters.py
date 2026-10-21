@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Port adapters: application-level reporting ports -> logging helpers.
 
 This module is the single place where application-layer reporting ports

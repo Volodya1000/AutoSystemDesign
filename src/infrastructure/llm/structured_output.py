@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Shared request handling for schema-constrained LLM adapters."""
 
 import json

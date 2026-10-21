@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of the ArchitectureDesignerAgent on a fake LLM client."""
 
 import pytest

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Shared fixtures for all tests."""
 
 import pytest

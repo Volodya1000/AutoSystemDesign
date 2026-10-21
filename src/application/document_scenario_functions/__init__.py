@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Pure transformations used by the document-to-scenario application service."""
 
 from application.document_scenario_functions.evidence import (

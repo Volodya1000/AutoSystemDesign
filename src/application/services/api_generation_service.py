@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Application service for the API design propose -> validate -> repair loop."""
 
 from __future__ import annotations

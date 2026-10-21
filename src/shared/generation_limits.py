@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Generation policy constants shared by configuration and application code.
 
 This module intentionally has no imports from application layers.

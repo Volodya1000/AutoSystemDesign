@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Contract tests for the pipeline architecture."""
 
 from __future__ import annotations

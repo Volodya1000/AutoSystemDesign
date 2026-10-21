@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """litellm transport adapter: request assembly and response translation.
 
 Request kwargs, response parsing, finish-reason mapping and logging stay

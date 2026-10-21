@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Domain models for REST API Design specification."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of AppSettings env / .env / yaml source resolution."""
 
 from pathlib import Path

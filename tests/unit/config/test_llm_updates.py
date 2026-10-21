@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for validated LLM settings overrides."""
 
 import pytest

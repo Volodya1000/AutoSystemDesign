@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for sequence artifact persistence and rendering."""
 
 from __future__ import annotations

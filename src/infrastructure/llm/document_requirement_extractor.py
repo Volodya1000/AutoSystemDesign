@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """LLM adapter for source-grounded document requirement extraction."""
 
 from domain.extraction_chunk import ExtractionChunk

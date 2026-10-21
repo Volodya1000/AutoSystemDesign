@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Prompt builder for the initial architecture design request."""
 
 from application.tasks import DesignTask

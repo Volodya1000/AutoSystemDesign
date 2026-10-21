@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of CacheUsageValidator.
 
 Covers the write-only sink (the exact pattern the live run produced), the

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of the DesignGenerationResult derived state."""
 
 import pytest

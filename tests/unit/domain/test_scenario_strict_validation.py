@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Test strict YAML scenario validation."""
 
 from pathlib import Path

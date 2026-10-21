@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 from domain.models.base_constraints import (
     BaseRequirement,
     IntervalRequirement,

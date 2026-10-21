@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Aggregated metrics for the C4 diagram title."""
 
 from __future__ import annotations

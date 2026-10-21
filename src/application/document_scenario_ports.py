@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Ports required by the document-to-scenario application service."""
 
 from pathlib import Path

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Structured, evidence-bearing DTOs for mapping requirements to a scenario."""
 
 from typing import Literal, Self

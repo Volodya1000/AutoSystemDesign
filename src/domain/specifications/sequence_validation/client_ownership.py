@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Ensure each client boundary belongs to a single business role."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Prompts used by the document-requirements extraction adapter."""
 
 SYSTEM_PROMPT: str = (

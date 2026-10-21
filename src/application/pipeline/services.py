@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Application-level service contracts used by pipeline stages."""
 
 from __future__ import annotations

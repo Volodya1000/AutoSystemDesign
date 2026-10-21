@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Requirement validator: total monthly cost must satisfy the budget limit.
 
 Pure domain logic: no I/O, no logging, no clock. Errors carry both the

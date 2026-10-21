@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Pure logging helpers shared by reporters and the CLI entry point.
 
 These functions know how to format the domain into log lines. They have

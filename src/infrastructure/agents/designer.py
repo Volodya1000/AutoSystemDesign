@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """LLM-backed implementation of the ArchitectureDesigner port."""
 
 from __future__ import annotations

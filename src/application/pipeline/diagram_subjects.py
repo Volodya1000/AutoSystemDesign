@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Typed subjects prepared by pipeline stages for diagram renderers.
 
 A ``DiagramRenderer[SubjectT]`` implementation receives only the subject

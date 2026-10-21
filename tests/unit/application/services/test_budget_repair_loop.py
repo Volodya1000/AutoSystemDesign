@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests: a budget violation drives the design repair loop.
 
 Exercises DesignGenerationService and RequirementValidationDispatcher with

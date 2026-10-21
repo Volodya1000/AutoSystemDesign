@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Validated output model for one document-fragment extraction."""
 
 from pydantic import BaseModel, ConfigDict

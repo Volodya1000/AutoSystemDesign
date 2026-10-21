@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Regression tests for serializing document-extracted scenarios."""
 
 import yaml

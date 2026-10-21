@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """PlantUML implementation of the DiagramRenderer port.
 
 Contract: expected visualization errors (DiagramRenderingError,

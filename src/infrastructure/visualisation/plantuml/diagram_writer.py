@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Persistence of diagram artifacts to the local filesystem."""
 
 import re

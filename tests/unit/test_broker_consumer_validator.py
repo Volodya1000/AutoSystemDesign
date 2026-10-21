@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of MessageBrokerConsumerValidator.
 
 The validator catches brokers that receive messages but route them nowhere.

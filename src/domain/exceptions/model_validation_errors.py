@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Typed validation errors for domain model invariants."""
 
 from enum import StrEnum

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 import math
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator

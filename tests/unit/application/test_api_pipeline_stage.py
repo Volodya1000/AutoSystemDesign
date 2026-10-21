@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for persistence and status handling in the API pipeline stage."""
 
 from collections.abc import Mapping, Sequence

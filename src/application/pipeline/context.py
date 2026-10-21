@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Read-only view passed to stages, plus the typed-payload accessor."""
 
 from __future__ import annotations

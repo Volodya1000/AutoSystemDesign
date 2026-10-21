@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Ordered execution of stages. Contains no domain logic.
 
 Exit-code contract:

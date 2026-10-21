@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Domain models for business roles and catalog."""
 
 from pydantic import BaseModel, ConfigDict, Field

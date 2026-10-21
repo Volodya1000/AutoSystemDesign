@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Referential-integrity rules for sequence diagrams."""
 
 from __future__ import annotations

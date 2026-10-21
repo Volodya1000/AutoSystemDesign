@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """PlantUML diagram generation from an ArchitectureGraph."""
 
 from infrastructure.visualisation.plantuml.c4_container_builder import (

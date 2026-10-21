@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Self-contained Swagger UI HTML generator from an OpenAPI specification."""
 
 from __future__ import annotations

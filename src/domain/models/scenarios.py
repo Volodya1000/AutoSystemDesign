@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from domain.exceptions.model_validation_errors import (

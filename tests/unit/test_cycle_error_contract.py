@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Regression tests for cycle-only suppression in workload validators."""
 
 from __future__ import annotations

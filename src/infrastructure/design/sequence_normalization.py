@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Normalize generated sequence participants against the C4 graph."""
 
 from __future__ import annotations

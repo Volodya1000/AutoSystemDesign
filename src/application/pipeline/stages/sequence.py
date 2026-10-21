@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Stage 2: roles catalog + per-requirement sequence diagrams.
 
 Pure naming and requirement-extraction helpers live in ``_naming.py``;

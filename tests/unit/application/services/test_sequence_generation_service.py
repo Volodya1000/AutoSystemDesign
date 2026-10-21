@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Characterization tests for sequence generation orchestration."""
 
 from collections.abc import Sequence

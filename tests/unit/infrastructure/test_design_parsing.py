@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Regression tests for extracting JSON from LLM completion text."""
 
 import pytest

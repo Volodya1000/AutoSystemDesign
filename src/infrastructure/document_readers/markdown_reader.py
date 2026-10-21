@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Markdown document reader."""
 
 from pathlib import Path

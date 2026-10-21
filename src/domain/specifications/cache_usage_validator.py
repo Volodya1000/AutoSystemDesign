@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Cache read/write linkage: a cache must be read from, and misses must land.
 
 Two distinct defects are possible for a cache node:

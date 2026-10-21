@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Deterministic identifier and display-name transformations."""
 
 import re

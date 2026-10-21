@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Mapping of domain node types onto C4-PlantUML element calls.
 
 Kept apart from the builder so the presentation table can evolve (new

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Deterministic renderer from ApiDesign to an OpenAPI 3.1.0 specification."""
 
 from __future__ import annotations

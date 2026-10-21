@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Rendering of an ArchitectureGraph into a PlantUML C4 Container diagram.
 
 The builder is pure: no I/O, no network, no clock. Element specs and

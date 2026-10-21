@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Generation loop limits."""
 
 from pydantic import BaseModel, ConfigDict, Field

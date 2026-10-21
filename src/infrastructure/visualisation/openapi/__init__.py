@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """OpenAPI and Swagger UI visualisation adapters."""
 
 from infrastructure.visualisation.openapi.dereference import (

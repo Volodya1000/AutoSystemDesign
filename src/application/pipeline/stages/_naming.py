@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Pure helpers used by the sequence stage for naming and identification.
 
 Extracted from ``sequence.py`` so that artifact-name planning and

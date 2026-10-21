@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """LLM sampling settings owned by config.yaml.
 
 Connection fields (base_url, api_key) are intentionally NOT here: they live

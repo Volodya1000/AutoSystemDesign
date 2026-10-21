@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Typed factories for architecture topology tests."""
 
 from typing import Any, TypedDict, Unpack

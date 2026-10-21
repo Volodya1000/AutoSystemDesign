@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Regression tests for legacy scenarios that have no functional requirements."""
 
 from __future__ import annotations

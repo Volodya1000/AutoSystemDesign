@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Protocol for the LLM completion transport consumed by agent adapters."""
 
 from typing import Protocol

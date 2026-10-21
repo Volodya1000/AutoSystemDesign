@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Internal-$ref dereferencing for the embedded Swagger UI page.
 
 This module only handles JSON-Pointer resolution: it rebuilds a document

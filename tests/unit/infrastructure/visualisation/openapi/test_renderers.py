@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Contract tests for the OpenAPI and Swagger UI rendering adapters."""
 
 import json

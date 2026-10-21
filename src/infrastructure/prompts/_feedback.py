@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Rendering of validation feedback and parsing failures for repair prompts.
 
 Every repair prompt in this package shows the model the same block: the

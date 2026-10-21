@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for architecture generation and C4 stage outcomes."""
 
 from collections.abc import Sequence

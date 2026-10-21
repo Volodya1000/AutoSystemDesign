@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of the DesignGenerationService ScenarioValidator port.
 
 These exercise the port independently of the main DesignGenerationService

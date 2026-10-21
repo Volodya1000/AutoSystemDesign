@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Stage 3: REST API Design generation and OpenAPI/Swagger artifacts persistence."""
 
 from __future__ import annotations

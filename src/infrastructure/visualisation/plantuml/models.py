@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Data models of the PlantUML diagram pipeline (no I/O here)."""
 
 from enum import StrEnum

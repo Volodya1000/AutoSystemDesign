@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of the LLM output extraction and parsing."""
 
 import json

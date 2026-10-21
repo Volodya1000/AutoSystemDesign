@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Domain exceptions raised by sequence-model validators."""
 
 from domain.exceptions.architecture_errors import ArchitectureValidationError

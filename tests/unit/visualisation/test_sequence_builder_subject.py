@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """End-to-end checks of SequenceDiagramBuilder with SequenceDiagramSubject.
 
 Covers:

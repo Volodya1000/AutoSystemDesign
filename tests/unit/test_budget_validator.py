@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of BudgetRequirementValidator and the requirement dispatcher."""
 
 import pytest

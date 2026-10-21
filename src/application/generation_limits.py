@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Application-level import path for shared generation policy constants.
 
 The constants are defined in `shared.generation_limits` so configuration and

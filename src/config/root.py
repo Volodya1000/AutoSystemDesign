@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Root application settings aggregating all groups.
 
 Environment-only fields: `base_url` (ASD_BASE_URL) and `api_key`

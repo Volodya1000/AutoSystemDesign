@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Rendering of known protocol singletons for use in LLM prompts.
 
 The JSON Schema cannot express allowed protocol names on its own:

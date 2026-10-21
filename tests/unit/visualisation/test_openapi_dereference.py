@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for internal-$ref dereferencing in the Swagger HTML artifact.
 
 Covers: inlining at every usage site, cycle collapse (self-referential and

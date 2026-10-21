@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Visualisation adapters: diagram rendering of generated architectures."""
 
 from infrastructure.visualisation.plantuml import (

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of the C4 NodeType -> PlantUML participant keyword mapping."""
 
 from __future__ import annotations

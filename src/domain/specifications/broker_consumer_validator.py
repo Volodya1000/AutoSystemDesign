@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Message-broker linkage: every broker must bridge two DIFFERENT compute nodes.
 
 A ``MessageBrokerNode`` is a routing element. Three distinct defects are

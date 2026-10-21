@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """M1 capability gate: single-shot structured output over a real LLM."""
 
 from __future__ import annotations

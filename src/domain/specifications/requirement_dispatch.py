@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Dispatcher: routes scenario requirements to typed RequirementValidators.
 
 Single point that knows how requirements are matched to validators. Each

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Contract tests for ordered pipeline execution and typed dependencies."""
 
 from collections.abc import Sequence

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Rendering of the architecture-graph output contract for prompts.
 
 Contains the structural JSON Schema fragment, the allowed-connection

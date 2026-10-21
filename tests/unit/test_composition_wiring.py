@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests of the stage builders in the composition root.
 
 These exercise the wiring without any LLM: ``_build_*_stage`` accepts an

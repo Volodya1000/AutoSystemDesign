@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for sequence generation stage orchestration and artifacts."""
 
 from collections.abc import Mapping, Sequence

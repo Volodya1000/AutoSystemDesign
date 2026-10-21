@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Deterministic computation of per-node incoming request rates.
 
 Pure module: no I/O, no logging, no clock, no randomness. All inputs are

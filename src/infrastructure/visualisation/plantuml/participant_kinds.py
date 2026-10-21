@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Deterministic mapping from C4 NodeType to PlantUML participant keyword.
 
 Extracted from ``sequence_builder`` so the mapping table and its lookup

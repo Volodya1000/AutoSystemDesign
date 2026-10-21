@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Filesystem implementation of application.pipeline.ports.ArtifactWriter."""
 
 from __future__ import annotations

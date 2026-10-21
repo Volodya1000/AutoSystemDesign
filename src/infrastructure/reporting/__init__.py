@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Reporting port adapters and logging helpers.
 
 The package is split into two modules:

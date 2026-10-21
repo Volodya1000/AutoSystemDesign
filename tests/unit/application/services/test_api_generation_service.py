@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Unit tests for the API design generation and repair loop."""
 
 from collections.abc import Sequence

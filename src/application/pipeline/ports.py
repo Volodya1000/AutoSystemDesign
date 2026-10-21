@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Volodya1000
 """Application-level ports; concrete implementations live in infrastructure."""
 
 from __future__ import annotations
