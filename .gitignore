@@ -20,3 +20,8 @@ dist/
 .env
 
 output/
+
+# Mutation-testing output
+mutants/
+.mutmut-cache/
+.mutmut-cache
