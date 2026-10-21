@@ -233,9 +233,11 @@ class LatencySloValidator(ScenarioValidator):
 
         try:
             critical = compute_critical_path(graph, scenario)
-        except ValueError:
-            # Cycle detection is owned by StructuralTopologyValidator; see
-            # the matching guard in CapacitySaturationValidator.
+        except ModelValidationError as error:
+            if error.code != ModelValidationCode.TOPOLOGY_CYCLE:
+                raise
+            # The structural validator owns cycle diagnostics, not other
+            # failures in the latency calculation.
             return ValidationResult(errors=[])
 
         if critical is None:
