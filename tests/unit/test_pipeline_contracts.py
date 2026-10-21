@@ -16,7 +16,7 @@ from application.pipeline.context import (
 )
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
-from application.pipeline.stages._naming import plan_base_names
+from application.pipeline.stages.sequence import plan_base_names
 from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml import (
     DiagramArtifacts,
