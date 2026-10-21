@@ -13,6 +13,8 @@ prompt change is needed.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Final
 
 from domain.models.enums import NodeType
@@ -23,14 +25,14 @@ from domain.models.sequence import (
 )
 
 #: C4 NodeType -> PlantUML participant keyword.
-NODE_TYPE_TO_PLANTUML_KEYWORD: Final[dict[NodeType, str]] = {
+NODE_TYPE_TO_PLANTUML_KEYWORD: Final[Mapping[NodeType, str]] = MappingProxyType({
     NodeType.CLIENT: "boundary",
     NodeType.LOAD_BALANCER: "boundary",
     NodeType.COMPUTE: "control",
     NodeType.DATABASE: "database",
     NodeType.CACHE: "collections",
     NodeType.MESSAGE_BROKER: "queue",
-}
+})
 
 #: Fallback when the graph does not contain the referenced component or
 #: when the subject was built without a graph (legacy call path).
