@@ -81,9 +81,7 @@ def test_parallel_fan_out_records_longest_path_not_sum_of_branches() -> None:
             _service("long", mean_ms=20.0),
         ],
         edges=[
-            create_test_edge(
-                "client", "short", routing_mode=EdgeRoutingMode.FAN_OUT
-            ),
+            create_test_edge("client", "short", routing_mode=EdgeRoutingMode.FAN_OUT),
             create_test_edge("client", "long", routing_mode=EdgeRoutingMode.FAN_OUT),
         ],
     )
