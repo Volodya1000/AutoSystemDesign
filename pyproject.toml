@@ -116,6 +116,16 @@ python_version = "3.13"
 strict = true
 mypy_path = "src"
 
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+[tool.coverage.report]
+fail_under = 88.5
+precision = 2
+show_missing = true
+skip_covered = true
+
 [tool.pylint."messages control"]
 disable = [
     "import-outside-toplevel",
