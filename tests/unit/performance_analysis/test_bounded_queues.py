@@ -8,11 +8,7 @@ from application.performance_analysis.report_builder import (
 from domain.models.enums import NodeType
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
-from domain.performance_analysis.report import (
-    PerformanceAnalysisStatus,
-    PerformanceFindingCode,
-    PerformanceFindingSeverity,
-)
+from domain.performance_analysis.report import PerformanceAnalysisStatus
 from tests.factories import (
     create_test_compute_node,
     create_test_edge,
@@ -41,7 +37,7 @@ def _scenario() -> DesignScenario:
         (5, 2.5),
     ],
 )
-def test_active_finite_queue_has_explicit_diagnostic(
+def test_active_finite_queue_omits_unsupported_loss_notices(
     queue_size: int,
     expected_wait: float | None,
 ) -> None:
@@ -52,15 +48,7 @@ def test_active_finite_queue_has_explicit_diagnostic(
 
     report = build_performance_analysis_report(graph, _scenario())
     service = next(item for item in report.nodes if item.node_identifier == "service")
-    findings = [
-        finding
-        for finding in report.findings
-        if finding.finding_code is PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED
-    ]
-
-    assert len(findings) == 1
-    assert findings[0].severity is PerformanceFindingSeverity.WARNING
-    assert findings[0].affected_node_identifiers == ["service"]
+    assert report.findings == []
     assert report.status is PerformanceAnalysisStatus.PARTIAL
     if expected_wait is None:
         assert service.estimated_mean_queue_wait_milliseconds is None
@@ -76,7 +64,7 @@ def test_active_finite_queue_has_explicit_diagnostic(
         )
 
 
-def test_disconnected_zero_buffer_has_no_false_warning() -> None:
+def test_disconnected_zero_buffer_keeps_only_calculated_metrics() -> None:
     graph = ArchitectureGraph(
         nodes=[
             create_test_node("client", NodeType.CLIENT),
@@ -96,13 +84,6 @@ def test_disconnected_zero_buffer_has_no_false_warning() -> None:
 
     report = build_performance_analysis_report(graph, _scenario())
     idle = next(item for item in report.nodes if item.node_identifier == "idle")
-    bounded_findings = [
-        finding
-        for finding in report.findings
-        if finding.finding_code is PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED
-    ]
-
     assert idle.incoming_requests_per_second == pytest.approx(0.0)
     assert idle.estimated_mean_queue_wait_milliseconds == pytest.approx(0.0)
-    assert bounded_findings[0].affected_node_identifiers == ["active"]
-    assert len(bounded_findings) == 1
+    assert report.findings == []
