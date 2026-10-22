@@ -159,7 +159,8 @@ def test_linear_mm1_metrics_match_hand_calculation_in_json_and_pdf(
     assert identifier in pdf_text
     assert "100.00" in pdf_text
     assert "101.00" in pdf_text
-    assert "Критический путь: client" in pdf_text
+    assert "Начало пути" in pdf_text
+    assert "Среднее время в узле: 100.00 мс" in pdf_text
     assert "Предупреждение" not in pdf_text
     assert (tmp_path / "architecture_graph.json").is_file()
 
