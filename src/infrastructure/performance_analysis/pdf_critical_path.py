@@ -62,7 +62,7 @@ def critical_path_diagram(
     rows: list[list[Flowable | list[Flowable]]] = [
         [
             Paragraph(
-                "Путь сверху вниз · продолжение на следующих страницах",
+                "Путь сверху вниз",
                 heading_style,
             )
         ]
