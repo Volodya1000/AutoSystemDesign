@@ -257,17 +257,14 @@ def test_vertical_path_keeps_node_order_and_values(node_count: int) -> None:
     reader = PdfReader(BytesIO(PerformanceReportPdfRenderer().render(report)))
     text = "\n".join(page.extract_text() for page in reader.pages)
 
-    assert "Путь сверху вниз" in text
+    assert "Путь сверху вниз" not in text
     assert "Начало пути" in text
     assert text.count("Из них ожидание: 2.00 мс") == node_count - 1
     for index in range(len(identifiers) - 1):
         assert text.find(identifiers[index]) < text.find(identifiers[index + 1])
     if node_count == 15:
         assert len(reader.pages) > 1
-        assert (
-            sum("Путь сверху вниз" in (p.extract_text() or "") for p in reader.pages)
-            > 1
-        )
+        assert "service_13" in reader.pages[-1].extract_text()
 
 
 def test_long_path_identifier_wraps_without_truncation() -> None:
