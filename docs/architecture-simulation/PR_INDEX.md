@@ -11,7 +11,8 @@
 | 4A | [#141](https://github.com/Volodya1000/AutoSystemDesign/pull/141) | Отображение C4 с явными каналами, проверкой DAG и сохранением исходных лимитов; [объяснение](04-graph-mapping.md) |
 | 4B | [#142](https://github.com/Volodya1000/AutoSystemDesign/pull/142) | SimPy выполнение линейного синхронного пути, отдельные реплики, сетевые задержки и цензурирование; [пример](04b-linear-graph-executor.md) |
 | 5 | [#143](https://github.com/Volodya1000/AutoSystemDesign/pull/143) | Per-replica admission, отдельные причины отказов, инвариант completed/rejected/unfinished; [разбор](05-bounded-admission.md) |
-| 6–11 | Не созданы | Маршрутизация → статистика → NFR → pipeline → PDF → E2E |
+| 6A | Следующий PR: alternative/cache | Seed-based один маршрут на запрос, проверка cache hit/miss без ложного fan-out; [объяснение](06a-alternative-cache.md) |
+| 6B–11 | Не созданы | Sync fan-out/join → статистика → NFR → pipeline → PDF → E2E |
 | 12 | Не создан, необязательный | Эксперименты с альтернативами архитектуры |
 
 ## Из предыдущей фичи

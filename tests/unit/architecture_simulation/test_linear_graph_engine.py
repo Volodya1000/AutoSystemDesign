@@ -89,7 +89,7 @@ def test_graph_trace_is_independent_of_resource_input_order() -> None:
     assert _simulate(plan, [0, 0.1], 2) == _simulate(reversed_plan, [0, 0.1], 2)
 
 
-def test_branching_graph_is_rejected_until_routing_semantics_exist() -> None:
+def test_invalid_cyclic_routing_plan_is_rejected() -> None:
     plan: GraphSimulationPlan = _plan()
     plan.connections.append(
         plan.connections[1].model_copy(update={"target_identifier": "api"})
@@ -104,7 +104,7 @@ def test_branching_graph_is_rejected_until_routing_semantics_exist() -> None:
     assert error.value.code == GraphExecutionFailure.BRANCHING_UNSUPPORTED
 
 
-def test_cache_is_not_treated_as_simple_linear_service() -> None:
+def test_cache_requires_an_explicit_database_fallback() -> None:
     plan: GraphSimulationPlan = _plan()
     plan.resources[1].node_type = NodeType.CACHE
     engine: SimPyLinearGraphEngine = SimPyLinearGraphEngine()
@@ -114,7 +114,7 @@ def test_cache_is_not_treated_as_simple_linear_service() -> None:
             GraphRequestTrace(plan=plan, arrival_times_seconds=[0], seed=5),
             SimulationWindow(warmup_seconds=0, measurement_seconds=10, max_events=100),
         )
-    assert error.value.code == GraphExecutionFailure.CACHE_UNSUPPORTED
+    assert error.value.code == GraphExecutionFailure.INVALID_CACHE_TOPOLOGY
 
 
 def test_event_budget_interrupts_work_instead_of_returning_partial_success() -> None:

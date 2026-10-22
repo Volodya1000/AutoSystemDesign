@@ -1,4 +1,4 @@
-"""Execute a forward-only linear C4 chain with explicit SimPy resources."""
+"""Execute reproducible single-path C4 request traces with SimPy."""
 
 from collections.abc import Generator
 from dataclasses import dataclass
@@ -6,10 +6,6 @@ from random import Random
 
 import simpy
 
-from application.architecture_simulation.graph_execution_errors import (
-    GraphExecutionError,
-    GraphExecutionFailure,
-)
 from domain.architecture_simulation.graph_execution import (
     GraphRejectionReason,
     GraphRequestRejection,
@@ -18,14 +14,13 @@ from domain.architecture_simulation.graph_execution import (
     GraphTraversalObservation,
 )
 from domain.architecture_simulation.graph_plan import (
-    GraphSimulationPlan,
     SimulatedConnection,
     SimulatedResource,
 )
 from domain.architecture_simulation.kernel import SimulationWindow
-from domain.models.enums import NodeType
 from infrastructure.architecture_simulation.admission import rejection_reason
 from infrastructure.architecture_simulation.horizon import run_simulation_until_horizon
+from infrastructure.architecture_simulation.routing import StochasticRouteSelector
 
 
 @dataclass(slots=True)
@@ -33,7 +28,7 @@ class _LinearRuntime:
     """Carry one isolated SimPy experiment's services and progress."""
 
     environment: simpy.Environment
-    route: list[tuple[SimulatedConnection, SimulatedResource]]
+    routes: dict[int, list[tuple[SimulatedConnection, SimulatedResource]]]
     node_resources: dict[str, list[simpy.Resource]]
     service_rng: dict[str, Random]
     next_replica: dict[str, int]
@@ -42,15 +37,33 @@ class _LinearRuntime:
 
 
 class SimPyLinearGraphEngine:
-    """Simulate a linear request chain without pretending to support fan-out."""
+    """Simulate one selected route per request with bounded per-replica queues."""
 
     def simulate(
         self, trace: GraphRequestTrace, window: SimulationWindow
     ) -> GraphTraceWindowResult:
-        """Run events up to but not including the end of the measured horizon."""
-        route: list[tuple[SimulatedConnection, SimulatedResource]] = (
-            self._resolve_linear_route(trace.plan)
-        )
+        """Simulate independent root routes up to the observation horizon."""
+        routing: StochasticRouteSelector = StochasticRouteSelector()
+        routing.validate(trace.plan)
+        runtime: _LinearRuntime = self._prepare_runtime(trace)
+        request_index: int
+        arrival_seconds: float
+        for request_index, arrival_seconds in enumerate(trace.arrival_times_seconds):
+            if arrival_seconds >= window.horizon_seconds:
+                continue
+            runtime.routes[request_index] = routing.select(
+                trace.plan, trace.seed, request_index
+            )
+            runtime.environment.process(
+                self._traverse(runtime, request_index, arrival_seconds)
+            )
+
+        run_simulation_until_horizon(runtime.environment, window)
+        return self._collect_window(trace, window, runtime)
+
+    @staticmethod
+    def _prepare_runtime(trace: GraphRequestTrace) -> _LinearRuntime:
+        """Allocate a fresh set of resources and independent per-node RNGs."""
         environment: simpy.Environment = simpy.Environment()
         node_resources: dict[str, list[simpy.Resource]] = {
             resource.identifier: [
@@ -69,27 +82,15 @@ class SimPyLinearGraphEngine:
         next_replica: dict[str, int] = {
             resource.identifier: 0 for resource in trace.plan.resources
         }
-        completed: dict[int, GraphTraversalObservation] = {}
-        rejections: dict[int, GraphRequestRejection] = {}
-        runtime: _LinearRuntime = _LinearRuntime(
+        return _LinearRuntime(
             environment=environment,
-            route=route,
+            routes={},
             node_resources=node_resources,
             service_rng=service_rng,
             next_replica=next_replica,
-            completed=completed,
-            rejections=rejections,
+            completed={},
+            rejections={},
         )
-        arrival_index: int
-        arrival_seconds: float
-        for arrival_index, arrival_seconds in enumerate(trace.arrival_times_seconds):
-            if arrival_seconds >= window.horizon_seconds:
-                continue
-            environment.process(self._traverse(runtime, arrival_index, arrival_seconds))
-
-        run_simulation_until_horizon(environment, window)
-
-        return self._collect_window(trace, window, runtime)
 
     @staticmethod
     def _collect_window(
@@ -124,48 +125,6 @@ class SimPyLinearGraphEngine:
             warmup_arrivals=warmup_arrivals,
         )
 
-    def _resolve_linear_route(
-        self, plan: GraphSimulationPlan
-    ) -> list[tuple[SimulatedConnection, SimulatedResource]]:
-        """Reject branching and resolve an ordered client-to-sink path."""
-        by_source: dict[str, list[SimulatedConnection]] = {}
-        edge: SimulatedConnection
-        for edge in plan.connections:
-            by_source.setdefault(edge.source_identifier, []).append(edge)
-
-        resource_by_identifier: dict[str, SimulatedResource] = {
-            resource.identifier: resource for resource in plan.resources
-        }
-        current: str = plan.client_identifier
-        route: list[tuple[SimulatedConnection, SimulatedResource]] = []
-        traversed: set[str] = set()
-        while current in by_source:
-            if current in traversed or len(by_source[current]) != 1:
-                raise GraphExecutionError(
-                    GraphExecutionFailure.BRANCHING_UNSUPPORTED, current
-                )
-            traversed.add(current)
-            edge = by_source[current][0]
-            resource: SimulatedResource | None = resource_by_identifier.get(
-                edge.target_identifier
-            )
-            if resource is None:
-                raise GraphExecutionError(
-                    GraphExecutionFailure.UNKNOWN_RESOURCE,
-                    edge.target_identifier,
-                )
-            if resource.node_type == NodeType.CACHE:
-                raise GraphExecutionError(
-                    GraphExecutionFailure.CACHE_UNSUPPORTED, resource.identifier
-                )
-            route.append((edge, resource))
-            current = resource.identifier
-        if len(route) != len(plan.resources):
-            raise GraphExecutionError(
-                GraphExecutionFailure.BRANCHING_UNSUPPORTED, current
-            )
-        return route
-
     def _traverse(
         self,
         runtime: _LinearRuntime,
@@ -177,7 +136,7 @@ class SimPyLinearGraphEngine:
         visited: list[str] = []
         edge: SimulatedConnection
         resource: SimulatedResource
-        for edge, resource in runtime.route:
+        for edge, resource in runtime.routes[request_index]:
             yield runtime.environment.timeout(edge.network_latency_seconds)
             replicas: list[simpy.Resource] = runtime.node_resources[resource.identifier]
             replica_index: int = runtime.next_replica[resource.identifier] % len(

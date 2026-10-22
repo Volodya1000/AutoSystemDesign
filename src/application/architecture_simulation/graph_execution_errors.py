@@ -8,6 +8,8 @@ class GraphExecutionFailure(StrEnum):
 
     BRANCHING_UNSUPPORTED = "branching_unsupported"
     CACHE_UNSUPPORTED = "cache_unsupported"
+    MIXED_ROUTING_MODES = "mixed_routing_modes"
+    INVALID_CACHE_TOPOLOGY = "invalid_cache_topology"
     UNKNOWN_RESOURCE = "unknown_resource"
     EVENT_BUDGET_EXCEEDED = "event_budget_exceeded"
 
