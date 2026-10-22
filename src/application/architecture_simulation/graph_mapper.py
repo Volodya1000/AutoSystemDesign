@@ -1,47 +1,13 @@
-"""Map C4 topology into typed simulation inputs without invoking an LLM."""
+"""Convert validated C4 topology into typed simulation input without an LLM."""
 
-from enum import StrEnum
-from heapq import heappop, heappush
-
-from domain.architecture_simulation.graph_plan import (
-    GraphSimulationPlan,
-    SimulatedConnection,
-    SimulatedResource,
-)
+from application.architecture_simulation.graph_mapping_errors import GraphMappingError
+from application.architecture_simulation.mapping_failures import MappingFailure
+from application.architecture_simulation.simulation_graph_validator import SimulationGraphValidator
+from domain.architecture_simulation.graph_plan import GraphSimulationPlan, SimulatedConnection, SimulatedResource
 from domain.models.edges import Edge
-from domain.models.nodes import (
-    CacheNode,
-    CapacityNode,
-    ClientNode,
-    MessageBrokerNode,
-)
+from domain.models.nodes import CacheNode, CapacityNode, ClientNode, MessageBrokerNode
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import AnyNode, ArchitectureGraph
-
-
-class MappingFailure(StrEnum):
-    """Categorize unsupported or inconsistent input without fragile messages."""
-
-    MISSING_WORKLOAD = "missing_workload"
-    INVALID_CLIENT_COUNT = "invalid_client_count"
-    DUPLICATE_NODE = "duplicate_node"
-    UNKNOWN_ENDPOINT = "unknown_endpoint"
-    DUPLICATE_EDGE = "duplicate_edge"
-    UNSUPPORTED_ASYNC = "unsupported_async"
-    UNSUPPORTED_RETRY = "unsupported_retry"
-    UNSUPPORTED_BROKER = "unsupported_broker"
-    SERVICE_CHANNELS_UNKNOWN = "service_channels_unknown"
-    CYCLE = "cycle"
-    DISCONNECTED = "disconnected"
-
-
-class GraphMappingError(ValueError):
-    """Preserve a typed reason for non-modelled graph semantics."""
-
-    def __init__(self, code: MappingFailure, identifier: str) -> None:
-        self.code: MappingFailure = code
-        self.identifier: str = identifier
-        super().__init__(f"{code.value}: {identifier}")
 
 
 class ArchitectureSimulationPlanMapper:
@@ -82,8 +48,9 @@ class ArchitectureSimulationPlanMapper:
                 edge.routing_mode,
             ),
         )
-        self._validate_edges(edges, nodes)
-        order: list[str] = self._ordered_nodes(nodes, edges, client_identifier)
+        validator: SimulationGraphValidator = SimulationGraphValidator()
+        validator.validate_edges(edges, nodes)
+        order: list[str] = validator.ordered_nodes(nodes, edges, client_identifier)
         resources: list[SimulatedResource] = [
             self._map_resource(member)
             for identifier, member in sorted(nodes.items())
@@ -108,80 +75,6 @@ class ArchitectureSimulationPlanMapper:
             connections=connections,
             topological_order=order,
         )
-
-    def _validate_edges(self, edges: list[Edge], nodes: dict[str, AnyNode]) -> None:
-        """Reject invalid references and semantics not simulated in V1."""
-        seen: set[tuple[str, str]] = set()
-        edge: Edge
-        for edge in edges:
-            key: tuple[str, str] = (
-                edge.source_identifier,
-                edge.target_identifier,
-            )
-            if edge.source_identifier not in nodes:
-                raise GraphMappingError(
-                    MappingFailure.UNKNOWN_ENDPOINT, edge.source_identifier
-                )
-            if edge.target_identifier not in nodes:
-                raise GraphMappingError(
-                    MappingFailure.UNKNOWN_ENDPOINT, edge.target_identifier
-                )
-            if key in seen:
-                raise GraphMappingError(
-                    MappingFailure.DUPLICATE_EDGE, edge.source_identifier
-                )
-            seen.add(key)
-            if edge.protocol.is_asynchronous:
-                raise GraphMappingError(
-                    MappingFailure.UNSUPPORTED_ASYNC, edge.target_identifier
-                )
-            if edge.retry_attempts_count > 0:
-                raise GraphMappingError(
-                    MappingFailure.UNSUPPORTED_RETRY, edge.target_identifier
-                )
-
-    def _ordered_nodes(
-        self,
-        nodes: dict[str, AnyNode],
-        edges: list[Edge],
-        client_identifier: str,
-    ) -> list[str]:
-        """Check cycles and reachability with a deterministic topological sort."""
-        incoming: dict[str, int] = {identifier: 0 for identifier in nodes}
-        outgoing: dict[str, list[str]] = {identifier: [] for identifier in nodes}
-        edge: Edge
-        for edge in edges:
-            incoming[edge.target_identifier] += 1
-            outgoing[edge.source_identifier].append(edge.target_identifier)
-
-        available: list[str] = [
-            identifier for identifier, count in incoming.items() if count == 0
-        ]
-        available.sort()
-        result: list[str] = []
-        while available:
-            current: str = heappop(available)
-            result.append(current)
-            target: str
-            for target in sorted(outgoing[current]):
-                incoming[target] -= 1
-                if incoming[target] == 0:
-                    heappush(available, target)
-        if len(result) != len(nodes):
-            raise GraphMappingError(MappingFailure.CYCLE, client_identifier)
-
-        reachable: set[str] = {client_identifier}
-        queue: list[str] = [client_identifier]
-        while queue:
-            current = queue.pop()
-            for target in outgoing[current]:
-                if target not in reachable:
-                    reachable.add(target)
-                    queue.append(target)
-        if reachable != set(nodes):
-            missing: str = min(set(nodes) - reachable)
-            raise GraphMappingError(MappingFailure.DISCONNECTED, missing)
-        return result
 
     def _map_resource(self, node: AnyNode) -> SimulatedResource:
         """Require explicitly known service capacity for every resource."""
