@@ -47,7 +47,7 @@ def visible_findings(report: PerformanceAnalysisReport) -> list[PerformanceFindi
         for item in report.findings
         if item.finding_code is PerformanceFindingCode.CAPACITY_HEADROOM
     ]
-    if len(headroom) < 2:
+    if len(headroom) <= 1:
         return list(report.findings)
 
     affected = sorted(
