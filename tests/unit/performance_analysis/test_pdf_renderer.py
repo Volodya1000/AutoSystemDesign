@@ -100,6 +100,7 @@ def test_unavailable_report_shows_honest_missing_metrics() -> None:
     assert "нет оценки" in text
     assert "Диагностических выводов нет" in text
 
+
 def test_pdf_explains_findings_without_raw_machine_codes() -> None:
     """Keep diagnostic codes in JSON, while PDF uses accessible Russian text."""
     pdf_bytes = PerformanceReportPdfRenderer().render(_report())
