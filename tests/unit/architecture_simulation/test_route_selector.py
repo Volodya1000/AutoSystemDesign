@@ -55,6 +55,7 @@ def _cache_plan(hit_probability: float) -> GraphSimulationPlan:
         make_cache_graph(hit_probability), make_scenario()
     )
 
+
 def _simulate(plan: GraphSimulationPlan) -> GraphTraceWindowResult:
     return SimPyLinearGraphEngine().simulate(
         GraphRequestTrace(plan=plan, arrival_times_seconds=[0], seed=99),
