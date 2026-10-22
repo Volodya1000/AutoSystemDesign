@@ -181,7 +181,6 @@ def _metric(
     return f"{value:,.2f}".replace(",", " ") + (f" {unit}" if unit else "")
 
 
-
 def _render_metrics_table(
     report: PerformanceAnalysisReport,
     styles: dict[str, ParagraphStyle],
@@ -210,8 +209,7 @@ def _render_metrics_table(
         any(node.utilization_ratio is not None for node in nodes),
         any(node.estimated_mean_queue_wait_milliseconds is not None for node in nodes),
         any(
-            node.estimated_mean_response_time_milliseconds is not None
-            for node in nodes
+            node.estimated_mean_response_time_milliseconds is not None for node in nodes
         ),
     )
     selected = [index for index, exists in enumerate(available) if exists]
