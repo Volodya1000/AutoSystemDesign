@@ -264,7 +264,10 @@ def test_vertical_path_keeps_node_order_and_values(node_count: int) -> None:
         assert text.find(identifiers[index]) < text.find(identifiers[index + 1])
     if node_count == 15:
         assert len(reader.pages) > 1
-        assert sum("Путь сверху вниз" in (p.extract_text() or "") for p in reader.pages) > 1
+        assert (
+            sum("Путь сверху вниз" in (p.extract_text() or "") for p in reader.pages)
+            > 1
+        )
 
 
 def test_long_path_identifier_wraps_without_truncation() -> None:
