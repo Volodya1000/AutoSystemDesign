@@ -19,15 +19,15 @@ from domain.models.protocols import (
     ASYNCHRONOUS_MESSAGE_QUEUE,
     SYNCHRONOUS_REST_HTTP,
 )
+from domain.models.scenarios import DesignScenario
+from domain.models.topology import ArchitectureGraph
 from tests.unit.architecture_simulation.factories import (
     make_compute,
+    make_database,
     make_edge,
     make_graph,
     make_scenario,
-    make_database,
 )
-from domain.models.scenarios import DesignScenario
-from domain.models.topology import ArchitectureGraph
 
 pytestmark = pytest.mark.unit
 
