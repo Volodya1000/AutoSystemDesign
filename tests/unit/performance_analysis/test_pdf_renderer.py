@@ -57,7 +57,7 @@ def _report(node_count: int = 1) -> PerformanceAnalysisReport:
     )
 
 
-def test_pdf_is_readable_and_contains_cyrillic_and_absent_metric() -> None:
+def test_pdf_shows_calculated_metrics_without_unassessed_warnings() -> None:
     pdf_bytes = PerformanceReportPdfRenderer().render(_report())
     reader = PdfReader(BytesIO(pdf_bytes))
     text = "\n".join(page.extract_text() for page in reader.pages)
@@ -66,9 +66,10 @@ def test_pdf_is_readable_and_contains_cyrillic_and_absent_metric() -> None:
     assert len(pdf_bytes) > 2000
     assert "Анализ производительности" in text
     assert "load_test_пример" in text
-    assert "Ограниченная очередь" in text
-    assert "нет оценки" in text
     assert "15.00 мс" in text
+    assert "Ограниченная очередь" not in text
+    assert "часть характеристик" not in text
+    assert "нет оценки" not in text
 
 
 def test_long_identifiers_and_many_rows_paginate() -> None:
@@ -78,7 +79,7 @@ def test_long_identifiers_and_many_rows_paginate() -> None:
 
     assert len(reader.pages) > 1
     assert "api_89" in text
-    assert "Выводы и ограничения" in text
+    assert "Выявленные риски перегрузки" not in text
 
 
 def test_missing_font_reports_explicit_optional_failure(tmp_path: Path) -> None:
@@ -88,7 +89,7 @@ def test_missing_font_reports_explicit_optional_failure(tmp_path: Path) -> None:
         renderer.render(_report())
 
 
-def test_unavailable_report_shows_honest_missing_metrics() -> None:
+def test_unavailable_report_does_not_invent_metrics() -> None:
     report = PerformanceAnalysisReport(
         scenario_identifier="no_workload",
         status=PerformanceAnalysisStatus.UNAVAILABLE,
@@ -96,22 +97,27 @@ def test_unavailable_report_shows_honest_missing_metrics() -> None:
     reader = PdfReader(BytesIO(PerformanceReportPdfRenderer().render(report)))
     text = "\n".join(page.extract_text() for page in reader.pages)
 
-    assert "Недоступен" in text
-    assert "нет оценки" in text
-    assert "Диагностических выводов нет" in text
+    assert "no_workload" in text
+    assert "Недоступен" not in text
+    assert "часть характеристик" not in text
+    assert "Выявленные риски перегрузки" not in text
 
 
-def test_pdf_explains_findings_without_raw_machine_codes() -> None:
-    """Keep diagnostic codes in JSON, while PDF uses accessible Russian text."""
-    pdf_bytes = PerformanceReportPdfRenderer().render(_report())
+def test_pdf_omits_unassessed_diagnostics_while_preserving_json() -> None:
+    """PDF excludes unsupported calculations without mutating structured findings."""
+    report = _report()
+    pdf_bytes = PerformanceReportPdfRenderer().render(report)
     text = "\n".join(
         page.extract_text() for page in PdfReader(BytesIO(pdf_bytes)).pages
     )
 
     assert "[warning]" not in text
     assert "bounded_queue_unmodeled" not in text
-    assert "Предупреждение" in text
-    assert "Компоненты:" in text
+    assert (
+        report.findings[0].finding_code
+        is PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED
+    )
+    assert report.findings[0].title not in text
 
 
 def test_pdf_keeps_request_source_outside_processing_table() -> None:
@@ -129,15 +135,12 @@ def test_pdf_keeps_request_source_outside_processing_table() -> None:
             BytesIO(PerformanceReportPdfRenderer().render(report))
         ).pages
     )
-    table_content = text.split("Показатели обрабатывающих компонентов", 1)[1]
-    table_content = table_content.split("Выводы и ограничения", 1)[0]
-
-    assert "client" not in table_content
+    assert text.count("client") == 1
     assert "Критический путь: client" in text
 
 
-def test_repeated_headroom_diagnostics_are_combined_in_pdf() -> None:
-    """Group repeated informational statements without mutating JSON findings."""
+def test_repeated_headroom_diagnostics_are_not_echoed_in_pdf() -> None:
+    """Calculated utilization is already visible in the table, not duplicated."""
     report = _report()
     for identifier in ("first", "second"):
         report.findings.append(
@@ -157,5 +160,55 @@ def test_repeated_headroom_diagnostics_are_combined_in_pdf() -> None:
         ).pages
     )
 
-    assert text.count("Информация: Есть запас пропускной способности") == 1
+    assert "Есть запас пропускной способности" not in text
     assert len(report.findings) == count_before
+
+
+def test_only_available_metric_columns_are_rendered() -> None:
+    """No unavailable workload columns in a capacity-only scenario."""
+    report = PerformanceAnalysisReport(
+        scenario_identifier="capacity_only",
+        status=PerformanceAnalysisStatus.UNAVAILABLE,
+        nodes=[
+            NodePerformanceMetrics(
+                node_identifier="api",
+                estimated_capacity_requests_per_second=25.0,
+            )
+        ],
+    )
+    text = "\n".join(
+        page.extract_text()
+        for page in PdfReader(
+            BytesIO(PerformanceReportPdfRenderer().render(report))
+        ).pages
+    )
+
+    assert "api" in text
+    assert "25.00" in text
+    assert "Нагрузка" not in text
+    assert "Ожидание" not in text
+    assert "Ответ," not in text
+    assert "Недоступен" not in text
+
+
+def test_confirmed_overload_is_visible_without_unrelated_warning() -> None:
+    """A model-computed capacity risk remains visible without diagnostic noise."""
+    report = _report()
+    overload = PerformanceFinding(
+        finding_code=PerformanceFindingCode.CAPACITY_SATURATION,
+        severity=PerformanceFindingSeverity.ERROR,
+        title="Перегрузка компонента",
+        description="Расчётная загрузка 120%.",
+        affected_node_identifiers=["api_0"],
+    )
+    report.findings.append(overload)
+    text = "\n".join(
+        page.extract_text()
+        for page in PdfReader(
+            BytesIO(PerformanceReportPdfRenderer().render(report))
+        ).pages
+    )
+
+    assert overload.title in text
+    assert overload.description in text
+    assert report.findings[0].title not in text
