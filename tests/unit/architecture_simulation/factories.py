@@ -25,9 +25,7 @@ def make_compute(
     )
 
 
-def make_cache(
-    hit_probability: float, identifier: str = "cache"
-) -> CacheNode:
+def make_cache(hit_probability: float, identifier: str = "cache") -> CacheNode:
     """Build one deterministic cache resource for cross-layer tests."""
     return CacheNode(
         identifier=identifier,
