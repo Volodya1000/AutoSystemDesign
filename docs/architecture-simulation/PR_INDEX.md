@@ -10,7 +10,7 @@
 | 3 | [#140](https://github.com/Volodya1000/AutoSystemDesign/pull/140) | Поток Пуассона, Gamma/константа, независимые повторы, warm-up, horizon, event budget; [учебная глава](03-stochastic-replications.md) |
 | 4A | [#141](https://github.com/Volodya1000/AutoSystemDesign/pull/141) | Отображение C4 с явными каналами, проверкой DAG и сохранением исходных лимитов; [объяснение](04-graph-mapping.md) |
 | 4B | [#142](https://github.com/Volodya1000/AutoSystemDesign/pull/142) | SimPy выполнение линейного синхронного пути, отдельные реплики, сетевые задержки и цензурирование; [пример](04b-linear-graph-executor.md) |
-| 5 | Новый PR bounded admission | Per-replica admission, отдельные причины отказов, инвариант completed/rejected/unfinished; [разбор](05-bounded-admission.md) |
+| 5 | [#143](https://github.com/Volodya1000/AutoSystemDesign/pull/143) | Per-replica admission, отдельные причины отказов, инвариант completed/rejected/unfinished; [разбор](05-bounded-admission.md) |
 | 6–11 | Не созданы | Маршрутизация → статистика → NFR → pipeline → PDF → E2E |
 | 12 | Не создан, необязательный | Эксперименты с альтернативами архитектуры |
 
