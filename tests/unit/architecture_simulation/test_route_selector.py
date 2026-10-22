@@ -58,9 +58,7 @@ def _cache_plan(hit_probability: float) -> GraphSimulationPlan:
 def _simulate(plan: GraphSimulationPlan) -> GraphTraceWindowResult:
     return SimPyLinearGraphEngine().simulate(
         GraphRequestTrace(plan=plan, arrival_times_seconds=[0], seed=99),
-        SimulationWindow(
-            warmup_seconds=0, measurement_seconds=1, max_events=200
-        ),
+        SimulationWindow(warmup_seconds=0, measurement_seconds=1, max_events=200),
     )
 
 
@@ -72,9 +70,7 @@ def test_alternative_routes_select_exactly_one_database_per_request() -> None:
             arrival_times_seconds=[0.1 * index for index in range(10)],
             seed=2,
         ),
-        SimulationWindow(
-            warmup_seconds=0, measurement_seconds=3, max_events=1000
-        ),
+        SimulationWindow(warmup_seconds=0, measurement_seconds=3, max_events=1000),
     )
 
     assert result.measured_arrivals == 10
@@ -129,9 +125,7 @@ def test_cache_hit_skips_db_and_miss_calls_it_once(
     assert len(result.rejections) == 0
     assert len(result.observations) == 1
     assert result.observations[0].visited_resources == expected_path
-    assert result.observations[0].traversal_seconds == pytest.approx(
-        expected_duration
-    )
+    assert result.observations[0].traversal_seconds == pytest.approx(expected_duration)
 
 
 def test_cache_hits_are_seeded_for_each_request_not_whole_experiment() -> None:
