@@ -78,7 +78,7 @@ def test_long_identifiers_and_many_rows_paginate() -> None:
 
     assert len(reader.pages) > 1
     assert "api_89" in text
-    assert "Диагностические выводы" in text
+    assert "Выводы и ограничения" in text
 
 
 def test_missing_font_reports_explicit_optional_failure(tmp_path: Path) -> None:
@@ -99,3 +99,63 @@ def test_unavailable_report_shows_honest_missing_metrics() -> None:
     assert "Недоступен" in text
     assert "нет оценки" in text
     assert "Диагностических выводов нет" in text
+
+
+def test_pdf_explains_findings_without_raw_machine_codes() -> None:
+    """Keep diagnostic codes in JSON, while PDF uses accessible Russian text."""
+    pdf_bytes = PerformanceReportPdfRenderer().render(_report())
+    text = "\n".join(
+        page.extract_text() for page in PdfReader(BytesIO(pdf_bytes)).pages
+    )
+
+    assert "[warning]" not in text
+    assert "bounded_queue_unmodeled" not in text
+    assert "Предупреждение" in text
+    assert "Компоненты:" in text
+
+
+def test_pdf_keeps_request_source_outside_processing_table() -> None:
+    """The client is part of the route but cannot have processing capacity."""
+    report = _report()
+    report.nodes.append(
+        NodePerformanceMetrics(
+            node_identifier="client",
+            incoming_requests_per_second=60.0,
+        )
+    )
+    text = "\n".join(
+        page.extract_text()
+        for page in PdfReader(
+            BytesIO(PerformanceReportPdfRenderer().render(report))
+        ).pages
+    )
+    table_content = text.split("Показатели обрабатывающих компонентов", 1)[1]
+    table_content = table_content.split("Выводы и ограничения", 1)[0]
+
+    assert "client" not in table_content
+    assert "Критический путь: client" in text
+
+
+def test_repeated_headroom_diagnostics_are_combined_in_pdf() -> None:
+    """Group repeated informational statements without mutating JSON findings."""
+    report = _report()
+    for identifier in ("first", "second"):
+        report.findings.append(
+            PerformanceFinding(
+                finding_code=PerformanceFindingCode.CAPACITY_HEADROOM,
+                severity=PerformanceFindingSeverity.INFO,
+                title="Есть запас пропускной способности",
+                description="Расчётная нагрузка ниже порога насыщения.",
+                affected_node_identifiers=[identifier],
+            )
+        )
+    count_before = len(report.findings)
+    text = "\n".join(
+        page.extract_text()
+        for page in PdfReader(
+            BytesIO(PerformanceReportPdfRenderer().render(report))
+        ).pages
+    )
+
+    assert text.count("Информация: Есть запас пропускной способности") == 1
+    assert len(report.findings) == count_before
