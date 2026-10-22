@@ -165,9 +165,7 @@ class StochasticRouteSelector:
         decision: str,
     ) -> SimulatedConnection:
         """Choose uniformly with a stable seed independent of input ordering."""
-        rng: Random = Random(
-            f"{seed}:{decision}:{request_index}:{source_identifier}"
-        )
+        rng: Random = Random(f"{seed}:{decision}:{request_index}:{source_identifier}")
         return outgoing[rng.randrange(len(outgoing))]
 
     @staticmethod
