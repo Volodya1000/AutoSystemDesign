@@ -16,13 +16,14 @@ from domain.architecture_simulation.graph_execution import (
 from domain.architecture_simulation.graph_plan import GraphSimulationPlan
 from domain.architecture_simulation.kernel import SimulationWindow
 from domain.models.enums import EdgeRoutingMode
-from domain.models.nodes import CacheNode, ClientNode
+from domain.models.nodes import ClientNode
 from domain.models.topology import ArchitectureGraph
 from infrastructure.architecture_simulation.linear_graph_engine import (
     SimPyLinearGraphEngine,
 )
 from infrastructure.architecture_simulation.routing import StochasticRouteSelector
 from tests.unit.architecture_simulation.factories import (
+    make_cache,
     make_compute,
     make_database,
     make_edge,
@@ -50,27 +51,17 @@ def _alternative_plan() -> GraphSimulationPlan:
 
 
 def _cache_plan(hit_probability: float) -> GraphSimulationPlan:
-    cache: CacheNode = CacheNode(
-        identifier="cache",
-        service_channels_per_replica=1,
-        maximum_concurrency=3,
-        maximum_queue_size=4,
-        mean_processing_time_milliseconds=3,
-        standard_deviation_processing_time=0,
-        monthly_cost_usd=20,
-        cache_hit_rate_probability=hit_probability,
-    )
     graph: ArchitectureGraph = ArchitectureGraph(
         nodes=[
             ClientNode(identifier="web"),
             make_compute(std_milliseconds=0),
-            cache,
+            make_cache(hit_probability),
             make_database(),
         ],
         edges=[
             make_edge("web", "api"),
             make_edge("api", "cache"),
-            make_edge("cache", "db"),
+            make_edge("api", "db"),
         ],
     )
     return ArchitectureSimulationPlanMapper().map(graph, make_scenario())
@@ -186,7 +177,7 @@ def test_cache_cannot_invent_a_missing_fallback() -> None:
     plan.connections = [
         connection
         for connection in plan.connections
-        if connection.source_identifier != "cache"
+        if connection.target_identifier != "db"
     ]
     selector: StochasticRouteSelector = StochasticRouteSelector()
 
