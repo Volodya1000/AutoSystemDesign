@@ -2,10 +2,21 @@
 
 from application.architecture_simulation.graph_mapping_errors import GraphMappingError
 from application.architecture_simulation.mapping_failures import MappingFailure
-from application.architecture_simulation.simulation_graph_validator import SimulationGraphValidator
-from domain.architecture_simulation.graph_plan import GraphSimulationPlan, SimulatedConnection, SimulatedResource
+from application.architecture_simulation.simulation_graph_validator import (
+    SimulationGraphValidator,
+)
+from domain.architecture_simulation.graph_plan import (
+    GraphSimulationPlan,
+    SimulatedConnection,
+    SimulatedResource,
+)
 from domain.models.edges import Edge
-from domain.models.nodes import CacheNode, CapacityNode, ClientNode, MessageBrokerNode
+from domain.models.nodes import (
+    CacheNode,
+    CapacityNode,
+    ClientNode,
+    MessageBrokerNode,
+)
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import AnyNode, ArchitectureGraph
 
