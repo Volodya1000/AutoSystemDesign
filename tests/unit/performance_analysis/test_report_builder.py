@@ -153,13 +153,10 @@ def test_missing_workload_does_not_turn_unknown_load_into_zero() -> None:
     assert service_metrics.incoming_requests_per_second is None
     assert service_metrics.estimated_capacity_requests_per_second == pytest.approx(50.0)
     assert service_metrics.utilization_ratio is None
-    assert any(
-        finding.finding_code is PerformanceFindingCode.WORKLOAD_MISSING
-        for finding in report.findings
-    )
+    assert report.findings == []
 
 
-def test_branching_flow_limit_is_reported_without_pinning_message_text() -> None:
+def test_branching_flow_keeps_computed_metrics_without_unsupported_notice() -> None:
     graph = ArchitectureGraph(
         nodes=[
             create_test_node("client", NodeType.CLIENT),
@@ -176,14 +173,8 @@ def test_branching_flow_limit_is_reported_without_pinning_message_text() -> None
 
     report = build_performance_analysis_report(graph, _scenario())
 
-    limitation = next(
-        finding
-        for finding in report.findings
-        if finding.finding_code is PerformanceFindingCode.UNSUPPORTED_MODEL
-    )
-
-    assert limitation.severity is PerformanceFindingSeverity.WARNING
-    assert limitation.affected_node_identifiers == ["router"]
+    assert report.findings == []
+    assert any(node.incoming_requests_per_second for node in report.nodes)
 
 
 def test_known_fan_out_does_not_report_unknown_branch_distribution() -> None:
@@ -261,8 +252,8 @@ def test_infinite_latency_is_reported_as_unavailable_not_serialized() -> None:
     assert service_metrics.utilization_ratio == pytest.approx(1.0)
     assert service_metrics.estimated_mean_queue_wait_milliseconds is None
     assert service_metrics.estimated_mean_response_time_milliseconds is None
-    assert any(
-        finding.finding_code is PerformanceFindingCode.METRIC_UNAVAILABLE
+    assert all(
+        finding.finding_code is PerformanceFindingCode.CAPACITY_SATURATION
         for finding in report.findings
     )
     assert type(report).model_validate_json(report.model_dump_json()) == report
@@ -293,5 +284,5 @@ def test_saturated_service_channels_do_not_claim_capacity_headroom() -> None:
     assert service_metrics.utilization_ratio == pytest.approx(5.0)
     assert service_metrics.estimated_mean_response_time_milliseconds is None
     assert PerformanceFindingCode.CAPACITY_SATURATION in codes
-    assert PerformanceFindingCode.METRIC_UNAVAILABLE in codes
+    assert PerformanceFindingCode.METRIC_UNAVAILABLE not in codes
     assert PerformanceFindingCode.CAPACITY_HEADROOM not in codes
