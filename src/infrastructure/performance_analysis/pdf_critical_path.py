@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.units import mm
 from reportlab.platypus import LongTable, Paragraph, Table, TableStyle
 
 if TYPE_CHECKING:
@@ -43,30 +42,16 @@ def critical_path_diagram(
     metrics_by_id: dict[str, NodePerformanceMetrics] = {
         node.node_identifier: node for node in report.nodes
     }
-    width: float = content_width * 0.78
-    heading_style = ParagraphStyle(
-        "ASDPathContinuation",
-        parent=styles["note"],
-        alignment=TA_CENTER,
-        textColor=colors.HexColor("#60758B"),
-        spaceAfter=0,
-    )
+    width: float = content_width * 0.58
     arrow_style = ParagraphStyle(
         "ASDPathArrow",
         parent=styles["body"],
         alignment=TA_CENTER,
-        fontSize=12,
-        leading=14,
+        fontSize=10,
+        leading=11,
         spaceAfter=0,
     )
-    rows: list[list[Flowable | list[Flowable]]] = [
-        [
-            Paragraph(
-                "Путь сверху вниз",
-                heading_style,
-            )
-        ]
-    ]
+    rows: list[list[Flowable | list[Flowable]]] = []
     for index, identifier in enumerate(report.critical_path_node_identifiers):
         node: NodePerformanceMetrics | None = metrics_by_id.get(identifier)
         details: list[Flowable] = [Paragraph(escape(identifier), styles["path_node"])]
@@ -103,10 +88,10 @@ def critical_path_diagram(
                         _SOURCE_COLOR if index == 0 else _BOX_COLOR,
                     ),
                     ("BOX", (0, 0), (-1, -1), 0.6, _OUTLINE_COLOR),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 12),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-                    ("TOPPADDING", (0, 0), (-1, -1), 6),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ]
             )
         )
@@ -115,7 +100,7 @@ def critical_path_diagram(
             cell.append(Paragraph("↓", arrow_style))
         rows.append([cell])
 
-    diagram = LongTable(rows, colWidths=[width], repeatRows=1, hAlign="CENTER")
+    diagram = LongTable(rows, colWidths=[width], hAlign="CENTER")
     diagram.setStyle(
         TableStyle(
             [
@@ -124,7 +109,6 @@ def critical_path_diagram(
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (0, 0), 2 * mm),
             ]
         )
     )
