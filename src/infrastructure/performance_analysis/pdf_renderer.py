@@ -85,7 +85,10 @@ class PerformanceReportPdfRenderer:
             story.extend(
                 [
                     Spacer(1, 4 * mm),
-                    Paragraph("Синхронный путь с наибольшей задержкой", styles["heading"]),
+                    Paragraph(
+                        "Синхронный путь с наибольшей задержкой",
+                        styles["heading"],
+                    ),
                     Paragraph(
                         "Максимальная оценка средней задержки пути: "
                         + _metric(
@@ -136,8 +139,8 @@ class PerformanceReportPdfRenderer:
             [
                 Spacer(1, 4 * mm),
                 Paragraph(
-                    "Все значения — расчётные оценки по параметрам сценария, "
-                    "а не измерения работающего сервиса.",
+                    "Показатели рассчитаны по параметрам сценария, "
+                    "а не измерены на работающей системе.",
                     styles["note"],
                 ),
             ]
@@ -206,7 +209,10 @@ def _render_metrics_table(
         True,
         any(node.utilization_ratio is not None for node in nodes),
         any(node.estimated_mean_queue_wait_milliseconds is not None for node in nodes),
-        any(node.estimated_mean_response_time_milliseconds is not None for node in nodes),
+        any(
+            node.estimated_mean_response_time_milliseconds is not None
+            for node in nodes
+        ),
     )
     selected = [index for index, exists in enumerate(available) if exists]
     rows: list[list[Paragraph]] = [
