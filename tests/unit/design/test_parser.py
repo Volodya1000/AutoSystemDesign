@@ -19,7 +19,7 @@ pytestmark = pytest.mark.unit
 
 USAGE: TokenUsage = TokenUsage(prompt_tokens=11, completion_tokens=7)
 
-_VALID_GRAPH: dict = {
+_VALID_GRAPH: dict[str, object] = {
     "nodes": [
         {"identifier": "web_client", "node_type": "client"},
         {
@@ -122,7 +122,7 @@ class TestParseArchitectureGraph:
         assert details[0].location == "$"
 
     def test_missing_required_field_reports_field_path(self) -> None:
-        broken: dict = {
+        broken: dict[str, object] = {
             "nodes": [
                 {"identifier": "web_client", "node_type": "client"},
                 {

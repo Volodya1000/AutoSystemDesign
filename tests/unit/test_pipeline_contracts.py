@@ -20,6 +20,8 @@ from application.pipeline.stage import StageId
 from application.pipeline.stages._naming import plan_base_names
 from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml import (
+    DiagramArtifacts,
+    DiagramImageFormat,
     DiagramRenderingError,
     DiagramSavingError,
 )
@@ -42,7 +44,9 @@ class ProgrammingError(ValueError):
 
 
 class NullGenerationReporter:
-    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None: ...
+    def attempts[PayloadT](
+        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+    ) -> None: ...
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None: ...
 
@@ -280,7 +284,11 @@ def test_render_and_write_saving_failure_returns_warning(
 ) -> None:
     """DiagramSavingError on write() becomes a warning, artifacts empty."""
     service = MagicMock()
-    service.generate.return_value = "artifacts"
+    service.generate.return_value = DiagramArtifacts(
+        source="@startuml\\n@enduml",
+        image_url="https://example.invalid/diagram.svg",
+        image_format=DiagramImageFormat.SVG,
+    )
     service.render_image.return_value = b"img"
 
     fake_writer = MagicMock()

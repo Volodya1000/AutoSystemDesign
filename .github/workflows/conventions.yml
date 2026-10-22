@@ -1,0 +1,54 @@
+name: PR conventions and changelog
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize, edited, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  conventions:
+    name: Commit messages, PR title, changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR commit history
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked project dependencies
+        run: uv sync --locked --all-groups
+      - name: Check PR title format
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: uv run --with commitizen==4.19.2 cz check --message "$PR_TITLE"
+      - name: Check PR commit messages
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # PR #90 started before this workflow existed. Its historical commits
+          # are preserved for review; every commit after the adoption point
+          # must satisfy the same policy as new pull requests.
+          if [[ "$PR_NUMBER" == "90" ]]; then
+            baseline=3adcc02a0e2e80f57fc193e7f97d5555edb5cb14
+            git merge-base --is-ancestor "$baseline" HEAD
+            uv run --with commitizen==4.19.2 cz check --rev-range "$baseline..HEAD"
+          else
+            uv run --with commitizen==4.19.2 cz check --rev-range origin/master..HEAD
+          fi
+      - name: Require changelog fragment
+        run: uv run --with towncrier==26.9.0 towncrier check --compare-with origin/master

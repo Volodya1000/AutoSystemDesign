@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Final, cast
+from typing import Any, Final
 
 import yaml
 from pydantic import Field, SecretStr
@@ -128,8 +128,8 @@ def load_app_settings() -> AppSettings:
 
 
 def with_llm_updates(settings: AppSettings, **updates: object) -> AppSettings:
-    """Return a copy of the settings with LlmSettings fields overridden."""
-    updated_llm: LlmSettings = settings.llm.model_copy(
-        update=cast("dict[str, Any]", updates)
+    """Return a copy with validated LLM overrides, leaving settings unchanged."""
+    updated_llm: LlmSettings = LlmSettings.model_validate(
+        {**settings.llm.model_dump(), **updates}
     )
     return settings.model_copy(update={"llm": updated_llm})

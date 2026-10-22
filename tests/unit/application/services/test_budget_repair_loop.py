@@ -92,7 +92,7 @@ def test_budget_violation_triggers_repair_attempt() -> None:
         [_proposal(_over_budget_graph()), _proposal(_under_budget_graph())]
     )
     service: DesignGenerationService = DesignGenerationService(
-        designer=designer,  # type: ignore[arg-type]
+        designer=designer,
         validators=[StructuralTopologyValidator()],
         max_attempts=2,
         scenario_validators=[_budget_dispatcher()],
@@ -129,7 +129,7 @@ def test_budget_failure_after_max_attempts_is_validation_failed() -> None:
         [_proposal(_over_budget_graph()), _proposal(_over_budget_graph())]
     )
     service: DesignGenerationService = DesignGenerationService(
-        designer=designer,  # type: ignore[arg-type]
+        designer=designer,
         validators=[StructuralTopologyValidator()],
         max_attempts=2,
         scenario_validators=[_budget_dispatcher()],

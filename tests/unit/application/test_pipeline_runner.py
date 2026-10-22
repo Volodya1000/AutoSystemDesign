@@ -13,7 +13,6 @@ from application.pipeline.context import (
     require_payload,
 )
 from application.pipeline.outcome import StageOutcome, StageStatus
-from application.pipeline.result import PipelineRunResult
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stage import PipelineStageProtocol, StageId
 from domain.models import DesignScenario
@@ -65,7 +64,7 @@ def _scenario() -> DesignScenario:
 def _run(
     stages: list[PipelineStageProtocol],
     reporter: RecordingReporter,
-) -> PipelineRunResult:
+) -> int:
     return PipelineRunner(stages, reporter).run(
         _scenario(),
         Path("output"),
@@ -129,10 +128,9 @@ def test_runner_passes_immutable_snapshot_of_prior_stage_outcomes() -> None:
     )
     reporter = RecordingReporter()
 
-    result: PipelineRunResult = _run([c4, sequence], reporter)
+    exit_code = _run([c4, sequence], reporter)
 
-    assert result.status is StageStatus.PARTIAL
-    assert result.failed_stage is None
+    assert exit_code == 0
     assert c4.calls == 1
     assert sequence.calls == 1
     upstream = sequence.contexts[0].upstream
@@ -143,11 +141,10 @@ def test_runner_passes_immutable_snapshot_of_prior_stage_outcomes() -> None:
             StageId.C4
         ]
     assert len(reporter.reports) == 1
-    assert [outcome.name for outcome in result.outcomes] == [
+    assert [outcome.name for outcome in reporter.reports[0]] == [
         StageId.C4,
         StageId.SEQUENCE,
     ]
-    assert reporter.reports[0] == result.outcomes
 
 
 def test_failed_stage_short_circuits_pipeline_and_reports_partial_history() -> None:
@@ -156,42 +153,26 @@ def test_failed_stage_short_circuits_pipeline_and_reports_partial_history() -> N
     api = FakeStage(StageId.API, StageStatus.SUCCEEDED, depends_on=(StageId.SEQUENCE,))
     reporter = RecordingReporter()
 
-    result: PipelineRunResult = _run([c4, sequence, api], reporter)
+    exit_code = _run([c4, sequence, api], reporter)
 
-    assert result.status is StageStatus.FAILED
-    assert result.failed_stage is result.outcomes[-1]
+    assert exit_code == 1
     assert c4.calls == 1
     assert sequence.calls == 1
     assert api.calls == 0
     assert len(reporter.reports) == 1
-    assert [outcome.name for outcome in result.outcomes] == [
+    assert [outcome.name for outcome in reporter.reports[0]] == [
         StageId.C4,
         StageId.SEQUENCE,
     ]
-    assert reporter.reports[0] == result.outcomes
-    assert result.outcomes[-1].status is StageStatus.FAILED
+    assert reporter.reports[0][-1].status is StageStatus.FAILED
 
 
 def test_partial_stage_does_not_fail_pipeline() -> None:
     stage = FakeStage(StageId.C4, StageStatus.PARTIAL, payload={"architecture": True})
     reporter = RecordingReporter()
 
-    result: PipelineRunResult = _run([stage], reporter)
-    assert result.status is StageStatus.PARTIAL
-    assert result.failed_stage is None
-    assert result.outcomes[0].status is StageStatus.PARTIAL
-
-
-def test_run_result_exposes_stage_payload_without_copying() -> None:
-    payload = {"graph": "ready"}
-    result: PipelineRunResult = _run(
-        [FakeStage(StageId.C4, StageStatus.SUCCEEDED, payload=payload)],
-        RecordingReporter(),
-    )
-
-    assert result.status is StageStatus.SUCCEEDED
-    assert result.failed_stage is None
-    assert result.outcomes[0].payload is payload
+    assert _run([stage], reporter) == 0
+    assert reporter.reports[0][0].status is StageStatus.PARTIAL
 
 
 def _context(

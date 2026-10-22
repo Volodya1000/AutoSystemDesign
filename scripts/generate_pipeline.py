@@ -76,7 +76,10 @@ def main() -> PipelineExitCode:
 
     try:
         scenario: DesignScenario = _load_scenario(args.scenario)
-    except (OSError, yaml.YAMLError, ValidationError):
+    except ValidationError as error:
+        _log_scenario_validation_errors(args.scenario, error)
+        return 2
+    except (OSError, yaml.YAMLError):
         _logger.exception("Scenario error")
         return PipelineExitCode.INPUT_OR_CONNECTION_ERROR
 
@@ -135,6 +138,16 @@ def _parse_args() -> argparse.Namespace:
         help="DEBUG logging: shows the raw LLM output of every completion",
     )
     return parser.parse_args()
+
+
+def _log_scenario_validation_errors(path: str, error: ValidationError) -> None:
+    """Report invalid YAML keys with their complete field paths."""
+    for detail in error.errors():
+        location = ".".join(str(part) for part in detail["loc"])
+        description = (
+            "Unknown field" if detail["type"] == "extra_forbidden" else detail["msg"]
+        )
+        _logger.error("Invalid scenario %s at '%s': %s", path, location, description)
 
 
 def _load_scenario(path: str) -> DesignScenario:

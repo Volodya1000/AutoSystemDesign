@@ -1,4 +1,4 @@
-project_name: helpdesk_no_workload
+identifier: helpdesk_no_workload
 description: "Helpdesk flow intentionally missing any measured workload profile"
 requirements:
   - type_identifier: availability

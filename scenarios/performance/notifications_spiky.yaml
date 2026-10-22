@@ -1,4 +1,4 @@
-project_name: notifications_spiky
+identifier: notifications_spiky
 description: "Burst traffic and asynchronous notification processing"
 workload:
   baseline_requests_per_second: 30.0

@@ -20,6 +20,8 @@ from application.tasks import JSON_DECODE_ERROR_TYPE, ProposalFailureDetail
 from infrastructure.design._error_location import format_error_location
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from application.usage import TokenUsage
 
 _THINK_BLOCK_PATTERN: re.Pattern[str] = re.compile(
@@ -55,9 +57,13 @@ def extract_json_payload(raw: str) -> str:
 
 
 def parse_payload[ModelT: BaseModel](
-    text: str, model: type[ModelT], usage: TokenUsage
+    text: str,
+    model: type[ModelT],
+    usage: TokenUsage,
+    *,
+    normalizer: Callable[[object], object] | None = None,
 ) -> ModelT:
-    """Extract JSON from ``text`` and validate it against ``model``.
+    """Extract JSON, optionally normalize it, and validate it against a model.
 
     On failure raises ``DesignProposalParsingError`` carrying the original
     text (before extraction) so repair prompts can show the model what it
@@ -78,6 +84,9 @@ def parse_payload[ModelT: BaseModel](
             ],
             usage=usage,
         ) from decode_error
+
+    if normalizer is not None:
+        raw_data = normalizer(raw_data)
 
     try:
         return model.model_validate(raw_data)

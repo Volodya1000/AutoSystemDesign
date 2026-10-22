@@ -60,5 +60,11 @@ def render_interaction_schema() -> str:
         "referenced by every message step, including nested 'alt' branches. "
         "Make sure each declared lifeline appears in that set and every "
         "referenced lifeline is declared. Remove any unused lifeline.\n"
+        "9. Keep the two component identifiers distinct in meaning: "
+        "'architecture_node_id' links a ComponentLifeline to a C4 node, "
+        "while 'lifeline_id' is the identifier used by message endpoints. "
+        "If a message involves a C4 node, include a ComponentLifeline for it "
+        "and use that lifeline's lifeline_id, not the C4 node identifier, "
+        "as the message endpoint unless both identifiers are identical.\n"
         "Do not include comments or Markdown wrappers."
     )

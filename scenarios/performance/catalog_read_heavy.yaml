@@ -1,4 +1,4 @@
-project_name: catalog_read_heavy
+identifier: catalog_read_heavy
 description: "High read ratio product catalog with optional caching"
 workload:
   baseline_requests_per_second: 150.0
