@@ -112,6 +112,7 @@ allowed-confusables = ["а", "е", "о", "р", "с", "С"]
 max-complexity = 10
 
 [tool.mypy]
+plugins = ["pydantic.mypy"]
 python_version = "3.13"
 strict = true
 mypy_path = "src"

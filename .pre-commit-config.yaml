@@ -26,8 +26,9 @@ repos:
     rev: v0.16.8
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--no-fix]
       - id: ruff-format
+        args: [--check]
 
   - repo: local
     hooks:
@@ -62,6 +63,13 @@ repos:
       - id: mypy
         name: mypy
         entry: uv run mypy --strict src tests scripts
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: lint-suppression-guard
+        name: Reject inline lint and type suppressions
+        entry: uv run python scripts/check_lint_suppressions.py
         language: system
         pass_filenames: false
         always_run: true

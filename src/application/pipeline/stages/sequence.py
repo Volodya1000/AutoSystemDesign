@@ -12,7 +12,7 @@ import time
 from typing import TYPE_CHECKING, Protocol
 
 from application.pipeline.context import StageContext, require_payload
-from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.outcome import StageDiagnostics, StageOutcome, StageStatus
 from application.pipeline.sequence_artifacts import SequenceArtifactProcessor
 from application.pipeline.stage import StageId
 from application.pipeline.stages._naming import (
@@ -81,8 +81,11 @@ class SequenceStage:
                 duration_seconds=time.perf_counter() - stage_start,
                 total_tokens=0,
                 payload={},
-                message=(
-                    "No functional requirements provided; skipping sequence generation."
+                diagnostics=StageDiagnostics(
+                    message=(
+                        "No functional requirements provided; "
+                        "skipping sequence generation."
+                    )
                 ),
             )
 
@@ -140,7 +143,7 @@ class SequenceStage:
             total_tokens=result.total_usage.total_tokens,
             artifacts=tuple(artifacts),
             payload=self._extract_successful_scenarios(result),
-            warnings=tuple(warnings),
+            diagnostics=StageDiagnostics(warnings=tuple(warnings)),
         )
 
     # ----------------------------------------------------------------- helpers
@@ -177,7 +180,7 @@ class SequenceStage:
             duration_seconds=duration_seconds,
             total_tokens=total_tokens,
             payload=None,
-            message=message,
+            diagnostics=StageDiagnostics(message=message),
         )
 
     def _process_all_requirements(

@@ -13,7 +13,7 @@ from application.performance_analysis.report_builder import (
     build_performance_analysis_report,
 )
 from application.pipeline.context import StageContext, require_payload
-from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.outcome import StageDiagnostics, StageOutcome, StageStatus
 from application.pipeline.stage import StageId
 from domain.models.topology import ArchitectureGraph
 from domain.performance_analysis.report import PerformanceAnalysisReport
@@ -80,5 +80,5 @@ class PerformanceAnalysisStage:
             total_tokens=0,
             artifacts=artifacts,
             payload=report,
-            warnings=warnings,
+            diagnostics=StageDiagnostics(warnings=warnings),
         )

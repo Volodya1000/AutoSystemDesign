@@ -6,7 +6,12 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
+from application.pipeline.outcome import (
+    DiagramRenderResult,
+    StageDiagnostics,
+    StageOutcome,
+    StageStatus,
+)
 from application.pipeline.stage import StageId
 from application.requirement_coverage import build_requirement_coverage_report
 from application.results import DesignGenerationResult, GenerationStatus
@@ -108,8 +113,10 @@ class C4Stage:
                 total_tokens=result.total_usage.total_tokens,
                 artifacts=tuple(artifacts),
                 payload=None,
-                message="C4 architecture generation failed",
-                warnings=tuple(warnings),
+                diagnostics=StageDiagnostics(
+                    message="C4 architecture generation failed",
+                    warnings=tuple(warnings),
+                ),
             )
 
         render_result: DiagramRenderResult = self._render(
@@ -129,7 +136,7 @@ class C4Stage:
             total_tokens=result.total_usage.total_tokens,
             artifacts=tuple(artifacts),
             payload=graph,
-            warnings=tuple(warnings),
+            diagnostics=StageDiagnostics(warnings=tuple(warnings)),
         )
 
     def _render(

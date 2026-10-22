@@ -127,11 +127,10 @@ class _UnregisteredRequirement(BaseRequirement):
 
 
 def test_programmatic_unknown_requirement_is_observable() -> None:
-    scenario = DesignScenario.model_construct(
+    scenario: DesignScenario = DesignScenario(
         identifier="unknown",
         description="Injected type outside discriminated union",
-        requirements=[_UnregisteredRequirement()],
-    )
+    ).model_copy(update={"requirements": [_UnregisteredRequirement()]})
     validation: ValidationResult = RequirementValidationDispatcher([]).validate(
         _graph(), scenario
     )
