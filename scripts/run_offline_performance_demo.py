@@ -12,6 +12,8 @@ from pathlib import Path
 
 import yaml
 
+from application.pipeline.outcome import StageStatus
+from application.pipeline.result import PipelineRunResult
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from domain.models.edges import Edge
@@ -202,10 +204,10 @@ def main() -> int:
             ],
             reporter=LoggingPipelineReporter(),
         )
-        exit_code: int = runner.run(scenario, directory, writer)
-        if exit_code != 0:
+        result: PipelineRunResult = runner.run(scenario, directory, writer)
+        if result.status is StageStatus.FAILED:
             _LOGGER.error("Pipeline failed for scenario=%s", identifier)
-            return exit_code
+            return 1
         _LOGGER.info("Generated JSON and PDF for %s in %s", identifier, directory)
     return 0
 
