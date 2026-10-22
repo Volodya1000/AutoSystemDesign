@@ -282,10 +282,20 @@ def _build_styles(font: str) -> dict[str, ParagraphStyle]:
             "ASDTableHead", parent=base, fontSize=7, leading=10, spaceAfter=0
         ),
         "path_node": ParagraphStyle(
-            "ASDPathNode", parent=base, fontSize=8, leading=11, alignment=TA_CENTER, spaceAfter=1
+            "ASDPathNode",
+            parent=base,
+            fontSize=8,
+            leading=11,
+            alignment=TA_CENTER,
+            spaceAfter=1,
         ),
         "path_meta": ParagraphStyle(
-            "ASDPathMeta", parent=base, fontSize=7, leading=9, alignment=TA_CENTER, spaceAfter=0
+            "ASDPathMeta",
+            parent=base,
+            fontSize=7,
+            leading=9,
+            alignment=TA_CENTER,
+            spaceAfter=0,
         ),
     }
 
