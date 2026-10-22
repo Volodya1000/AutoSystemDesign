@@ -47,7 +47,9 @@ def _cache_graph(hit_probability: float) -> ArchitectureGraph:
     )
 
 
-def _simulate(graph: ArchitectureGraph, arrivals: list[float]) -> GraphTraceWindowResult:
+def _simulate(
+    graph: ArchitectureGraph, arrivals: list[float]
+) -> GraphTraceWindowResult:
     """Run the actual mapper and SimPy engine over a C4 graph."""
     plan: GraphSimulationPlan = ArchitectureSimulationPlanMapper().map(
         graph, make_scenario()
@@ -60,6 +62,13 @@ def _simulate(graph: ArchitectureGraph, arrivals: list[float]) -> GraphTraceWind
             max_events=50_000,
         ),
     )
+
+
+def _incoming_rps(graph: ArchitectureGraph) -> dict[str, float]:
+    """Propagate the same canonical C4 graph with the scenario's load."""
+    scenario = make_scenario()
+    assert scenario.workload is not None
+    return compute_node_incoming_rps(graph, scenario.workload)
 
 
 @pytest.mark.parametrize(
@@ -78,9 +87,7 @@ def test_c4_analytics_and_simpy_agree_on_cache_misses(
     assert StructuralTopologyValidator().validate(graph).is_successful
     assert CacheUsageValidator().validate(graph).is_successful
 
-    incoming_rps: dict[str, float] = compute_node_incoming_rps(
-        graph, make_scenario().workload
-    )
+    incoming_rps: dict[str, float] = _incoming_rps(graph)
     assert incoming_rps["cache"] == pytest.approx(20)
     assert incoming_rps["db"] == pytest.approx(20 * expected_db_fraction)
 
@@ -97,9 +104,12 @@ def test_c4_analytics_and_simpy_agree_on_cache_misses(
         observation.visited_resources[:2] == ["api", "cache"]
         for observation in result.observations
     )
-    assert db_visits == pytest.approx(
-        len(arrivals) * expected_db_fraction, abs=80
-    )
+    if expected_db_fraction in (0.0, 1.0):
+        assert db_visits == len(arrivals) * expected_db_fraction
+    else:
+        assert db_visits == pytest.approx(
+            len(arrivals) * expected_db_fraction, abs=80
+        )
 
 
 def test_multiple_cache_readers_keep_separate_fallbacks_and_root_identity() -> None:
@@ -125,9 +135,7 @@ def test_multiple_cache_readers_keep_separate_fallbacks_and_root_identity() -> N
     assert StructuralTopologyValidator().validate(graph).is_successful
     assert CacheUsageValidator().validate(graph).is_successful
 
-    rps: dict[str, float] = compute_node_incoming_rps(
-        graph, make_scenario().workload
-    )
+    rps: dict[str, float] = _incoming_rps(graph)
     assert rps["cache"] == pytest.approx(20)
     assert rps["db_a"] == pytest.approx(5)
     assert rps["db_b"] == pytest.approx(5)
