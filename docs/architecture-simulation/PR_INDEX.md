@@ -7,7 +7,10 @@
 | 0 | [#114](https://github.com/Volodya1000/AutoSystemDesign/pull/114) | ТЗ, пользовательский макет, модель SimPy, статистическая дисциплина, дорожная карта, финальный чек-лист |
 | 1 | [#126](https://github.com/Volodya1000/AutoSystemDesign/pull/126) | Pydantic-контракт результата и конфигурация через существующий AppSettings, числовой инвариант учёта запросов и unit-тесты |
 | 2 | [#132](https://github.com/Volodya1000/AutoSystemDesign/pull/132) | Детерминированное расписание, реальный SimPy Resource, один узел, независимые каналы, FIFO; [объяснение с числовыми примерами](02-single-node-kernel.md) |
-| 3 | [#140](https://github.com/Volodya1000/AutoSystemDesign/pull/140) | Поток Пуассона, Gamma/константа, независимые повторы, warm-up, horizon, event budget; [учебная глава](03-stochastic-replications.md) |\n| 4A | [#141](https://github.com/Volodya1000/AutoSystemDesign/pull/141) | Отображение C4 с явными каналами, проверкой DAG и сохранением исходных лимитов; [объяснение](04-graph-mapping.md) |\n| 4B | [#142](https://github.com/Volodya1000/AutoSystemDesign/pull/142) | SimPy выполнение линейного синхронного пути, отдельные реплики, сетевые задержки и цензурирование; [пример](04b-linear-graph-executor.md) |\n| 5–11 | Не созданы | Bounded admission → маршрутизация → статистика → NFR → pipeline → PDF → E2E |
+| 3 | [#140](https://github.com/Volodya1000/AutoSystemDesign/pull/140) | Поток Пуассона, Gamma/константа, независимые повторы, warm-up, horizon, event budget; [учебная глава](03-stochastic-replications.md) |
+| 4A | [#141](https://github.com/Volodya1000/AutoSystemDesign/pull/141) | Отображение C4 с явными каналами, проверкой DAG и сохранением исходных лимитов; [объяснение](04-graph-mapping.md) |
+| 4B | [#142](https://github.com/Volodya1000/AutoSystemDesign/pull/142) | SimPy выполнение линейного синхронного пути, отдельные реплики, сетевые задержки и цензурирование; [пример](04b-linear-graph-executor.md) |
+| 5–11 | Не созданы | Bounded admission → маршрутизация → статистика → NFR → pipeline → PDF → E2E |
 | 12 | Не создан, необязательный | Эксперименты с альтернативами архитектуры |
 
 ## Из предыдущей фичи
