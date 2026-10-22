@@ -10,12 +10,11 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.stage import StageId
-from domain.models.topology import ArchitectureGraph
-
 if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.context import StageContext
+    from domain.models.topology import ArchitectureGraph
 
 
 class OfflineC4Stage:
