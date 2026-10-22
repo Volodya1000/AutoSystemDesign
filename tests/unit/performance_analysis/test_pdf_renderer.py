@@ -104,8 +104,7 @@ def test_pdf_explains_findings_without_raw_machine_codes() -> None:
     """Keep diagnostic codes in JSON, while PDF uses accessible Russian text."""
     pdf_bytes = PerformanceReportPdfRenderer().render(_report())
     text = "\n".join(
-        page.extract_text()
-        for page in PdfReader(BytesIO(pdf_bytes)).pages
+        page.extract_text() for page in PdfReader(BytesIO(pdf_bytes)).pages
     )
 
     assert "[warning]" not in text
