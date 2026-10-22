@@ -91,10 +91,13 @@ class LatencyQuantiles(SimulationDataModel):
     def validate_order(self) -> Self:
         """Reject contradictory quantiles when the adjacent values exist."""
         if self.p50 is not None and self.p95 is not None and self.p50 > self.p95:
-            message = "p50 must not exceed p95"
+            message: str = "p50 must not exceed p95"
             raise ValueError(message)
         if self.p95 is not None and self.p99 is not None and self.p95 > self.p99:
             message = "p95 must not exceed p99"
+            raise ValueError(message)
+        if self.p50 is not None and self.p99 is not None and self.p50 > self.p99:
+            message = "p50 must not exceed p99"
             raise ValueError(message)
         return self
 

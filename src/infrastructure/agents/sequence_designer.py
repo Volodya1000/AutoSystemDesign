@@ -15,7 +15,7 @@ from infrastructure.design.sequence_parser import (
     parse_roles_catalog,
 )
 from infrastructure.llm.models import CompletionRequest, CompletionResult
-from infrastructure.llm.protocols import CompletionClient
+from infrastructure.llm.protocols import CompletionClientProtocol
 from infrastructure.prompts.sequence_generation import (
     build_interaction_initial_messages,
     build_interaction_repair_messages,
@@ -25,8 +25,8 @@ from infrastructure.prompts.sequence_generation import (
 
 
 class SequenceDesignerAgent:
-    def __init__(self, client: CompletionClient, settings: AppSettings) -> None:
-        self._client: CompletionClient = client
+    def __init__(self, client: CompletionClientProtocol, settings: AppSettings) -> None:
+        self._client: CompletionClientProtocol = client
         self._settings: AppSettings = settings
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 
@@ -83,7 +83,9 @@ class SequenceDesignerAgent:
         )
 
         scenario = parse_interaction_scenario(
-            completion.content, usage=completion.usage
+            completion.content,
+            usage=completion.usage,
+            architecture_graph=task.architecture_graph,
         )
         return SequenceInteractionProposal(
             payload=scenario,

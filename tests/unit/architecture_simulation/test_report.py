@@ -109,9 +109,15 @@ def test_invalid_latency_is_rejected(value: float) -> None:
         LatencyQuantiles(p50=value)
 
 
-def test_percentiles_must_be_monotonic() -> None:
-    with pytest.raises(ValidationError, match="p50 must not exceed p95"):
-        LatencyQuantiles(p50=200, p95=100)
+@pytest.mark.parametrize(
+    ("p50", "p95", "p99"),
+    [(200.0, 100.0, None), (None, 200.0, 100.0), (200.0, None, 100.0)],
+)
+def test_percentiles_must_be_monotonic(
+    p50: float | None, p95: float | None, p99: float | None
+) -> None:
+    with pytest.raises(ValidationError):
+        LatencyQuantiles(p50=p50, p95=p95, p99=p99)
 
 
 def test_generated_root_requests_must_be_accounted_for() -> None:

@@ -13,7 +13,7 @@ from infrastructure.llm.models import (
     Message,
     MessageRole,
 )
-from infrastructure.llm.protocols import CompletionClient
+from infrastructure.llm.protocols import CompletionClientProtocol
 
 EXPECTED_IF_LINES_COUNT = 3
 
@@ -48,10 +48,10 @@ class StructuredOutputAdapter:
     def __init__(
         self,
         settings: AppSettings,
-        client: CompletionClient | None = None,
+        client: CompletionClientProtocol | None = None,
     ) -> None:
         self._settings = settings
-        self._client: CompletionClient = client or LiteLlmClient(settings)
+        self._client: CompletionClientProtocol = client or LiteLlmClient(settings)
 
     def _complete_response(
         self,

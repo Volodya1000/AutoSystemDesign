@@ -6,17 +6,29 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
 from application.pipeline.stage import StageId
-from application.results import GenerationStatus
-from domain.specifications.metrics import compute_project_metrics, format_metrics_title
+from application.requirement_coverage import build_requirement_coverage_report
+from application.results import DesignGenerationResult, GenerationStatus
+from domain.models.requirement_coverage import (
+    RequirementCheckStatus,
+    RequirementCoverageReport,
+)
+from domain.specifications.metrics import (
+    ProjectMetrics,
+    compute_project_metrics,
+    format_metrics_title,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.context import StageContext
-    from application.pipeline.ports import DiagramRenderer, GenerationReporter
-    from application.pipeline.services import DesignGenerator
+    from application.pipeline.protocols import (
+        DiagramRendererProtocol,
+        GenerationReporterProtocol,
+    )
+    from application.pipeline.service_protocols import DesignGeneratorProtocol
     from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph
 
@@ -29,20 +41,20 @@ class C4Stage:
 
     def __init__(
         self,
-        service: DesignGenerator,
-        renderer: DiagramRenderer[ArchitectureGraph] | None,
-        reporter: GenerationReporter,
+        service: DesignGeneratorProtocol,
+        renderer: DiagramRendererProtocol[ArchitectureGraph] | None,
+        reporter: GenerationReporterProtocol,
     ) -> None:
-        self._service: DesignGenerator = service
-        self._renderer: DiagramRenderer[ArchitectureGraph] | None = renderer
-        self._reporter: GenerationReporter = reporter
+        self._service: DesignGeneratorProtocol = service
+        self._renderer: DiagramRendererProtocol[ArchitectureGraph] | None = renderer
+        self._reporter: GenerationReporterProtocol = reporter
 
     def run(self, context: StageContext) -> StageOutcome[ArchitectureGraph]:
         stage_start: float = time.perf_counter()
         scenario: DesignScenario = context.scenario
 
         generation_start: float = time.perf_counter()
-        result = self._service.generate(scenario)
+        result: DesignGenerationResult = self._service.generate(scenario)
         generation_seconds: float = time.perf_counter() - generation_start
 
         self._reporter.attempts(result.attempts, "C4 generation attempts")
@@ -66,6 +78,28 @@ class C4Stage:
                 )
             )
 
+        if scenario.requirements:
+            coverage: RequirementCoverageReport = build_requirement_coverage_report(
+                scenario,
+                graph_accepted=result.status is GenerationStatus.SUCCEEDED,
+                validation=result.attempts[-1].validation,
+            )
+            artifacts.append(
+                context.writer.write_text(
+                    context.out_dir / f"{scenario.identifier}_nfr_coverage.json",
+                    coverage.model_dump_json(indent=2),
+                )
+            )
+            unchecked: int = sum(
+                item.status is RequirementCheckStatus.NOT_EVALUATED
+                for item in coverage.requirements
+            )
+            if unchecked:
+                warnings.append(
+                    f"{unchecked} NFR requirement(s) not evaluated; "
+                    "see the NFR coverage JSON artifact"
+                )
+
         if result.status is not GenerationStatus.SUCCEEDED or graph is None:
             return StageOutcome(
                 name=self.name,
@@ -75,25 +109,19 @@ class C4Stage:
                 artifacts=tuple(artifacts),
                 payload=None,
                 message="C4 architecture generation failed",
+                warnings=tuple(warnings),
             )
 
-        if self._renderer is not None:
-            title = f"C4 Container: {scenario.identifier}"
-            metrics = compute_project_metrics(graph, scenario)
-            summary = format_metrics_title(metrics)
-            if summary:
-                title = f"{title}\n{summary}"
+        render_result: DiagramRenderResult = self._render(
+            graph, scenario, context.out_dir
+        )
+        artifacts.extend(render_result.artifacts)
+        warnings.extend(render_result.warnings)
 
-            render_result = self._renderer.render(
-                graph,
-                title=title,
-                base_name=f"{scenario.identifier}_c4",
-                out_dir=context.out_dir,
-            )
-            artifacts.extend(render_result.artifacts)
-            warnings.extend(render_result.warnings)
-
-        status = StageStatus.PARTIAL if warnings else StageStatus.SUCCEEDED
+        # Unverified NFRs warn; only optional rendering errors make C4 partial.
+        status: StageStatus = StageStatus.SUCCEEDED
+        if render_result.warnings:
+            status = StageStatus.PARTIAL
         return StageOutcome(
             name=self.name,
             status=status,
@@ -102,4 +130,25 @@ class C4Stage:
             artifacts=tuple(artifacts),
             payload=graph,
             warnings=tuple(warnings),
+        )
+
+    def _render(
+        self,
+        graph: ArchitectureGraph,
+        scenario: DesignScenario,
+        out_dir: Path,
+    ) -> DiagramRenderResult:
+        """Render an optional diagram independently of NFR coverage warnings."""
+        if self._renderer is None:
+            return DiagramRenderResult()
+        title: str = f"C4 Container: {scenario.identifier}"
+        metrics: ProjectMetrics = compute_project_metrics(graph, scenario)
+        summary: str = format_metrics_title(metrics)
+        if summary:
+            title = f"{title}\n{summary}"
+        return self._renderer.render(
+            graph,
+            title=title,
+            base_name=f"{scenario.identifier}_c4",
+            out_dir=out_dir,
         )

@@ -14,14 +14,16 @@ from infrastructure.visualisation.plantuml.models import (
 )
 from infrastructure.visualisation.plantuml.renderer import (
     AUTO_SERVER_SELECTION,
-    PlantumlImageRenderer,
+    PlantumlImageRendererProtocol,
     resolve_image_renderer,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
+    from infrastructure.visualisation.plantuml.protocols import (
+        DiagramSourceBuilderProtocol,
+    )
 
 
 class UnsupportedDiagramSubjectError(TypeError):
@@ -45,22 +47,22 @@ class DiagramService[SubjectT = ArchitectureGraph]:
     def __init__(
         self: DiagramService[ArchitectureGraph],
         source_builder: None = None,
-        image_renderer: PlantumlImageRenderer | None = None,
+        image_renderer: PlantumlImageRendererProtocol | None = None,
         image_format: DiagramImageFormat = DiagramImageFormat.SVG,
     ) -> None: ...
 
     @overload
     def __init__(
         self,
-        source_builder: DiagramSourceBuilder[SubjectT],
-        image_renderer: PlantumlImageRenderer | None = None,
+        source_builder: DiagramSourceBuilderProtocol[SubjectT],
+        image_renderer: PlantumlImageRendererProtocol | None = None,
         image_format: DiagramImageFormat = DiagramImageFormat.SVG,
     ) -> None: ...
 
     def __init__(
         self,
-        source_builder: DiagramSourceBuilder[SubjectT] | None = None,
-        image_renderer: PlantumlImageRenderer | None = None,
+        source_builder: DiagramSourceBuilderProtocol[SubjectT] | None = None,
+        image_renderer: PlantumlImageRendererProtocol | None = None,
         image_format: DiagramImageFormat = DiagramImageFormat.SVG,
     ) -> None:
         self._build_source: Callable[[SubjectT, str | None], str]
@@ -76,7 +78,7 @@ class DiagramService[SubjectT = ArchitectureGraph]:
         else:
             self._build_source = source_builder.build
 
-        self._image_renderer: PlantumlImageRenderer = (
+        self._image_renderer: PlantumlImageRendererProtocol = (
             image_renderer
             if image_renderer is not None
             else resolve_image_renderer(AUTO_SERVER_SELECTION)

@@ -10,7 +10,7 @@ from application.document_processing import (
     matches_verified_excerpt,
     split_document_text,
 )
-from application.document_reader import DocumentInputError, DocumentReader
+from application.document_reader import DocumentInputError, DocumentReaderProtocol
 from domain.document_requirements import (
     DocumentRequirements,
     Requirement,
@@ -22,7 +22,7 @@ from domain.document_requirements import (
 from domain.extraction_chunk import ExtractionChunk
 
 
-class RequirementExtractor(Protocol):
+class RequirementExtractorProtocol(Protocol):
     """Port implemented by an LLM-backed extraction adapter."""
 
     def extract(self, text: str, source_name: str) -> ExtractionChunk:
@@ -34,8 +34,8 @@ class DocumentRequirementsService:
 
     def __init__(
         self,
-        reader: DocumentReader,
-        extractor: RequirementExtractor,
+        reader: DocumentReaderProtocol,
+        extractor: RequirementExtractorProtocol,
         *,
         max_chars: int = 12_000,
         overlap_chars: int = 500,

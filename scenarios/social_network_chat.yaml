@@ -1,4 +1,4 @@
-project_name: "social_network_chat"
+identifier: "social_network_chat"
 description: "High-load messaging module for a social network platform"
 workload:
   baseline_requests_per_second: 500.0

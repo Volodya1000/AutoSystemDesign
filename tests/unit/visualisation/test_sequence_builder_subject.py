@@ -11,6 +11,8 @@ Covers:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from application.pipeline.diagram_subjects import SequenceDiagramSubject
@@ -19,13 +21,17 @@ from domain.models.enums import NodeType
 from domain.models.sequence import (
     ComponentLifeline,
     InteractionScenario,
+    ScenarioLifeline,
     UserLifeline,
 )
 from domain.models.topology import ArchitectureGraph
 from infrastructure.visualisation.plantuml.sequence_builder import (
     SequenceDiagramBuilder,
 )
-from tests.unit.test_structural_validator import create_test_node
+from tests.factories import create_test_node
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 pytestmark = pytest.mark.unit
 
@@ -50,7 +56,7 @@ def _component(lifeline_id: str, node_id: str, display: str) -> ComponentLifelin
     )
 
 
-def _scenario(lifelines: list) -> InteractionScenario:
+def _scenario(lifelines: Sequence[ScenarioLifeline]) -> InteractionScenario:
     """Build a scenario in which every lifeline participates in a message.
 
     Chained messages ensure no lifeline is left unused, satisfying the
@@ -91,7 +97,7 @@ def _scenario(lifelines: list) -> InteractionScenario:
 
 def test_subject_renders_mapped_keywords_for_components() -> None:
     """Every component is rendered with the keyword of its C4 NodeType."""
-    lifelines = [
+    lifelines: list[ScenarioLifeline] = [
         _user(),
         _component("lb", "edge_lb", "Edge LB"),
         _component("api", "orders_api", "Orders API"),
@@ -121,7 +127,7 @@ def test_subject_renders_mapped_keywords_for_components() -> None:
 
 def test_bare_scenario_uses_participant_for_all_components() -> None:
     """Legacy call path: no graph supplied, components fall back to participant."""
-    lifelines = [
+    lifelines: list[ScenarioLifeline] = [
         _user(),
         _component("api", "orders_api", "Orders API"),
     ]
@@ -134,7 +140,7 @@ def test_bare_scenario_uses_participant_for_all_components() -> None:
 
 def test_component_missing_from_graph_falls_back_to_participant() -> None:
     """A component referencing an unknown C4 node must not crash the renderer."""
-    lifelines = [
+    lifelines: list[ScenarioLifeline] = [
         _user(),
         _component("ghost", "not_in_graph", "Ghost"),
     ]
@@ -155,7 +161,7 @@ def test_component_missing_from_graph_falls_back_to_participant() -> None:
 
 def test_user_lifeline_ignores_graph_mapping() -> None:
     """UserLifeline always renders as actor, even if a same-named node exists."""
-    lifelines = [_user()]
+    lifelines: list[ScenarioLifeline] = [_user()]
     graph = ArchitectureGraph(
         nodes=[create_test_node("buyer", NodeType.COMPUTE)],
         edges=[],
@@ -200,7 +206,10 @@ def test_all_node_types_map_to_expected_keywords() -> None:
 
 
 def test_long_message_labels_are_wrapped_at_word_boundaries() -> None:
-    lifelines = [_user(), _component("api", "orders_api", "Orders API")]
+    lifelines: list[ScenarioLifeline] = [
+        _user(),
+        _component("api", "orders_api", "Orders API"),
+    ]
     scenario = _scenario(lifelines)
     action_name = "Validate customer credentials and " + "retrieve account permissions"
     scenario.steps = [

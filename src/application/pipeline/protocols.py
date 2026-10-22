@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from domain.models.api import ApiDesign
 
 
-class ArtifactWriter(Protocol):
+class ArtifactWriterProtocol(Protocol):
     """Persists textual artifacts (JSON ASTs, catalogs, etc.)."""
 
     def write_text(self, path: Path, content: str) -> Path: ...
@@ -22,7 +22,7 @@ class ArtifactWriter(Protocol):
     def write_bytes(self, path: Path, content: bytes) -> Path: ...
 
 
-class DiagramRenderer[SubjectT](Protocol):
+class DiagramRendererProtocol[SubjectT](Protocol):
     """Renders a diagram for a domain subject, best-effort.
 
     Implementations return warnings rather than raising for expected
@@ -40,21 +40,23 @@ class DiagramRenderer[SubjectT](Protocol):
     ) -> DiagramRenderResult: ...
 
 
-class GenerationReporter(Protocol):
+class GenerationReporterProtocol(Protocol):
     """Per-stage reporting of attempts and token usage."""
 
-    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None: ...
+    def attempts[PayloadT](
+        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+    ) -> None: ...
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None: ...
 
 
-class PipelineReporter(Protocol):
+class PipelineReporterProtocol(Protocol):
     """Reports the final outcome of a pipeline run."""
 
     def report(self, outcomes: Sequence[StageOutcome[object]]) -> None: ...
 
 
-class ApiArtifactRenderer(Protocol):
+class ApiArtifactRendererProtocol(Protocol):
     """Renders OpenAPI specification and interactive documentation."""
 
     def render(

@@ -14,7 +14,7 @@ from application.pipeline.context import (
 )
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
-from application.pipeline.stage import PipelineStage, StageId
+from application.pipeline.stage import PipelineStageProtocol, StageId
 from domain.models import DesignScenario
 from tests.unit.in_memory_writer import InMemoryWriter
 
@@ -62,7 +62,7 @@ def _scenario() -> DesignScenario:
 
 
 def _run(
-    stages: list[PipelineStage],
+    stages: list[PipelineStageProtocol],
     reporter: RecordingReporter,
 ) -> int:
     return PipelineRunner(stages, reporter).run(
@@ -111,7 +111,7 @@ def test_runner_rejects_empty_stage_list() -> None:
     ],
 )
 def test_runner_rejects_duplicate_or_out_of_order_stages(
-    stages: list[PipelineStage],
+    stages: list[PipelineStageProtocol],
     message: str,
 ) -> None:
     with pytest.raises(ValueError, match=message):

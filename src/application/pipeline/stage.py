@@ -19,7 +19,7 @@ class StageId(StrEnum):
     API = "api"
 
 
-class PipelineStage(Protocol):
+class PipelineStageProtocol(Protocol):
     name: StageId
     depends_on: tuple[StageId, ...]
 

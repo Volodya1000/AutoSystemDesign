@@ -11,10 +11,7 @@ from domain.models.nodes import ComputeNode
 from domain.models.protocols import ASYNCHRONOUS_MESSAGE_QUEUE
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
-from domain.performance_analysis.report import (
-    PerformanceAnalysisStatus,
-    PerformanceFindingCode,
-)
+from domain.performance_analysis.report import PerformanceAnalysisStatus
 from tests.factories import create_test_compute_node, create_test_edge, create_test_node
 
 pytestmark = pytest.mark.unit
@@ -141,6 +138,4 @@ def test_unknown_service_channels_keep_path_and_wait_unavailable() -> None:
     assert report.estimated_longest_synchronous_path_mean_milliseconds is None
     assert report.critical_path_node_identifiers == []
     assert report.status is PerformanceAnalysisStatus.PARTIAL
-    assert PerformanceFindingCode.METRIC_UNAVAILABLE in {
-        finding.finding_code for finding in report.findings
-    }
+    assert report.findings == []

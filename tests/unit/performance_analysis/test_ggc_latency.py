@@ -5,7 +5,6 @@ import pytest
 from domain.models.edges import Edge
 from domain.models.protocols import ASYNCHRONOUS_MESSAGE_QUEUE
 from domain.models.topology import ArchitectureGraph
-from domain.performance_analysis.mm1 import compute_mm1_metrics
 from domain.specifications.latency_validator import compute_critical_path
 from tests.factories import (
     create_test_compute_node,
@@ -21,17 +20,15 @@ def test_single_channel_exponential_service_matches_mm1_reference() -> None:
     scenario = create_test_latency_scenario()
 
     result = compute_critical_path(graph, scenario)
-    reference = compute_mm1_metrics(20.0, 100.0)
-    expected_response = reference.mean_response_time_milliseconds
-    expected_wait = reference.mean_queue_wait_milliseconds
+    # Independent hand-calculated M/M/1 special case: arrival=20, service=100 RPS.
+    expected_response_ms: float = 1000.0 / (100.0 - 20.0)
+    expected_wait_ms: float = 20.0 * 1000.0 / (100.0 * (100.0 - 20.0))
 
     assert result is not None
-    assert expected_response is not None
-    assert expected_wait is not None
-    assert result.node_latencies_ms["service"] == pytest.approx(expected_response)
-    assert result.node_queue_wait_ms["service"] == pytest.approx(expected_wait)
+    assert result.node_latencies_ms["service"] == pytest.approx(expected_response_ms)
+    assert result.node_queue_wait_ms["service"] == pytest.approx(expected_wait_ms)
     assert result.total_latency_ms == pytest.approx(
-        expected_response + graph.edges[0].network_latency_milliseconds
+        expected_response_ms + graph.edges[0].network_latency_milliseconds
     )
 
 

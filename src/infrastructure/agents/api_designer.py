@@ -1,4 +1,4 @@
-"""LLM agent implementing the ApiDesigner port."""
+"""LLM agent implementing the ApiDesignerProtocol port."""
 
 from __future__ import annotations
 
@@ -16,12 +16,12 @@ from infrastructure.prompts.api_generation import (
 
 if TYPE_CHECKING:
     from config.root import AppSettings
-    from infrastructure.llm.protocols import CompletionClient
+    from infrastructure.llm.protocols import CompletionClientProtocol
 
 
 class ApiDesignerAgent:
-    def __init__(self, client: CompletionClient, settings: AppSettings) -> None:
-        self._client: CompletionClient = client
+    def __init__(self, client: CompletionClientProtocol, settings: AppSettings) -> None:
+        self._client: CompletionClientProtocol = client
         self._settings: AppSettings = settings
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 

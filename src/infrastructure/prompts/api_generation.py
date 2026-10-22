@@ -6,7 +6,7 @@ import json
 from typing import TYPE_CHECKING
 
 from domain.models.api import ApiDesign
-from domain.models.sequence import InteractionScenario, MessageStep
+from domain.models.ast_steps import MessageStep
 from infrastructure.llm.models import Message, MessageRole
 from infrastructure.prompts._c4_context import render_c4_components
 from infrastructure.prompts._feedback import render_feedback
@@ -14,6 +14,7 @@ from infrastructure.prompts.fragments_scenario import render_scenario_summary
 
 if TYPE_CHECKING:
     from application.tasks import ApiDesignTask
+    from domain.models.sequence import InteractionScenario
 
 API_DESIGN_SYSTEM_PROMPT: str = (
     "You are a principal software architect designing RESTful APIs "

@@ -74,7 +74,7 @@ class TestArchitectureDesignerAgent:
     ) -> None:
         client: FakeLlmClient = FakeLlmClient(content=_FENCED_CONTENT)
         designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(
-            client=client,  # type: ignore[arg-type]
+            client=client,
             settings=settings,
         )
         proposal: DesignProposal = designer.propose(
@@ -90,7 +90,7 @@ class TestArchitectureDesignerAgent:
     ) -> None:
         client: FakeLlmClient = FakeLlmClient(content="I cannot answer in JSON, sorry.")
         designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(
-            client=client,  # type: ignore[arg-type]
+            client=client,
             settings=settings,
         )
         with pytest.raises(DesignProposalParsingError) as exc_info:
@@ -107,7 +107,7 @@ class TestArchitectureDesignerAgent:
             original_message="boom",
         )
         designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(
-            client=RaisingLlmClient(connection_error),  # type: ignore[arg-type]
+            client=RaisingLlmClient(connection_error),
             settings=settings,
         )
         with pytest.raises(LlmConnectionError):
@@ -118,7 +118,7 @@ class TestArchitectureDesignerAgent:
     ) -> None:
         client: FakeLlmClient = FakeLlmClient(content=_FENCED_CONTENT)
         designer: ArchitectureDesignerAgent = ArchitectureDesignerAgent(
-            client=client,  # type: ignore[arg-type]
+            client=client,
             settings=settings,
         )
         designer.propose(DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL))

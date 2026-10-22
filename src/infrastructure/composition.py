@@ -54,16 +54,18 @@ from infrastructure.visualisation.plantuml.sequence_builder import (
 
 if TYPE_CHECKING:
     from application.pipeline.diagram_subjects import SequenceDiagramSubject
-    from application.pipeline.ports import (
-        ArtifactWriter,
-        DiagramRenderer,
-        GenerationReporter,
+    from application.pipeline.protocols import (
+        ArtifactWriterProtocol,
+        DiagramRendererProtocol,
+        GenerationReporterProtocol,
     )
-    from application.pipeline.stage import PipelineStage
+    from application.pipeline.stage import PipelineStageProtocol
     from domain.models.topology import ArchitectureGraph
     from domain.specifications.interfaces import BaseValidator, ScenarioValidator
     from infrastructure.visualisation.plantuml import DiagramImageFormat
-    from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
+    from infrastructure.visualisation.plantuml.protocols import (
+        DiagramSourceBuilderProtocol,
+    )
 
 
 def build_design_generation_service(
@@ -136,7 +138,7 @@ def build_api_generation_service(
 
 
 def _diagram_renderer[SubjectT](
-    source_builder: DiagramSourceBuilder[SubjectT],
+    source_builder: DiagramSourceBuilderProtocol[SubjectT],
     *,
     server: str,
     image_format: DiagramImageFormat,
@@ -155,8 +157,8 @@ def _diagram_renderer[SubjectT](
 def _build_c4_stage(
     settings: AppSettings,
     *,
-    renderer: DiagramRenderer[ArchitectureGraph] | None,
-    reporter: GenerationReporter,
+    renderer: DiagramRendererProtocol[ArchitectureGraph] | None,
+    reporter: GenerationReporterProtocol,
 ) -> C4Stage:
     return C4Stage(
         service=build_design_generation_service(settings),
@@ -173,8 +175,8 @@ def _build_performance_analysis_stage() -> PerformanceAnalysisStage:
 def _build_sequence_stage(
     settings: AppSettings,
     *,
-    renderer: DiagramRenderer[SequenceDiagramSubject] | None,
-    reporter: GenerationReporter,
+    renderer: DiagramRendererProtocol[SequenceDiagramSubject] | None,
+    reporter: GenerationReporterProtocol,
 ) -> SequenceStage:
     return SequenceStage(
         service=build_sequence_generation_service(settings),
@@ -186,7 +188,7 @@ def _build_sequence_stage(
 def _build_api_stage(
     settings: AppSettings,
     *,
-    reporter: GenerationReporter,
+    reporter: GenerationReporterProtocol,
 ) -> ApiStage:
     return ApiStage(
         service=build_api_generation_service(settings),
@@ -198,7 +200,7 @@ def _build_api_stage(
 @dataclass(frozen=True)
 class PipelineWiring:
     runner: PipelineRunner
-    writer: ArtifactWriter
+    writer: ArtifactWriterProtocol
 
 
 def build_pipeline(
@@ -212,14 +214,16 @@ def build_pipeline(
     resolved_settings: AppSettings = (
         settings if settings is not None else load_app_settings()
     )
-    c4_builder: DiagramSourceBuilder[ArchitectureGraph] = C4ContainerDiagramBuilder()
+    c4_builder: DiagramSourceBuilderProtocol[ArchitectureGraph] = (
+        C4ContainerDiagramBuilder()
+    )
     c4_renderer: PlantUmlDiagramRenderer[ArchitectureGraph] | None = _diagram_renderer(
         c4_builder,
         server=diagram_server,
         image_format=image_format,
         enabled=render_diagrams,
     )
-    sequence_builder: DiagramSourceBuilder[SequenceDiagramSubject] = (
+    sequence_builder: DiagramSourceBuilderProtocol[SequenceDiagramSubject] = (
         SequenceDiagramBuilder()
     )
     sequence_renderer: PlantUmlDiagramRenderer[SequenceDiagramSubject] | None = (
@@ -232,7 +236,7 @@ def build_pipeline(
     )
     generation_reporter = LoggingGenerationReporter()
 
-    stages: list[PipelineStage] = [
+    stages: list[PipelineStageProtocol] = [
         _build_c4_stage(
             resolved_settings, renderer=c4_renderer, reporter=generation_reporter
         ),

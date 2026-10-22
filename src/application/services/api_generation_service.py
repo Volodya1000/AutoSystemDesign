@@ -20,7 +20,7 @@ from domain.models.api import ApiDesign
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from application.protocols import ApiDesigner, ApiDesignValidatorPort
+    from application.protocols import ApiDesignerProtocol, ApiDesignValidatorProtocol
     from domain.models import DesignScenario
     from domain.models.sequence import InteractionScenario
     from domain.models.topology import ArchitectureGraph
@@ -30,16 +30,16 @@ if TYPE_CHECKING:
 class ApiGenerationService:
     def __init__(
         self,
-        designer: ApiDesigner,
-        validator: ApiDesignValidatorPort,
+        designer: ApiDesignerProtocol,
+        validator: ApiDesignValidatorProtocol,
         max_attempts: int,
     ) -> None:
         if not MIN_ATTEMPTS <= max_attempts <= MAX_ATTEMPTS:
             raise GenerationConfigurationError.attempts_out_of_range(
                 MIN_ATTEMPTS, MAX_ATTEMPTS, max_attempts
             )
-        self._designer: ApiDesigner = designer
-        self._validator: ApiDesignValidatorPort = validator
+        self._designer: ApiDesignerProtocol = designer
+        self._validator: ApiDesignValidatorProtocol = validator
         self._max_attempts: int = max_attempts
         self.logger: logging.Logger = logging.getLogger(self.__class__.__name__)
 

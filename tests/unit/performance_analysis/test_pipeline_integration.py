@@ -19,6 +19,7 @@ from domain.performance_analysis.report import (
     PerformanceAnalysisStatus,
     PerformanceFindingCode,
 )
+from infrastructure.performance_analysis.offline_c4_stage import OfflineC4Stage
 from infrastructure.performance_analysis.pdf_renderer import (
     PerformanceReportPdfRenderer,
 )
@@ -29,34 +30,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    from application.pipeline.context import StageContext
 
 pytestmark = pytest.mark.unit
-
-
-class _FixedC4Stage:
-    """Provide validated architecture as the result of a C4 pipeline stage."""
-
-    name: StageId = StageId.C4
-    depends_on: tuple[StageId, ...] = ()
-
-    def __init__(self, graph: ArchitectureGraph) -> None:
-        self._graph = graph
-
-    def run(self, context: StageContext) -> StageOutcome[object]:
-        """Persist fixture architecture and expose it as an upstream payload."""
-        path = context.writer.write_text(
-            context.out_dir / "architecture_graph.json",
-            self._graph.model_dump_json(),
-        )
-        return StageOutcome[object](
-            name=self.name,
-            status=StageStatus.SUCCEEDED,
-            duration_seconds=0.0,
-            total_tokens=0,
-            artifacts=(path,),
-            payload=self._graph,
-        )
 
 
 class _RecordingReporter:
@@ -114,7 +89,7 @@ def _run(
     reporter = _RecordingReporter()
     pipeline = PipelineRunner(
         stages=[
-            _FixedC4Stage(graph),
+            OfflineC4Stage(graph),
             PerformanceAnalysisStage(pdf_renderer=PerformanceReportPdfRenderer()),
         ],
         reporter=reporter,
@@ -183,7 +158,10 @@ def test_linear_mm1_metrics_match_hand_calculation_in_json_and_pdf(
     pdf_text = "\n".join(page.extract_text() for page in reader.pages)
     assert identifier in pdf_text
     assert "100.00" in pdf_text
-    assert "Диагностические выводы" in pdf_text
+    assert "101.00" in pdf_text
+    assert "Начало пути" in pdf_text
+    assert "Среднее время в узле: 100.00 мс" in pdf_text
+    assert "Предупреждение" not in pdf_text
     assert (tmp_path / "architecture_graph.json").is_file()
 
 
@@ -197,7 +175,7 @@ def test_absent_workload_still_produces_json_and_pdf(tmp_path: Path) -> None:
     assert exit_code == 0
     assert reporter.outcomes[-1].status is StageStatus.SUCCEEDED
     assert report.status is PerformanceAnalysisStatus.UNAVAILABLE
-    assert report.findings[0].finding_code is PerformanceFindingCode.WORKLOAD_MISSING
+    assert report.findings == []
     assert report.nodes[-1].estimated_mean_response_time_milliseconds is None
     assert (tmp_path / "no_workload_performance_analysis.pdf").is_file()
 

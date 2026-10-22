@@ -24,6 +24,8 @@ from reportlab.platypus import (
 )
 
 from application.performance_analysis.protocols import PdfRenderingUnavailableError
+from infrastructure.performance_analysis.pdf_critical_path import critical_path_diagram
+from infrastructure.performance_analysis.pdf_diagnostics import diagnostic_cards
 
 if TYPE_CHECKING:
     from reportlab.pdfgen.canvas import Canvas
@@ -37,12 +39,6 @@ _FONT_PATHS: tuple[Path, ...] = (
     Path("C:/Windows/Fonts/arial.ttf"),
     Path("/Library/Fonts/Arial Unicode.ttf"),
 )
-_EMPTY_METRIC = "нет оценки"
-_STATUS_LABELS: dict[str, str] = {
-    "complete": "Полный",
-    "partial": "Частичный (есть ограничения модели)",
-    "unavailable": "Недоступен (недостаточно исходных данных)",
-}
 _PAGE_WIDTH, _PAGE_HEIGHT = A4
 _CONTENT_WIDTH = _PAGE_WIDTH - 36 * mm
 
@@ -85,131 +81,61 @@ class PerformanceReportPdfRenderer:
                 f"Сценарий: {escape(report.scenario_identifier)}",
                 styles["body"],
             ),
-            Paragraph(
-                f"Полнота анализа: {_STATUS_LABELS[report.status.value]}",
-                styles["body"],
-            ),
-            Spacer(1, 4 * mm),
-            Paragraph("Сводка", styles["heading"]),
-            Paragraph(
-                "Оценка самого длинного синхронного пути из средних задержек: "
-                + _metric(
-                    report.estimated_longest_synchronous_path_mean_milliseconds,
-                    "мс",
-                ),
-                styles["body"],
-            ),
-            Paragraph(
-                "Критический путь: "
-                + (
-                    escape(" -> ".join(report.critical_path_node_identifiers))
-                    if report.critical_path_node_identifiers
-                    else _EMPTY_METRIC
-                ),
-                styles["body"],
-            ),
-            Spacer(1, 3 * mm),
-            Paragraph("Метрики узлов", styles["heading"]),
         ]
-        headers = ("Узел", "RPS", "Мощн. RPS", "Доля", "Очередь, мс", "Ответ, мс")
-        rows: list[list[Paragraph]] = [
-            [Paragraph(cell, styles["table_header"]) for cell in headers]
-        ]
-        for node in report.nodes:
-            values = (
-                escape(node.node_identifier),
-                _metric(node.incoming_requests_per_second),
-                _metric(node.estimated_capacity_requests_per_second),
-                _metric(node.utilization_ratio, percent=True),
-                _metric(node.estimated_mean_queue_wait_milliseconds),
-                _metric(node.estimated_mean_response_time_milliseconds),
-            )
-            rows.append([Paragraph(value, styles["cell"]) for value in values])
-        table = LongTable(
-            rows,
-            colWidths=[
-                _CONTENT_WIDTH * portion
-                for portion in (0.25, 0.11, 0.16, 0.12, 0.18, 0.18)
-            ],
-            repeatRows=1,
-            hAlign="LEFT",
-        )
-        table.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EAF0F6")),
-                    (
-                        "ROWBACKGROUNDS",
-                        (0, 1),
-                        (-1, -1),
-                        [colors.white, colors.HexColor("#F7F9FC")],
-                    ),
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 5),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                    ("TOPPADDING", (0, 0), (-1, -1), 5),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-                    ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#BDCAD8")),
-                ]
-            )
-        )
-        story.append(table)
-        story.extend(
-            [Spacer(1, 5 * mm), Paragraph("Диагностические выводы", styles["heading"])]
-        )
-        if not report.findings:
-            story.append(Paragraph("Диагностических выводов нет.", styles["body"]))
-        for finding in report.findings:
-            affected = ", ".join(finding.affected_node_identifiers) or "весь сценарий"
+        if report.estimated_longest_synchronous_path_mean_milliseconds is not None:
             story.extend(
                 [
+                    Spacer(1, 4 * mm),
                     Paragraph(
-                        escape(f"[{finding.severity.value}] {finding.title}"),
-                        styles["finding"],
+                        "Синхронный путь с наибольшей задержкой",
+                        styles["heading"],
                     ),
                     Paragraph(
-                        "Код: "
-                        + escape(finding.finding_code.value)
-                        + "; узлы: "
-                        + escape(affected),
-                        styles["note"],
+                        "Максимальная оценка средней задержки пути: "
+                        + _metric(
+                            report.estimated_longest_synchronous_path_mean_milliseconds,
+                            "мс",
+                        ),
+                        styles["body"],
                     ),
-                    Paragraph(escape(finding.description), styles["body"]),
                 ]
             )
-            if finding.recommendation is not None:
-                story.append(
-                    Paragraph(
-                        "Рекомендация: " + escape(finding.recommendation),
-                        styles["body"],
-                    )
+            story.extend(critical_path_diagram(report, styles, _CONTENT_WIDTH))
+
+        metrics_table = _render_metrics_table(report, styles)
+        if metrics_table is not None:
+            story.extend(
+                [
+                    Spacer(1, 3 * mm),
+                    Paragraph("Показатели компонентов", styles["heading"]),
+                    metrics_table,
+                ]
+            )
+        else:
+            story.append(
+                Paragraph(
+                    "Для этого сценария расчётных показателей нет.",
+                    styles["body"],
                 )
-            story.append(Spacer(1, 2 * mm))
+            )
+
+        issues = diagnostic_cards(report, styles, _CONTENT_WIDTH)
+        if issues:
+            story.extend(
+                [
+                    Spacer(1, 5 * mm),
+                    Paragraph("Выявленные риски перегрузки", styles["heading"]),
+                    *issues,
+                ]
+            )
+
         story.extend(
             [
                 Spacer(1, 4 * mm),
-                Paragraph("Допущения и ограничения", styles["heading"]),
                 Paragraph(
-                    "Показатели представляют модельные оценки по исходным "
-                    "параметрам архитектуры, а не измерения реального сервиса.",
-                    styles["body"],
-                ),
-                Paragraph(
-                    "Модель задержки предполагает пуассоновский поток поступлений "
-                    "и использует аппроксимацию Аллена - Каннина. "
-                    "Средние оценки не подтверждают p95/p99.",
-                    styles["body"],
-                ),
-                Paragraph(
-                    "Конечные буферы, неизвестные каналы обслуживания и "
-                    "переполнение могут делать часть метрик неприменимой. "
-                    "Значение «нет оценки» означает null в JSON, а не ноль.",
-                    styles["body"],
-                ),
-                Paragraph(
-                    "Максимум средних задержек путей не равен среднему времени "
-                    "завершения параллельного fan-out.",
-                    styles["body"],
+                    "Показатели рассчитаны по параметрам сценария, "
+                    "а не измерены на работающей системе.",
+                    styles["note"],
                 ),
             ]
         )
@@ -243,10 +169,82 @@ def _metric(
 ) -> str:
     """Format a report value without conflating missing and zero."""
     if value is None:
-        return _EMPTY_METRIC
+        return "—"
     if percent:
         return f"{value:.1%}"
     return f"{value:,.2f}".replace(",", " ") + (f" {unit}" if unit else "")
+
+
+def _render_metrics_table(
+    report: PerformanceAnalysisReport,
+    styles: dict[str, ParagraphStyle],
+) -> LongTable | None:
+    """Show only capacity-bearing components and metrics actually calculated."""
+    nodes = [
+        node
+        for node in report.nodes
+        if node.estimated_capacity_requests_per_second is not None
+    ]
+    if not nodes:
+        return None
+
+    headers = (
+        "Компонент",
+        "Нагрузка,<br/>запр./с",
+        "Пропускная<br/>способность,<br/>запр./с",
+        "Загрузка",
+        "Ожидание,<br/>мс",
+        "Ответ,<br/>мс",
+    )
+    available = (
+        True,
+        any(node.incoming_requests_per_second is not None for node in nodes),
+        True,
+        any(node.utilization_ratio is not None for node in nodes),
+        any(node.estimated_mean_queue_wait_milliseconds is not None for node in nodes),
+        any(
+            node.estimated_mean_response_time_milliseconds is not None for node in nodes
+        ),
+    )
+    selected = [index for index, exists in enumerate(available) if exists]
+    rows: list[list[Paragraph]] = [
+        [Paragraph(headers[index], styles["table_header"]) for index in selected]
+    ]
+    for node in nodes:
+        values = (
+            escape(node.node_identifier),
+            _metric(node.incoming_requests_per_second),
+            _metric(node.estimated_capacity_requests_per_second),
+            _metric(node.utilization_ratio, percent=True),
+            _metric(node.estimated_mean_queue_wait_milliseconds),
+            _metric(node.estimated_mean_response_time_milliseconds),
+        )
+        rows.append([Paragraph(values[index], styles["cell"]) for index in selected])
+
+    proportions = (0.235, 0.14, 0.22, 0.115, 0.145, 0.145)
+    total = sum(proportions[index] for index in selected)
+    widths = [_CONTENT_WIDTH * proportions[index] / total for index in selected]
+    table = LongTable(rows, colWidths=widths, repeatRows=1, hAlign="LEFT")
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EAF0F6")),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -1),
+                    [colors.white, colors.HexColor("#F7F9FC")],
+                ),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#BDCAD8")),
+            ]
+        )
+    )
+    return table
 
 
 def _build_styles(font: str) -> dict[str, ParagraphStyle]:
@@ -282,6 +280,22 @@ def _build_styles(font: str) -> dict[str, ParagraphStyle]:
         ),
         "table_header": ParagraphStyle(
             "ASDTableHead", parent=base, fontSize=7, leading=10, spaceAfter=0
+        ),
+        "path_node": ParagraphStyle(
+            "ASDPathNode",
+            parent=base,
+            fontSize=8,
+            leading=11,
+            alignment=TA_CENTER,
+            spaceAfter=1,
+        ),
+        "path_meta": ParagraphStyle(
+            "ASDPathMeta",
+            parent=base,
+            fontSize=7,
+            leading=9,
+            alignment=TA_CENTER,
+            spaceAfter=0,
         ),
     }
 

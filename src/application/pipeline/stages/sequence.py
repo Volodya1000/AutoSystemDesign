@@ -26,9 +26,12 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from application.pipeline.diagram_subjects import SequenceDiagramSubject
-    from application.pipeline.ports import DiagramRenderer, GenerationReporter
+    from application.pipeline.protocols import (
+        DiagramRendererProtocol,
+        GenerationReporterProtocol,
+    )
     from application.pipeline.sequence_artifact_models import SequenceArtifactResult
-    from application.pipeline.services import SequenceGenerator
+    from application.pipeline.service_protocols import SequenceGeneratorProtocol
     from application.results import GenerationAttempt, SequenceGenerationResult
     from domain.models import DesignScenario
     from domain.models.sequence import InteractionScenario
@@ -38,9 +41,9 @@ __all__ = ["SequenceStage", "plan_base_names"]
 _logger = logging.getLogger("pipeline.sequence")
 
 
-class _InteractionResult(Protocol):
+class _InteractionResultProtocol(Protocol):
     @property
-    def attempts(self) -> Sequence[GenerationAttempt]: ...
+    def attempts(self) -> Sequence[GenerationAttempt[InteractionScenario]]: ...
 
     @property
     def interaction_scenario(self) -> InteractionScenario | None: ...
@@ -52,15 +55,15 @@ class SequenceStage:
 
     def __init__(
         self,
-        service: SequenceGenerator,
-        renderer: DiagramRenderer[SequenceDiagramSubject] | None,
-        reporter: GenerationReporter,
+        service: SequenceGeneratorProtocol,
+        renderer: DiagramRendererProtocol[SequenceDiagramSubject] | None,
+        reporter: GenerationReporterProtocol,
     ) -> None:
-        self._service: SequenceGenerator = service
+        self._service: SequenceGeneratorProtocol = service
         self._artifact_processor: SequenceArtifactProcessor = SequenceArtifactProcessor(
             renderer
         )
-        self._reporter: GenerationReporter = reporter
+        self._reporter: GenerationReporterProtocol = reporter
 
     def run(
         self, context: StageContext
@@ -181,7 +184,7 @@ class SequenceStage:
         self,
         context: StageContext,
         base_names: Mapping[str, str],
-        scenarios_results: Mapping[str, _InteractionResult],
+        scenarios_results: Mapping[str, _InteractionResultProtocol],
         graph: ArchitectureGraph,
     ) -> tuple[list[Path], list[str]]:
         artifacts: list[Path] = []
@@ -201,7 +204,7 @@ class SequenceStage:
         context: StageContext,
         base_name: str,
         req_id: str,
-        req_result: _InteractionResult,
+        req_result: _InteractionResultProtocol,
         graph: ArchitectureGraph,
     ) -> tuple[list[Path], list[str]]:
         self._reporter.attempts(

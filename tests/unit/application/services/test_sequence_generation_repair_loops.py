@@ -26,9 +26,9 @@ from domain.models.sequence import ComponentLifeline, InteractionScenario, UserL
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
 from domain.specifications.sequence_validator import (
-    SequenceCatalogValidator,
+    SequenceCatalogValidatorProtocol,
     SequenceIntegrityError,
-    SequenceScenarioValidator,
+    SequenceScenarioValidatorProtocol,
 )
 
 if TYPE_CHECKING:
@@ -247,8 +247,8 @@ class ScriptedScenarioValidator:
 def _service(
     designer: FakeSequenceDesigner,
     *,
-    catalog_validator: SequenceCatalogValidator | None = None,
-    scenario_validator: SequenceScenarioValidator | None = None,
+    catalog_validator: SequenceCatalogValidatorProtocol | None = None,
+    scenario_validator: SequenceScenarioValidatorProtocol | None = None,
     max_attempts: int = 3,
     max_parallel_workers: int = 1,
 ) -> SequenceGenerationService:

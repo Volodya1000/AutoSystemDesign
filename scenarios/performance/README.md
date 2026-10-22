@@ -4,6 +4,25 @@
 требованиями. Это входные сценарии для LLM-генерации, не зафиксированные C4
 графы. Поэтому ожидать на каждой модели **одинаковые узлы и цифры запрещено**.
 
+## Демо без LLM в GitHub Actions
+
+Workflow [Performance report demo (offline)](https://github.com/Volodya1000/AutoSystemDesign/actions/workflows/performance-report-demo.yml)
+проверяет математические и интеграционные тесты, выполняет четыре сценария
+с заранее заданными **синтетическими C4-графами** через настоящий
+`PipelineRunner`, проверяет каждый PDF и JSON, затем публикует архив
+`performance-reports-offline`. В нём для каждого сценария находятся
+`architecture_graph.json`, `<scenario>_performance_analysis.json` и PDF.
+
+После попадания workflow в ветку `master` его можно запустить вручную:
+**Actions → Performance report demo (offline) → Run workflow**.
+До слияния PR отчёты также автоматически строятся при push в feature-ветку,
+а ссылки на них доступны на странице соответствующего запуска Actions.
+
+Это **не** проверка качества генерации C4, Sequence или OpenAPI при помощи LLM:
+заглушка заменяет только этап выдачи C4. Расчёты, JSON, PDF и запись
+артефактов выполняются реальным кодом продукта. В отчётах представлены
+модельные оценки, а не замеры нагрузки production.
+
 ## Подготовка
 
 - Python 3.13 и `uv sync --locked --all-groups`.

@@ -1,6 +1,6 @@
 """Typed subjects prepared by pipeline stages for diagram renderers.
 
-A ``DiagramRenderer[SubjectT]`` implementation receives only the subject
+A ``DiagramRendererProtocol[SubjectT]`` implementation receives only the subject
 and cannot look up auxiliary data on its own.  Some diagram types need
 more than their primary domain payload: a sequence diagram, for example,
 must know each component's C4 ``NodeType`` to pick the right PlantUML

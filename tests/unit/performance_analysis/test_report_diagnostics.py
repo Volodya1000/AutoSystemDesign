@@ -72,7 +72,7 @@ def test_permuted_graph_has_identical_report_with_tied_paths() -> None:
 
 
 def test_overload_findings_have_stable_severity_and_affected_nodes() -> None:
-    """A saturated server must not simultaneously advertise capacity headroom."""
+    """A saturated server is the only reported issue; idle capacity is tabular."""
     graph = ArchitectureGraph(
         nodes=[
             create_test_node("client", NodeType.CLIENT),
@@ -103,16 +103,14 @@ def test_overload_findings_have_stable_severity_and_affected_nodes() -> None:
     }
 
     saturation = per_node[PerformanceFindingCode.CAPACITY_SATURATION, "hot"]
-    headroom = per_node[PerformanceFindingCode.CAPACITY_HEADROOM, "cool"]
     assert saturation.severity is PerformanceFindingSeverity.ERROR
-    assert headroom.severity is PerformanceFindingSeverity.INFO
-    assert (PerformanceFindingCode.CAPACITY_HEADROOM, "hot") not in per_node
+    assert (PerformanceFindingCode.CAPACITY_HEADROOM, "cool") not in per_node
     assert report.findings[0].finding_code is PerformanceFindingCode.CAPACITY_SATURATION
     assert report.status is PerformanceAnalysisStatus.PARTIAL
 
 
-def test_multiple_cache_miss_fallbacks_report_routing_assumption() -> None:
-    """Two alternative fallback DBs must not silently inherit a uniform split."""
+def test_multiple_cache_miss_fallbacks_do_not_create_unused_warning() -> None:
+    """The routing calculation stays usable without an informational finding."""
     graph = ArchitectureGraph(
         nodes=[
             create_test_node("database_b", NodeType.DATABASE),
@@ -136,9 +134,7 @@ def test_multiple_cache_miss_fallbacks_report_routing_assumption() -> None:
         if finding.finding_code is PerformanceFindingCode.UNSUPPORTED_MODEL
     ]
 
-    assert len(routing) == 1
-    assert routing[0].affected_node_identifiers == ["router"]
-    assert routing[0].severity is PerformanceFindingSeverity.WARNING
+    assert routing == []
 
 
 def test_unknown_workload_has_stably_ordered_nodes() -> None:
@@ -160,9 +156,7 @@ def test_unknown_workload_has_stably_ordered_nodes() -> None:
         "client",
         "zeta",
     ]
-    assert [finding.finding_code for finding in report.findings] == [
-        PerformanceFindingCode.WORKLOAD_MISSING
-    ]
+    assert report.findings == []
 
 
 def test_fan_out_cache_fallbacks_do_not_claim_equal_split() -> None:

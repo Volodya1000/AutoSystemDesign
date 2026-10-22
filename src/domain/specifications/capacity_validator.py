@@ -12,6 +12,10 @@ from domain.exceptions.architecture_errors import (
     ArchitectureValidationError,
     CapacitySaturationError,
 )
+from domain.exceptions.model_validation_errors import (
+    ModelValidationCode,
+    ModelValidationError,
+)
 from domain.models.nodes import CapacityNode
 from domain.specifications.interfaces import ScenarioValidator, ValidationResult
 from domain.specifications.traffic_flow import compute_node_incoming_rps
@@ -77,12 +81,12 @@ class CapacitySaturationValidator(ScenarioValidator):
 
         try:
             incoming = compute_node_incoming_rps(graph, scenario.workload)
-        except ValueError:
-            # Cycle detection is owned by StructuralTopologyValidator: the
-            # aggregated ValidationResult already carries a
-            # CyclicDependencyError for this graph. Skipping the workload
-            # computation here avoids crashing the repair loop and lets the
-            # structural error reach the model as actionable feedback.
+        except ModelValidationError as error:
+            if error.code != ModelValidationCode.TOPOLOGY_CYCLE:
+                raise
+            # StructuralTopologyValidator reports this cycle in the same
+            # aggregation pass. Skip only the duplicate cycle diagnosis;
+            # unrelated calculation errors must reach the caller.
             return ValidationResult(errors=[])
 
         errors: list[ArchitectureValidationError] = []

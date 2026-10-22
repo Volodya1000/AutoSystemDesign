@@ -38,7 +38,7 @@ jobs:
       - name: Check Ruff formatting
         run: uv run ruff format --check .
       - name: Run type checking
-        run: uv run mypy src tests scripts
+        run: uv run mypy --strict src tests scripts
       - name: Run pylint
         run: uv run pylint --disable=duplicate-code src tests scripts
 
@@ -101,8 +101,15 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install dependencies
         run: uv sync --locked --all-groups
-      - name: Run unit tests
-        run: uv run pytest -m unit
+      - name: Run unit tests with branch coverage
+        run: uv run --with pytest-cov==7.0.0 pytest tests/unit --cov=src --cov-branch --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: coverage.xml
+          if-no-files-found: ignore
 
   repository-hygiene:
     name: Repository hygiene and lockfile

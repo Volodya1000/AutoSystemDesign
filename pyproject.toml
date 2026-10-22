@@ -105,12 +105,16 @@ allowed-confusables = ["а", "е", "о", "р", "с", "С"]
     "S101",    # Allow assertions in tests.
     "PLR2004", # Keep readable literal expectations in tests.
 ]
+"property_tests/**/*.py" = [
+    "S101",    # Property tests also use pytest assertions.
+]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
 
 [tool.mypy]
 python_version = "3.13"
+strict = true
 mypy_path = "src"
 
 [tool.pylint."messages control"]
@@ -128,3 +132,12 @@ disable = [
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+
+[tool.towncrier]
+directory = "changelog.d"
+filename = "CHANGELOG.md"
+start_string = "<!-- towncrier release notes start -->\n"
+title_format = "## {version} ({project_date})"
