@@ -39,7 +39,7 @@
 
 ## Новые файлы фичи
 
-- [Модель отчёта](../../src/domain/performance_analysis/report.py) — JSON-контракт.
+- [Модель отчёта](../../src/domain/performance_analysis/report.py) — версионированный JSON-контракт v1.0/v1.1 и источник режима baseline/peak.
 - [Экспорт моделей домена](../../src/domain/performance_analysis/__init__.py) — публичные типы пакета.
 - [Тесты контракта отчёта](../../tests/unit/performance_analysis/test_report.py) — round-trip, nullable-значения и валидация.
 - [Описание контракта](01-report-contract.md) — смысл полей, единицы измерения и причины выбранной структуры.
