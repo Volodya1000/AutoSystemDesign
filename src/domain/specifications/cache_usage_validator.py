@@ -1,25 +1,14 @@
-"""Cache read/write linkage: a cache must be read from, and misses must land.
+"""Validate cache read paths and each reader's database fallback.
 
-Two distinct defects are possible for a cache node:
+A cache read is represented by two edges from the same compute node:
+compute -> cache for the lookup and compute -> database for the miss fallback.
+The cache does not call the database itself. Every synchronous reader must have
+a synchronous database fallback; a compute node reading multiple caches is
+rejected because this graph contract cannot identify which cache a fallback
+belongs to.
 
-* a **write-only sink**: every incoming edge is asynchronous, meaning the
-  cache only ever receives fire-and-forget writes and nobody reads from
-  it, so ``cache_hit_rate_probability`` is dead configuration;
-* a **broken miss path**: the cache is read synchronously by a compute
-  node whose only outgoing edge goes to that cache, so a cache miss has
-  nowhere to fall back to (the caller cannot resolve the miss).
-
-A fully disconnected cache (no edges at all) is reported by
-``IsolatedNodeError`` in ``structural_rules.py`` and is not repeated here.
-
-Design note on "miss path": ``DEFAULT_ALLOWED_CONNECTION_TYPES`` forbids
-edges *from* a cache, so the miss path is modelled as a **fallback edge
-of the compute node that reads from the cache** (typically
-``compute -> database``). The validator checks that fallback exists.
-
-Pure module: no I/O, no logging, no clock. Set-based, so cycles are
-irrelevant to this rule -- cycle detection belongs to
-``StructuralTopologyValidator``, which runs in the same aggregation pass.
+Pure module: no I/O, no logging, no clock. Cycle detection belongs to
+StructuralTopologyValidator, which runs in the same validation pass.
 """
 
 from __future__ import annotations
@@ -27,72 +16,128 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from domain.exceptions.architecture_errors import (
+    AmbiguousCacheMissPathError,
     ArchitectureValidationError,
     CacheMissPathMissingError,
     CacheWriteOnlySinkError,
 )
-from domain.models.nodes import CacheNode
+from domain.models.nodes import CacheNode, DatabaseNode
 from domain.specifications.interfaces import BaseValidator, ValidationResult
 
 if TYPE_CHECKING:
     from domain.models.edges import Edge
-    from domain.models.topology import ArchitectureGraph
+    from domain.models.topology import AnyNode, ArchitectureGraph
 
 
-def check_cache_usage(
+def _index_edges(
     graph: ArchitectureGraph,
-) -> list[ArchitectureValidationError]:
-    """Return one error per cache with a write-only or miss-path defect.
-
-    The two checks are mutually exclusive per cache: a write-only sink has
-    no synchronous readers, so the miss-path check has nothing to verify.
-    """
+) -> tuple[dict[str, list[Edge]], dict[str, list[Edge]]]:
     incoming: dict[str, list[Edge]] = {}
     outgoing: dict[str, list[Edge]] = {}
     for edge in graph.edges:
         incoming.setdefault(edge.target_identifier, []).append(edge)
         outgoing.setdefault(edge.source_identifier, []).append(edge)
+    return incoming, outgoing
 
-    errors: list[ArchitectureValidationError] = []
+
+def _find_ambiguous_readers(
+    graph: ArchitectureGraph,
+    incoming: dict[str, list[Edge]],
+) -> dict[str, list[str]]:
+    cache_targets_by_reader: dict[str, set[str]] = {}
     for node in graph.nodes:
         if not isinstance(node, CacheNode):
             continue
+        for edge in incoming.get(node.identifier, []):
+            if edge.protocol.is_asynchronous:
+                continue
+            cache_targets_by_reader.setdefault(edge.source_identifier, set()).add(
+                node.identifier
+            )
 
-        cache_incoming = incoming.get(node.identifier, [])
-        if not cache_incoming:
-            # Fully isolated: StructuralTopologyValidator reports it as
-            # IsolatedNodeError; do not double-report.
-            continue
+    return {
+        source_id: sorted(cache_ids)
+        for source_id, cache_ids in cache_targets_by_reader.items()
+        if len(cache_ids) > 1
+    }
 
-        sync_incoming = [
-            edge for edge in cache_incoming if not edge.protocol.is_asynchronous
+
+def _has_database_fallback(
+    source_id: str,
+    outgoing: dict[str, list[Edge]],
+    node_by_id: dict[str, AnyNode],
+) -> bool:
+    return any(
+        not edge.protocol.is_asynchronous
+        and isinstance(node_by_id.get(edge.target_identifier), DatabaseNode)
+        for edge in outgoing.get(source_id, [])
+    )
+
+
+def _cache_read_errors(
+    cache: CacheNode,
+    incoming: dict[str, list[Edge]],
+    outgoing: dict[str, list[Edge]],
+    node_by_id: dict[str, AnyNode],
+    ambiguous_readers: dict[str, list[str]],
+) -> list[ArchitectureValidationError]:
+    cache_incoming = incoming.get(cache.identifier, [])
+    if not cache_incoming:
+        # Isolated nodes and forbidden cache outgoing edges belong to the
+        # structural validator.
+        return []
+
+    sync_incoming = [
+        edge for edge in cache_incoming if not edge.protocol.is_asynchronous
+    ]
+    if not sync_incoming:
+        source_ids = sorted({edge.source_identifier for edge in cache_incoming})
+        return [
+            CacheWriteOnlySinkError(
+                cache_identifier=cache.identifier,
+                incoming_source_identifiers=source_ids,
+            )
         ]
 
-        if not sync_incoming:
-            source_ids = sorted({edge.source_identifier for edge in cache_incoming})
-            errors.append(
-                CacheWriteOnlySinkError(
-                    cache_identifier=node.identifier,
-                    incoming_source_identifiers=source_ids,
+    errors: list[ArchitectureValidationError] = []
+    reader_ids = sorted({edge.source_identifier for edge in sync_incoming})
+    for source_id in reader_ids:
+        if source_id in ambiguous_readers:
+            continue
+        if _has_database_fallback(source_id, outgoing, node_by_id):
+            continue
+        errors.append(
+            CacheMissPathMissingError(
+                cache_identifier=cache.identifier,
+                compute_identifier=source_id,
+            )
+        )
+    return errors
+
+
+def check_cache_usage(
+    graph: ArchitectureGraph,
+) -> list[ArchitectureValidationError]:
+    """Return errors for unread caches, missing miss paths, or ambiguous readers."""
+    incoming, outgoing = _index_edges(graph)
+    node_by_id = {node.identifier: node for node in graph.nodes}
+    ambiguous_readers = _find_ambiguous_readers(graph, incoming)
+    errors: list[ArchitectureValidationError] = [
+        AmbiguousCacheMissPathError(source_id, cache_ids)
+        for source_id, cache_ids in sorted(ambiguous_readers.items())
+    ]
+
+    for node in graph.nodes:
+        if isinstance(node, CacheNode):
+            errors.extend(
+                _cache_read_errors(
+                    node,
+                    incoming,
+                    outgoing,
+                    node_by_id,
+                    ambiguous_readers,
                 )
             )
-            continue
-
-        for source_id in sorted({edge.source_identifier for edge in sync_incoming}):
-            source_outgoing = outgoing.get(source_id, [])
-            non_cache_fallbacks = [
-                edge
-                for edge in source_outgoing
-                if edge.target_identifier != node.identifier
-            ]
-            if not non_cache_fallbacks:
-                errors.append(
-                    CacheMissPathMissingError(
-                        cache_identifier=node.identifier,
-                        compute_identifier=source_id,
-                    )
-                )
-
     return errors
 
 

@@ -11,6 +11,7 @@ import yaml
 from application.pipeline.context import StageContext
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
+from application.pipeline.stage import StageId
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.sequence import SequenceStage
@@ -89,17 +90,17 @@ def _legacy_scenario() -> DesignScenario:
     return DesignScenario.model_validate(yaml.safe_load(LEGACY_SCENARIO_YAML))
 
 
-def _upstream(graph: ArchitectureGraph) -> dict[str, StageOutcome[object]]:
+def _upstream(graph: ArchitectureGraph) -> dict[StageId, StageOutcome[object]]:
     return {
-        "c4": StageOutcome(
-            name="c4",
+        StageId.C4: StageOutcome(
+            name=StageId.C4,
             status=StageStatus.SUCCEEDED,
             duration_seconds=0.0,
             total_tokens=0,
             payload=graph,
         ),
-        "sequence": StageOutcome(
-            name="sequence",
+        StageId.SEQUENCE: StageOutcome(
+            name=StageId.SEQUENCE,
             status=StageStatus.SUCCEEDED,
             duration_seconds=0.0,
             total_tokens=0,
@@ -126,7 +127,7 @@ def test_sequence_stage_skips_generation_without_functional_requirements(
         scenario=scenario,
         out_dir=tmp_path,
         writer=InMemoryWriter(),
-        upstream=MappingProxyType({"c4": _upstream(graph)["c4"]}),
+        upstream=MappingProxyType({StageId.C4: _upstream(graph)[StageId.C4]}),
     )
 
     outcome = stage.run(context)
@@ -234,15 +235,19 @@ def test_legacy_pipeline_skips_sequence_and_api_but_keeps_c4_successful(
     assert exit_code == 0
     outcomes = pipeline_reporter.reports[-1]
     assert [(outcome.name, outcome.status) for outcome in outcomes] == [
-        ("c4", StageStatus.SUCCEEDED),
-        ("sequence", StageStatus.SUCCEEDED),
-        ("api", StageStatus.SUCCEEDED),
+        (StageId.C4, StageStatus.SUCCEEDED),
+        (StageId.SEQUENCE, StageStatus.SUCCEEDED),
+        (StageId.API, StageStatus.SUCCEEDED),
     ]
     assert outcomes[1].payload == {}
     assert outcomes[2].payload is None
     assert sequence_service.calls == 0
     assert api_service.calls == 0
-    assert [path.name for path, _ in writer.writes] == ["legacy_project_c4.json"]
+    assert [path.name for path, _ in writer.writes] == [
+        "legacy_project_c4.json",
+        "legacy_project_nfr_coverage.json",
+    ]
+    assert outcomes[0].warnings
 
 
 def test_sequence_generation_failure_still_fails_for_functional_scenarios(
@@ -256,7 +261,7 @@ def test_sequence_generation_failure_still_fails_for_functional_scenarios(
         scenario=scenario,
         out_dir=tmp_path,
         writer=InMemoryWriter(),
-        upstream=MappingProxyType({"c4": _upstream(graph)["c4"]}),
+        upstream=MappingProxyType({StageId.C4: _upstream(graph)[StageId.C4]}),
     )
 
     outcome = stage.run(context)

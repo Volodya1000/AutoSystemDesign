@@ -17,12 +17,14 @@ from domain.specifications.interfaces import ValidationResult
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from application.protocols import SequenceDesigner
+    from application.protocols import SequenceDesignerProtocol
     from domain.exceptions.architecture_errors import ArchitectureValidationError
     from domain.models.functional import FunctionalRequirement
     from domain.models.roles import ProjectRolesCatalog
     from domain.models.topology import ArchitectureGraph
-    from domain.specifications.sequence_validator import SequenceScenarioValidator
+    from domain.specifications.sequence_validator import (
+        SequenceScenarioValidatorProtocol,
+    )
 
 
 class InteractionScenarioGenerator:
@@ -30,8 +32,8 @@ class InteractionScenarioGenerator:
 
     def __init__(
         self,
-        designer: SequenceDesigner,
-        validators: Sequence[SequenceScenarioValidator],
+        designer: SequenceDesignerProtocol,
+        validators: Sequence[SequenceScenarioValidatorProtocol],
         max_attempts: int,
     ) -> None:
         self._designer = designer

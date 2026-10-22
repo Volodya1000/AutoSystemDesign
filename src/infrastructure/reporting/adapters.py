@@ -1,7 +1,7 @@
 """Port adapters: application-level reporting ports -> logging helpers.
 
 This module is the single place where application-layer reporting ports
-(``GenerationReporter``, ``PipelineReporter``) meet the ``logging``
+(``GenerationReporterProtocol``, ``PipelineReporterProtocol``) meet the ``logging``
 module. It delegates formatting to ``helpers`` so the adapters stay thin.
 """
 
@@ -23,7 +23,7 @@ _logger = logging.getLogger("pipeline.report")
 
 
 class LoggingGenerationReporter:
-    """Adapter: GenerationReporter port -> logging helpers."""
+    """Adapter: GenerationReporterProtocol port -> logging helpers."""
 
     def attempts[PayloadT](
         self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
@@ -35,7 +35,7 @@ class LoggingGenerationReporter:
 
 
 class LoggingPipelineReporter:
-    """Adapter: PipelineReporter port -> aggregated INFO summary."""
+    """Adapter: PipelineReporterProtocol port -> aggregated INFO summary."""
 
     def report(self, outcomes: Sequence[StageOutcome[object]]) -> None:
         overall: StageStatus = self._overall_status(outcomes)

@@ -1,0 +1,235 @@
+{
+  "$defs": {
+    "NodePerformanceMetrics": {
+      "additionalProperties": false,
+      "description": "Represent calculated performance metrics for one architecture node.\n\nOptional metrics remain null when they cannot be calculated. They are not\nreplaced with zero, because zero is a meaningful measurement. Units and\nmetric-specific bounds are encoded in the field names and constraints.\nUtilization may exceed 1.0 when offered load exceeds estimated capacity.",
+      "properties": {
+        "estimated_capacity_requests_per_second": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estimated Capacity Requests Per Second"
+        },
+        "estimated_mean_queue_wait_milliseconds": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estimated Mean Queue Wait Milliseconds"
+        },
+        "estimated_mean_response_time_milliseconds": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estimated Mean Response Time Milliseconds"
+        },
+        "incoming_requests_per_second": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Incoming Requests Per Second"
+        },
+        "node_identifier": {
+          "minLength": 1,
+          "title": "Node Identifier",
+          "type": "string"
+        },
+        "utilization_ratio": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Utilization Ratio"
+        }
+      },
+      "required": [
+        "node_identifier"
+      ],
+      "title": "NodePerformanceMetrics",
+      "type": "object"
+    },
+    "PerformanceAnalysisStatus": {
+      "description": "Describe coverage of the analysis, not generation or pipeline execution.",
+      "enum": [
+        "complete",
+        "partial",
+        "unavailable"
+      ],
+      "title": "PerformanceAnalysisStatus",
+      "type": "string"
+    },
+    "PerformanceFinding": {
+      "additionalProperties": false,
+      "description": "Represent one finding in the serialized performance report.\n\nThis model intentionally contains both stable machine-readable fields\n(finding_code, severity, affected nodes) and human-readable report fields\n(title, description, recommendation). They are not calculations or a second\nsource of metrics: they are two parts of the same JSON report contract.\n\nThe application-layer report builder owns the text. It should select a\ndeterministic title template by finding_code and compose the description\nfrom calculated values and known model limitations. Recommendations must\ncome from explicit, supported rules; leave recommendation as None when no\nreliable action is justified. Do not use an LLM to invent these messages.\n\nKeep this as one serialized finding for KISS. Introduce a separate internal\ndiagnostic model and presentation DTO only if a real need appears, such as\nmultiple locales or distinct output formats with different text structures.\nA PDF renderer should consume this report rather than recalculate or rewrite\nthe finding independently.",
+      "properties": {
+        "affected_node_identifiers": {
+          "description": "Identifiers of architecture nodes related to this finding.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Affected Node Identifiers",
+          "type": "array"
+        },
+        "description": {
+          "description": "Explanation based on calculated values and known model limits.",
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "finding_code": {
+          "$ref": "#/$defs/PerformanceFindingCode",
+          "description": "Stable machine-readable category; not an HTTP status code."
+        },
+        "recommendation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional rule-based next step; null when no action is justified.",
+          "title": "Recommendation"
+        },
+        "severity": {
+          "$ref": "#/$defs/PerformanceFindingSeverity",
+          "description": "Importance of this finding: informational, warning, or error."
+        },
+        "title": {
+          "description": "Short human-readable title from a deterministic message template.",
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "finding_code",
+        "severity",
+        "title",
+        "description"
+      ],
+      "title": "PerformanceFinding",
+      "type": "object"
+    },
+    "PerformanceFindingCode": {
+      "description": "Stable machine-readable categories for performance findings.\n\nCAPACITY_HEADROOM means that estimated demand is below estimated capacity,\nleaving spare capacity (запас пропускной способности).\n\nCAPACITY_SATURATION means that estimated demand is at or near the capacity\nlimit defined by the applicable validation rule (насыщение пропускной\nспособности). It does not necessarily mean demand is mathematically\ngreater than capacity; the validator may warn before that point.\n\nThese codes identify the kind of finding, not its severity or its display\ntext. Keep them stable for JSON/API consumers.",
+      "enum": [
+        "capacity_headroom",
+        "capacity_saturation",
+        "workload_missing",
+        "metric_unavailable",
+        "unsupported_model",
+        "latency_not_evaluated",
+        "bounded_queue_unmodeled"
+      ],
+      "title": "PerformanceFindingCode",
+      "type": "string"
+    },
+    "PerformanceFindingSeverity": {
+      "description": "Classify the importance of a performance finding.",
+      "enum": [
+        "info",
+        "warning",
+        "error"
+      ],
+      "title": "PerformanceFindingSeverity",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Collect the machine-readable performance analysis result for a scenario.\n\nKeep only fields that have an agreed meaning and an identified producer.\nThe schema_version field is a stable literal contract version; older\nreports without that field remain compatible with the v1 model.",
+  "properties": {
+    "critical_path_node_identifiers": {
+      "description": "Node identifiers of the path producing the maximum mean.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Critical Path Node Identifiers",
+      "type": "array"
+    },
+    "estimated_longest_synchronous_path_mean_milliseconds": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Maximum of per-path mean estimates over synchronous client paths. Not the mean completion time of a parallel fan-out request.",
+      "title": "Estimated Longest Synchronous Path Mean Milliseconds"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/PerformanceFinding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/NodePerformanceMetrics"
+      },
+      "title": "Nodes",
+      "type": "array"
+    },
+    "scenario_identifier": {
+      "minLength": 1,
+      "title": "Scenario Identifier",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "description": "Version of the published performance JSON contract. Legacy payloads without this field are interpreted as 1.0.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/PerformanceAnalysisStatus"
+    }
+  },
+  "required": [
+    "scenario_identifier",
+    "status"
+  ],
+  "title": "PerformanceAnalysisReport",
+  "type": "object"
+}

@@ -3,7 +3,7 @@
 from typing import Protocol
 
 
-class DiagramSourceBuilder[SubjectT](Protocol):
+class DiagramSourceBuilderProtocol[SubjectT](Protocol):
     """Builds diagram source from the matching typed input subject."""
 
     def build(self, subject: SubjectT, title: str | None = None) -> str: ...

@@ -8,7 +8,7 @@ class DocumentInputError(ValueError):
     """Invalid document input or chunking configuration."""
 
 
-class DocumentReader(Protocol):
+class DocumentReaderProtocol(Protocol):
     """Strategy contract implemented by format-specific infrastructure adapters."""
 
     def read_text(self, path: Path) -> str:

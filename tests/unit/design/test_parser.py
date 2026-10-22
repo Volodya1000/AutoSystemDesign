@@ -7,6 +7,7 @@ import pytest
 from application.exceptions.generation_exceptions import DesignProposalParsingError
 from application.tasks import JSON_DECODE_ERROR_TYPE
 from application.usage import TokenUsage
+from domain.models.enums import EdgeRoutingMode
 from domain.models.nodes import ClientNode, ComputeNode, DatabaseNode
 from domain.models.protocols import ConnectionProtocol
 from infrastructure.design.parser import (
@@ -99,6 +100,7 @@ class TestParseArchitectureGraph:
         assert graph.edges[0].protocol == ConnectionProtocol(
             name="sync_rest_http", is_asynchronous=False
         )
+        assert graph.edges[0].routing_mode is EdgeRoutingMode.ALTERNATIVE
 
     def test_unknown_node_type_reports_location(self) -> None:
         payload: str = json.dumps(

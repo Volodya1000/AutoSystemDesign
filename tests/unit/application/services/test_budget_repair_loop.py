@@ -106,6 +106,8 @@ def test_budget_violation_triggers_repair_attempt() -> None:
     first_validation = result.attempts[0].validation
     assert first_validation is not None
     assert first_validation.has_error(BudgetExceededError)
+    assert len(first_validation.requirement_assessments) == 1
+    assert first_validation.requirement_assessments[0].status.value == "violated"
 
     repair_task: DesignTask = designer.received_tasks[1]
     assert repair_task.mode is DesignTaskMode.REPAIR
@@ -139,3 +141,5 @@ def test_budget_failure_after_max_attempts_is_validation_failed() -> None:
     last_validation = result.attempts[-1].validation
     assert last_validation is not None
     assert last_validation.has_error(BudgetExceededError)
+    assert len(last_validation.requirement_assessments) == 1
+    assert last_validation.requirement_assessments[0].status.value == "violated"

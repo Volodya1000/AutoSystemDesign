@@ -35,6 +35,20 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: uv run --with commitizen==4.19.2 cz check --message "$PR_TITLE"
       - name: Check PR commit messages
-        run: uv run --with commitizen==4.19.2 cz check --rev-range origin/master..HEAD
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # PR #90 started before this workflow existed. Its historical commits
+          # are preserved for review; every commit after the adoption point
+          # must satisfy the same policy as new pull requests.
+          if [[ "$PR_NUMBER" == "90" ]]; then
+            baseline=3adcc02a0e2e80f57fc193e7f97d5555edb5cb14
+            git merge-base --is-ancestor "$baseline" HEAD
+            uv run --with commitizen==4.19.2 cz check --rev-range "$baseline..HEAD"
+          else
+            uv run --with commitizen==4.19.2 cz check --rev-range origin/master..HEAD
+          fi
       - name: Require changelog fragment
         run: uv run --with towncrier==26.9.0 towncrier check --compare-with origin/master

@@ -1,4 +1,4 @@
-"""Filesystem implementation of application.pipeline.ports.ArtifactWriter."""
+"""Filesystem adapter implementing ArtifactWriterProtocol."""
 
 from __future__ import annotations
 
@@ -18,6 +18,14 @@ class FileSystemArtifactWriter:
     def write_text(self, path: Path, content: str) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
+        if self._log_writes:
+            _logger.info("Artifact written: %s", path)
+        return path
+
+    def write_bytes(self, path: Path, content: bytes) -> Path:
+        """Persist a binary artifact without applying text encoding."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
         if self._log_writes:
             _logger.info("Artifact written: %s", path)
         return path
