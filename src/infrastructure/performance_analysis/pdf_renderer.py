@@ -4,16 +4,11 @@ from __future__ import annotations
 
 from html import escape
 from io import BytesIO
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     Flowable,
     LongTable,
@@ -26,19 +21,20 @@ from reportlab.platypus import (
 from application.performance_analysis.protocols import PdfRenderingUnavailableError
 from infrastructure.performance_analysis.pdf_critical_path import critical_path_diagram
 from infrastructure.performance_analysis.pdf_diagnostics import diagnostic_cards
+from infrastructure.reporting.pdf.typography import (
+    UnicodeFontUnavailableError,
+    UnicodeReportFont,
+    build_report_styles,
+    draw_report_footer,
+)
 
 if TYPE_CHECKING:
-    from reportlab.pdfgen.canvas import Canvas
+    from pathlib import Path
+
+    from reportlab.lib.styles import ParagraphStyle
 
     from domain.performance_analysis.report import PerformanceAnalysisReport
 
-_FONT_NAME = "ASDPerformanceSans"
-_FONT_PATHS: tuple[Path, ...] = (
-    Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
-    Path("/usr/local/share/fonts/DejaVuSans.ttf"),
-    Path("C:/Windows/Fonts/arial.ttf"),
-    Path("/Library/Fonts/Arial Unicode.ttf"),
-)
 _PAGE_WIDTH, _PAGE_HEIGHT = A4
 _CONTENT_WIDTH = _PAGE_WIDTH - 36 * mm
 
@@ -62,7 +58,7 @@ class PerformanceReportPdfRenderer:
     def render(self, report: PerformanceAnalysisReport) -> bytes:
         """Return a paginated, selectable-text PDF containing report values."""
         font = self._register_font()
-        styles = _build_styles(font)
+        styles = build_report_styles(font)
         buffer = BytesIO()
         doc = SimpleDocTemplate(
             buffer,
@@ -141,24 +137,17 @@ class PerformanceReportPdfRenderer:
         )
         doc.build(
             story,
-            onFirstPage=lambda canvas, _document: _draw_footer(canvas, font),
-            onLaterPages=lambda canvas, _document: _draw_footer(canvas, font),
+            onFirstPage=lambda canvas, _document: draw_report_footer(canvas, font),
+            onLaterPages=lambda canvas, _document: draw_report_footer(canvas, font),
         )
         return buffer.getvalue()
 
     def _register_font(self) -> str:
         """Register a font capable of embedding Russian and English text."""
-        candidates = (self._font_path,) if self._font_path is not None else _FONT_PATHS
-        font_path = next((path for path in candidates if path.is_file()), None)
-        if font_path is None:
-            message = (
-                "A Unicode TrueType font is required for the PDF report. "
-                "Pass font_path to PerformanceReportPdfRenderer."
-            )
-            raise PdfFontUnavailableError(message)
-        if _FONT_NAME not in pdfmetrics.getRegisteredFontNames():
-            pdfmetrics.registerFont(TTFont(_FONT_NAME, str(font_path)))
-        return _FONT_NAME
+        try:
+            return UnicodeReportFont(self._font_path).register()
+        except UnicodeFontUnavailableError as error:
+            raise PdfFontUnavailableError(str(error)) from error
 
 
 def _metric(
@@ -245,68 +234,3 @@ def _render_metrics_table(
         )
     )
     return table
-
-
-def _build_styles(font: str) -> dict[str, ParagraphStyle]:
-    """Define a small report-specific typographic scale."""
-    base = ParagraphStyle(
-        "ASDBody",
-        fontName=font,
-        fontSize=9,
-        leading=14,
-        spaceAfter=6,
-        splitLongWords=1,
-        wordWrap="CJK",
-    )
-    return {
-        "body": base,
-        "title": ParagraphStyle(
-            "ASDTitle",
-            parent=base,
-            fontSize=16,
-            leading=22,
-            alignment=TA_CENTER,
-            spaceAfter=7,
-        ),
-        "heading": ParagraphStyle(
-            "ASDHeading", parent=base, fontSize=12, leading=17, spaceBefore=8
-        ),
-        "finding": ParagraphStyle(
-            "ASDFinding", parent=base, fontSize=10, leading=15, spaceBefore=7
-        ),
-        "note": ParagraphStyle("ASDNote", parent=base, fontSize=7, leading=10),
-        "cell": ParagraphStyle(
-            "ASDCell", parent=base, fontSize=7, leading=10, spaceAfter=0
-        ),
-        "table_header": ParagraphStyle(
-            "ASDTableHead", parent=base, fontSize=7, leading=10, spaceAfter=0
-        ),
-        "path_node": ParagraphStyle(
-            "ASDPathNode",
-            parent=base,
-            fontSize=8,
-            leading=11,
-            alignment=TA_CENTER,
-            spaceAfter=1,
-        ),
-        "path_meta": ParagraphStyle(
-            "ASDPathMeta",
-            parent=base,
-            fontSize=7,
-            leading=9,
-            alignment=TA_CENTER,
-            spaceAfter=0,
-        ),
-    }
-
-
-def _draw_footer(canvas: Canvas, font: str) -> None:
-    """Render deterministic page numbering below the document content."""
-    canvas.saveState()
-    canvas.setFont(font, 8)
-    canvas.drawRightString(
-        _PAGE_WIDTH - 18 * mm,
-        12 * mm,
-        f"AutoSystemDesign | страница {canvas.getPageNumber()}",
-    )
-    canvas.restoreState()

@@ -55,6 +55,7 @@ class SimulationReasonCode(StrEnum):
     SERVICE_CHANNELS_UNKNOWN = "service_channels_unknown"
     UNSUPPORTED_GRAPH_SEMANTICS = "unsupported_graph_semantics"
     REQUIREMENT_SCOPE_UNKNOWN = "requirement_scope_unknown"
+    CLIENT_RESPONSE_UNMODELED = "client_response_unmodeled"
 
 
 class SimulationFindingCode(StrEnum):
@@ -72,6 +73,9 @@ class SimulationLimitationCode(StrEnum):
     MODELED_NOT_MEASURED = "modeled_not_measured"
     UNMODELED_AVAILABILITY = "unmodeled_availability"
     UNSUPPORTED_GRAPH = "unsupported_graph"
+    FORWARD_PATH_ONLY = "forward_path_only"
+    DESCRIPTIVE_STATISTICS = "descriptive_statistics"
+    PERIODIC_ARRIVALS = "periodic_arrivals"
 
 
 class SimulationDataModel(BaseModel):
@@ -132,6 +136,10 @@ class SimulationExperiment(SimulationDataModel):
     client_latency_milliseconds: LatencyQuantiles = Field(
         default_factory=LatencyQuantiles
     )
+    forward_path_latency_milliseconds: LatencyQuantiles = Field(
+        default_factory=LatencyQuantiles
+    )
+    completed_root_node_visits: dict[str, int] = Field(default_factory=dict)
     throughput_requests_per_second: float | None = Field(default=None, ge=0.0)
     nodes: list[NodeSimulationMetrics] = Field(default_factory=list)
 
@@ -174,7 +182,9 @@ class RequirementEvaluation(SimulationDataModel):
     requirement_index: int = Field(ge=0)
     type_identifier: RequirementKind
     phase: SimulationWorkload
-    threshold_value: float = Field(ge=0.0)
+    threshold_value: float | None = Field(default=None, ge=0.0)
+    minimum_value: float | None = Field(default=None, ge=0.0)
+    maximum_value: float | None = Field(default=None, ge=0.0)
     percentile: float | None = Field(default=None, ge=0.0, le=100.0)
     observed_value: float | None = Field(default=None, ge=0.0)
     status: RequirementVerdict

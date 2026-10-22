@@ -6,6 +6,7 @@ from random import Random
 
 import simpy
 
+from application.architecture_simulation.protocols import GraphSimulationEngineProtocol
 from domain.architecture_simulation.graph_execution import (
     GraphRejectionReason,
     GraphRequestRejection,
@@ -36,7 +37,7 @@ class _LinearRuntime:
     rejections: dict[int, GraphRequestRejection]
 
 
-class SimPyLinearGraphEngine:
+class SimPyLinearGraphEngine(GraphSimulationEngineProtocol):
     """Simulate one selected route per request with bounded per-replica queues."""
 
     def simulate(
