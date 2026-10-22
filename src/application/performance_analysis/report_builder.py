@@ -308,17 +308,20 @@ def _latency_slo_not_evaluated_finding(
 
     targets = ", ".join(
         f"p{requirement.percentile:g} {requirement.operator.value} "
-        f"{requirement.threshold_value:g} ms"
+        f"{requirement.threshold_value:g} мс"
         for requirement in requirements
     )
     return PerformanceFinding(
         finding_code=PerformanceFindingCode.LATENCY_NOT_EVALUATED,
         severity=PerformanceFindingSeverity.WARNING,
-        title="Процентильная цель задержки не оценена",
+        title="Требование к задержке не проверено",
         description=(
-            f"Цели {targets} нельзя проверить текущей моделью: она оценивает "
-            "среднее время ответа, но не распределение задержки. Средняя оценка "
-            "остаётся доступной отдельно и не интерпретируется как процентиль."
+            f"Требование {targets} остаётся непроверенным. Модель приблизительно "
+            "рассчитывает только среднее время ответа, но не определяет, "
+            "за какое время выполняется заданная доля запросов. "
+            "Например, p99 означает время, в которое укладываются 99% запросов. "
+            "Для проверки нужны измерения распределения задержек "
+            "или более подробная математическая модель."
         ),
         affected_node_identifiers=list(critical_path_node_identifiers),
     )
@@ -331,13 +334,14 @@ def _bounded_queue_unmodeled_finding(
     return PerformanceFinding(
         finding_code=PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED,
         severity=PerformanceFindingSeverity.WARNING,
-        title="Ограниченная очередь не моделируется точно",
+        title="Нельзя оценить потери запросов при заполнении очереди",
         description=(
-            "Для этих узлов задан конечный буфер. Средняя задержка, когда "
-            "она доступна, рассчитана в предположении неограниченной очереди "
-            "и не описывает вероятность отказа, потери запросов или backpressure. "
-            "Для очереди нулевой длины при положительной нагрузке время "
-            "ожидания не оценивается."
+            "Для указанных компонентов установлено ограничение на число "
+            "ожидающих запросов. Однако формула задержки предполагает, "
+            "что очередь может расти без ограничений. Поэтому по текущему "
+            "расчёту нельзя узнать, сколько запросов будет отклонено "
+            "при переполнении или как система ограничит входящий поток. "
+            "Если очередь имеет нулевую длину, время ожидания не оценивается."
         ),
         affected_node_identifiers=node_identifiers,
     )
