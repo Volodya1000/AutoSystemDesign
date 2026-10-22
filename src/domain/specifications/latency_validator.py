@@ -11,11 +11,8 @@ from collections import deque
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from domain.exceptions.model_validation_errors import (
-    ModelValidationCode,
-    ModelValidationError,
-)
 from domain.models.nodes import CapacityNode, ClientNode
+from domain.specifications.topological_order import topological_order
 from domain.specifications.traffic_flow import compute_node_incoming_rps
 
 MAX_SUPPORTED_SERVER_COUNT = 10_000
@@ -97,34 +94,6 @@ def _reconstruct_path(
     path.reverse()
     edge_latencies.reverse()
     return path, edge_latencies
-
-
-def _topological_order(node_ids: list[str], edges: list[Edge]) -> list[str]:
-    """Kahn topological order over the supplied edge subset."""
-    in_degree: dict[str, int] = {identifier: 0 for identifier in node_ids}
-    adjacency: dict[str, list[str]] = {identifier: [] for identifier in node_ids}
-
-    for edge in edges:
-        if edge.source_identifier in adjacency and edge.target_identifier in in_degree:
-            adjacency[edge.source_identifier].append(edge.target_identifier)
-            in_degree[edge.target_identifier] += 1
-
-    queue: deque[str] = deque(
-        identifier for identifier in node_ids if in_degree[identifier] == 0
-    )
-    order: list[str] = []
-
-    while queue:
-        current = queue.popleft()
-        order.append(current)
-        for target in adjacency[current]:
-            in_degree[target] -= 1
-            if in_degree[target] == 0:
-                queue.append(target)
-
-    if len(order) != len(node_ids):
-        raise ModelValidationError(ModelValidationCode.TOPOLOGY_CYCLE)
-    return order
 
 
 def _reachable_sync_node_ids(
@@ -274,7 +243,7 @@ def _compute_synchronous_critical_path(
         if edge.source_identifier in reachable_node_ids
         and edge.target_identifier in reachable_node_ids
     ]
-    order = _topological_order(reachable_node_ids, reachable_edges)
+    order = topological_order(reachable_node_ids, reachable_edges)
     dist, predecessor, pred_edge_latency = _longest_path_dp(
         reachable_node_ids,
         order,

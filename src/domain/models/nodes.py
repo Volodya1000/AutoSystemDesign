@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -14,19 +14,27 @@ class BaseNode(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    _abstract_error: ClassVar[ModelValidationCode | None] = (
+        ModelValidationCode.ABSTRACT_BASE_NODE
+    )
+
     identifier: str
     node_type: NodeType
     replicas_count: int = Field(default=1, ge=1)
 
     @model_validator(mode="after")
     def _reject_direct_base_instantiation(self) -> "BaseNode":
-        if self.__class__ is BaseNode:  # pylint: disable=unidiomatic-typecheck
-            raise ModelValidationError(ModelValidationCode.ABSTRACT_BASE_NODE)
+        if self._abstract_error is not None:
+            raise ModelValidationError(self._abstract_error)
         return self
 
 
 class CapacityNode(BaseNode):
     """Abstract base for nodes with processing capacity, queueing and cost."""
+
+    _abstract_error: ClassVar[ModelValidationCode | None] = (
+        ModelValidationCode.ABSTRACT_CAPACITY_NODE
+    )
 
     maximum_concurrency: int = Field(
         gt=0,
@@ -60,8 +68,6 @@ class CapacityNode(BaseNode):
 
     @model_validator(mode="after")
     def _reject_direct_capacity_instantiation(self) -> "CapacityNode":
-        if self.__class__ is CapacityNode:  # pylint: disable=unidiomatic-typecheck
-            raise ModelValidationError(ModelValidationCode.ABSTRACT_CAPACITY_NODE)
         if (
             self.service_channels_per_replica is not None
             and self.service_channels_per_replica > self.maximum_concurrency
@@ -75,20 +81,28 @@ class CapacityNode(BaseNode):
 
 
 class ClientNode(BaseNode):
+    _abstract_error: ClassVar[ModelValidationCode | None] = None
+
     """External traffic source: has no capacity, queue or cost attributes."""
 
     node_type: Literal[NodeType.CLIENT] = NodeType.CLIENT
 
 
 class LoadBalancerNode(CapacityNode):
+    _abstract_error: ClassVar[ModelValidationCode | None] = None
+
     node_type: Literal[NodeType.LOAD_BALANCER] = NodeType.LOAD_BALANCER
 
 
 class ComputeNode(CapacityNode):
+    _abstract_error: ClassVar[ModelValidationCode | None] = None
+
     node_type: Literal[NodeType.COMPUTE] = NodeType.COMPUTE
 
 
 class DatabaseNode(CapacityNode):
+    _abstract_error: ClassVar[ModelValidationCode | None] = None
+
     node_type: Literal[NodeType.DATABASE] = NodeType.DATABASE
     database_role: DatabaseRole = DatabaseRole.PRIMARY
     shards_count: int = Field(default=1, ge=1)
@@ -96,12 +110,16 @@ class DatabaseNode(CapacityNode):
 
 
 class CacheNode(CapacityNode):
+    _abstract_error: ClassVar[ModelValidationCode | None] = None
+
     node_type: Literal[NodeType.CACHE] = NodeType.CACHE
     cache_hit_rate_probability: float = Field(default=0.8, ge=0.0, le=1.0)
     eviction_policy: str = "least_recently_used"
 
 
 class MessageBrokerNode(CapacityNode):
+    _abstract_error: ClassVar[ModelValidationCode | None] = None
+
     node_type: Literal[NodeType.MESSAGE_BROKER] = NodeType.MESSAGE_BROKER
     maximum_queue_size: int = Field(default=1_000_000, ge=0)
     retention_period_hours: int | None = None

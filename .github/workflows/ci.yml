@@ -29,9 +29,9 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install dependencies
         run: uv sync --locked --all-groups
-      - name: Run read-only pre-commit checks
-        env:
-          SKIP: trailing-whitespace,end-of-file-fixer,uv-lock,ruff,ruff-format,file-hygiene,uv-lock-check,ruff-check,ruff-format-check,mypy,pylint,duplicate-code,import-linter,pytest
+      - name: Reject inline lint and type suppressions
+        run: uv run python scripts/check_lint_suppressions.py
+      - name: Run all pre-commit hooks
         run: uv run pre-commit run --all-files
       - name: Check Ruff linting
         run: uv run ruff check .
@@ -101,7 +101,7 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install dependencies
         run: uv sync --locked --all-groups
-      - name: Run unit tests with branch coverage
+      - name: Enforce unit-test branch coverage threshold
         run: uv run --with pytest-cov==7.0.0 pytest tests/unit --cov=src --cov-branch --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml
       - name: Upload coverage report
         if: always()
@@ -109,7 +109,7 @@ jobs:
         with:
           name: unit-test-coverage
           path: coverage.xml
-          if-no-files-found: ignore
+          if-no-files-found: error
 
   repository-hygiene:
     name: Repository hygiene and lockfile

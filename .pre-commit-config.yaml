@@ -26,8 +26,9 @@ repos:
     rev: v0.16.8
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--no-fix]
       - id: ruff-format
+        args: [--check]
 
   - repo: local
     hooks:
@@ -66,6 +67,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: lint-suppression-guard
+        name: Reject inline lint and type suppressions
+        entry: uv run python scripts/check_lint_suppressions.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: pylint
         name: pylint
         entry: uv run pylint --disable=duplicate-code src tests scripts
@@ -88,7 +96,7 @@ repos:
 
       - id: pytest
         name: Unit tests
-        entry: uv run pytest -m unit
+        entry: uv run --with pytest-cov==7.0.0 pytest tests/unit --cov=src --cov-branch --cov-report=term-missing:skip-covered
         language: system
         pass_filenames: false
         always_run: true

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
@@ -40,7 +40,12 @@ class DiagramRenderResult:
     image_rendered: bool = False
 
 
-# pylint: disable=too-many-instance-attributes
+@dataclass(frozen=True)
+class StageDiagnostics:
+    """Keep a stage's human-readable diagnostics together."""
+
+    message: str | None = None
+    warnings: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -55,5 +60,14 @@ class StageOutcome[PayloadT]:
     total_tokens: int
     artifacts: tuple[Path, ...] = ()
     payload: PayloadT | None = None
-    message: str | None = None
-    warnings: tuple[str, ...] = ()
+    diagnostics: StageDiagnostics = field(default_factory=StageDiagnostics)
+
+    @property
+    def message(self) -> str | None:
+        """Expose the diagnostic message to existing stage consumers."""
+        return self.diagnostics.message
+
+    @property
+    def warnings(self) -> tuple[str, ...]:
+        """Expose warnings without duplicating diagnostic state."""
+        return self.diagnostics.warnings
