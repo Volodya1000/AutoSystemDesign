@@ -174,7 +174,7 @@ def test_absent_workload_still_produces_json_and_pdf(tmp_path: Path) -> None:
     assert exit_code == 0
     assert reporter.outcomes[-1].status is StageStatus.SUCCEEDED
     assert report.status is PerformanceAnalysisStatus.UNAVAILABLE
-    assert report.findings[0].finding_code is PerformanceFindingCode.WORKLOAD_MISSING
+    assert report.findings == []
     assert report.nodes[-1].estimated_mean_response_time_milliseconds is None
     assert (tmp_path / "no_workload_performance_analysis.pdf").is_file()
 

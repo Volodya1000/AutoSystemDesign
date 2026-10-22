@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from math import isfinite
 from typing import TYPE_CHECKING
 
-from domain.models.enums import EdgeRoutingMode
-from domain.models.nodes import CacheNode, CapacityNode, DatabaseNode
+from domain.models.nodes import CapacityNode
 from domain.models.requirements import LatencyRequirement
 from domain.performance_analysis.report import (
     NodePerformanceMetrics,
@@ -31,32 +29,6 @@ from domain.specifications.traffic_flow import compute_node_incoming_rps
 if TYPE_CHECKING:
     from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph
-
-_FINDING_SEVERITY_ORDER: dict[PerformanceFindingSeverity, int] = {
-    PerformanceFindingSeverity.ERROR: 0,
-    PerformanceFindingSeverity.WARNING: 1,
-    PerformanceFindingSeverity.INFO: 2,
-}
-
-
-def _ordered_findings(findings: list[PerformanceFinding]) -> list[PerformanceFinding]:
-    """Normalize node IDs and order diagnostics independently of input order."""
-    normalized = [
-        finding.model_copy(
-            update={
-                "affected_node_identifiers": sorted(finding.affected_node_identifiers)
-            }
-        )
-        for finding in findings
-    ]
-    return sorted(
-        normalized,
-        key=lambda finding: (
-            _FINDING_SEVERITY_ORDER[finding.severity],
-            finding.finding_code.value,
-            tuple(finding.affected_node_identifiers),
-        ),
-    )
 
 
 def build_performance_analysis_report(
@@ -89,7 +61,7 @@ def build_performance_analysis_report(
                 )
                 for node in sorted(graph.nodes, key=lambda node: node.identifier)
             ],
-            findings=[_workload_missing_finding()],
+            findings=[],
         )
 
     incoming_by_node: dict[str, float] = compute_node_incoming_rps(
@@ -104,27 +76,18 @@ def build_performance_analysis_report(
         utilization_by_node,
         critical_path,
     )
-    latency_slo_finding = _latency_slo_not_evaluated_finding(
-        scenario,
-        critical_path.path_node_ids
-        if critical_path is not None and critical_path.total_latency_ms is not None
-        else tuple(
-            node.identifier for node in graph.nodes if isinstance(node, CapacityNode)
-        ),
+    has_percentile_target: bool = any(
+        isinstance(requirement, LatencyRequirement)
+        for requirement in scenario.requirements
     )
-    bounded_queue_nodes = [
-        node.identifier
+    has_bounded_queues: bool = any(
+        isinstance(node, CapacityNode) and incoming_by_node[node.identifier] > 0.0
         for node in graph.nodes
-        if isinstance(node, CapacityNode) and incoming_by_node[node.identifier] > 0.0
-    ]
-    findings = _capacity_findings(graph, utilization_by_node)
-    findings.extend(_branching_findings(graph))
-    if bounded_queue_nodes:
-        findings.append(_bounded_queue_unmodeled_finding(bounded_queue_nodes))
-    if latency_slo_finding is not None:
-        findings.append(latency_slo_finding)
-    if unavailable_latency_nodes:
-        findings.append(_unavailable_latency_finding(unavailable_latency_nodes))
+    )
+    findings = sorted(
+        _capacity_findings(graph, utilization_by_node),
+        key=lambda finding: finding.affected_node_identifiers[0],
+    )
 
     return PerformanceAnalysisReport(
         scenario_identifier=scenario.identifier,
@@ -132,15 +95,15 @@ def build_performance_analysis_report(
             PerformanceAnalysisStatus.PARTIAL
             if (
                 unavailable_latency_nodes
-                or bounded_queue_nodes
-                or latency_slo_finding is not None
+                or has_bounded_queues
+                or has_percentile_target
                 or critical_path is None
                 or critical_path.total_latency_ms is None
             )
             else PerformanceAnalysisStatus.COMPLETE
         ),
         nodes=sorted(node_metrics, key=lambda metric: metric.node_identifier),
-        findings=_ordered_findings(findings),
+        findings=findings,
         estimated_longest_synchronous_path_mean_milliseconds=(
             critical_path.total_latency_ms if critical_path is not None else None
         ),
@@ -198,53 +161,6 @@ def _build_node_metrics(
     return node_metrics, unavailable_latency_nodes
 
 
-def _branching_findings(graph: ArchitectureGraph) -> list[PerformanceFinding]:
-    """Report unresolved traffic distribution for alternative outgoing routes."""
-    node_by_id = {node.identifier: node for node in graph.nodes}
-    cache_reader_sources = {
-        edge.source_identifier
-        for edge in graph.edges
-        if not edge.protocol.is_asynchronous
-        and isinstance(node_by_id.get(edge.target_identifier), CacheNode)
-    }
-    alternative_edge_counts: Counter[str] = Counter()
-    fallback_edge_counts: Counter[str] = Counter()
-    for edge in graph.edges:
-        if edge.routing_mode is not EdgeRoutingMode.ALTERNATIVE:
-            continue
-        is_fallback = (
-            edge.source_identifier in cache_reader_sources
-            and not edge.protocol.is_asynchronous
-            and isinstance(node_by_id.get(edge.target_identifier), DatabaseNode)
-        )
-        counts = fallback_edge_counts if is_fallback else alternative_edge_counts
-        counts[edge.source_identifier] += 1
-
-    branching_nodes: list[str] = [
-        node.identifier
-        for node in graph.nodes
-        if alternative_edge_counts[node.identifier] > 1
-        or fallback_edge_counts[node.identifier] > 1
-    ]
-    if not branching_nodes:
-        return []
-    return [_traffic_distribution_limitation(branching_nodes)]
-
-
-def _workload_missing_finding() -> PerformanceFinding:
-    """Describe why load-dependent metrics are absent."""
-    return PerformanceFinding(
-        finding_code=PerformanceFindingCode.WORKLOAD_MISSING,
-        severity=PerformanceFindingSeverity.WARNING,
-        title="Недостаточно данных о нагрузке",
-        description=(
-            "Профиль нагрузки не задан, поэтому входящий поток, загрузку "
-            "и оценку задержки рассчитать нельзя."
-        ),
-        recommendation="Задайте профиль нагрузки в сценарии.",
-    )
-
-
 def _capacity_findings(
     graph: ArchitectureGraph,
     utilization_by_node: dict[str, float],
@@ -275,108 +191,4 @@ def _capacity_findings(
                     ),
                 )
             )
-        else:
-            findings.append(
-                PerformanceFinding(
-                    finding_code=PerformanceFindingCode.CAPACITY_HEADROOM,
-                    severity=PerformanceFindingSeverity.INFO,
-                    title="Есть запас пропускной способности",
-                    description=(
-                        f"Расчётная загрузка узла {node.identifier} составляет "
-                        f"{utilization:.1%}, что ниже порога насыщения "
-                        f"{SATURATION_THRESHOLD:.0%}."
-                    ),
-                    affected_node_identifiers=[node.identifier],
-                )
-            )
-
     return findings
-
-
-def _latency_slo_not_evaluated_finding(
-    scenario: DesignScenario,
-    critical_path_node_identifiers: tuple[str, ...],
-) -> PerformanceFinding | None:
-    """Explain that a percentile target cannot be checked from a mean estimate."""
-    requirements = [
-        requirement
-        for requirement in scenario.requirements
-        if isinstance(requirement, LatencyRequirement)
-    ]
-    if not requirements:
-        return None
-
-    targets = ", ".join(
-        f"p{requirement.percentile:g} {requirement.operator.value} "
-        f"{requirement.threshold_value:g} мс"
-        for requirement in requirements
-    )
-    return PerformanceFinding(
-        finding_code=PerformanceFindingCode.LATENCY_NOT_EVALUATED,
-        severity=PerformanceFindingSeverity.WARNING,
-        title="Требование к задержке не проверено",
-        description=(
-            f"Требование {targets} остаётся непроверенным. Модель приблизительно "
-            "рассчитывает только среднее время ответа, но не определяет, "
-            "за какое время выполняется заданная доля запросов. "
-            "Например, p99 означает время, в которое укладываются 99% запросов. "
-            "Для проверки нужны измерения распределения задержек "
-            "или более подробная математическая модель."
-        ),
-        affected_node_identifiers=list(critical_path_node_identifiers),
-    )
-
-
-def _bounded_queue_unmodeled_finding(
-    node_identifiers: list[str],
-) -> PerformanceFinding:
-    """Identify finite waiting rooms unsupported by infinite-buffer estimates."""
-    return PerformanceFinding(
-        finding_code=PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED,
-        severity=PerformanceFindingSeverity.WARNING,
-        title="Нельзя оценить потери запросов при заполнении очереди",
-        description=(
-            "Для указанных компонентов установлено ограничение на число "
-            "ожидающих запросов. Однако формула задержки предполагает, "
-            "что очередь может расти без ограничений. Поэтому по текущему "
-            "расчёту нельзя узнать, сколько запросов будет отклонено "
-            "при переполнении или как система ограничит входящий поток. "
-            "Если очередь имеет нулевую длину, время ожидания не оценивается."
-        ),
-        affected_node_identifiers=node_identifiers,
-    )
-
-
-def _unavailable_latency_finding(
-    node_identifiers: list[str],
-) -> PerformanceFinding:
-    """Explain why infinite latency estimates are omitted from finite JSON fields."""
-    return PerformanceFinding(
-        finding_code=PerformanceFindingCode.METRIC_UNAVAILABLE,
-        severity=PerformanceFindingSeverity.WARNING,
-        title="Оценка задержки недоступна как конечное значение",
-        description=(
-            "Среднее время ответа не удалось оценить для указанных узлов. "
-            "Текущая модель требует известного числа независимых каналов "
-            "обслуживания, корректных параметров и устойчивого режима. "
-            "Неоценённая задержка не означает нулевую задержку."
-        ),
-        affected_node_identifiers=node_identifiers,
-    )
-
-
-def _traffic_distribution_limitation(
-    branching_node_identifiers: list[str],
-) -> PerformanceFinding:
-    """Describe the equal-split assumption where it affects branching nodes."""
-    return PerformanceFinding(
-        finding_code=PerformanceFindingCode.UNSUPPORTED_MODEL,
-        severity=PerformanceFindingSeverity.WARNING,
-        title="Допущение о распределении трафика",
-        description=(
-            "Трафик между альтернативными исходящими маршрутами распределяется "
-            "поровну. Отдельные веса маршрутизации пока не задаются, поэтому "
-            "фактическая нагрузка на эти маршруты может отличаться."
-        ),
-        affected_node_identifiers=branching_node_identifiers,
-    )
