@@ -9,13 +9,10 @@ from __future__ import annotations
 import argparse
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import yaml
 
-from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.runner import PipelineRunner
-from application.pipeline.stage import StageId
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from domain.models.edges import Edge
 from domain.models.enums import EdgeRoutingMode
@@ -27,14 +24,12 @@ from domain.models.protocols import (
 )
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
+from infrastructure.performance_analysis.offline_c4_stage import OfflineC4Stage
 from infrastructure.performance_analysis.pdf_renderer import (
     PerformanceReportPdfRenderer,
 )
 from infrastructure.persistence.artifact_writer import FileSystemArtifactWriter
 from infrastructure.reporting.adapters import LoggingPipelineReporter
-
-if TYPE_CHECKING:
-    from application.pipeline.context import StageContext
 
 _SCENARIOS: tuple[str, ...] = (
     "checkout_baseline",
@@ -43,31 +38,6 @@ _SCENARIOS: tuple[str, ...] = (
     "helpdesk_no_workload",
 )
 _LOGGER = logging.getLogger("performance.demo")
-
-
-class FixedArchitectureStage:
-    """Provide a deterministic C4 result instead of contacting an LLM."""
-
-    name: StageId = StageId.C4
-    depends_on: tuple[StageId, ...] = ()
-
-    def __init__(self, architecture: ArchitectureGraph) -> None:
-        self._architecture: ArchitectureGraph = architecture
-
-    def run(self, context: StageContext) -> StageOutcome[object]:
-        """Write the example C4 graph and pass it to the real analysis stage."""
-        graph_path: Path = context.writer.write_text(
-            context.out_dir / "architecture_graph.json",
-            self._architecture.model_dump_json(indent=2),
-        )
-        return StageOutcome[object](
-            name=self.name,
-            status=StageStatus.SUCCEEDED,
-            duration_seconds=0.0,
-            total_tokens=0,
-            artifacts=(graph_path,),
-            payload=self._architecture,
-        )
 
 
 def _compute(identifier: str, mean_ms: float, channels: int) -> ComputeNode:
@@ -227,10 +197,8 @@ def main() -> int:
         _LOGGER.info("Scenario=%s: FIXED synthetic C4 fixture; NO LLM", identifier)
         runner = PipelineRunner(
             stages=[
-                FixedArchitectureStage(graph),
-                PerformanceAnalysisStage(
-                    pdf_renderer=PerformanceReportPdfRenderer()
-                ),
+                OfflineC4Stage(graph),
+                PerformanceAnalysisStage(pdf_renderer=PerformanceReportPdfRenderer()),
             ],
             reporter=LoggingPipelineReporter(),
         )
