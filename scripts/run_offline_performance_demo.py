@@ -9,11 +9,11 @@ from __future__ import annotations
 import argparse
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 
 from application.pipeline.outcome import StageStatus
-from application.pipeline.result import PipelineRunResult
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from domain.models.edges import Edge
@@ -32,6 +32,9 @@ from infrastructure.performance_analysis.pdf_renderer import (
 )
 from infrastructure.persistence.artifact_writer import FileSystemArtifactWriter
 from infrastructure.reporting.adapters import LoggingPipelineReporter
+
+if TYPE_CHECKING:
+    from application.pipeline.result import PipelineRunResult
 
 _SCENARIOS: tuple[str, ...] = (
     "checkout_baseline",
