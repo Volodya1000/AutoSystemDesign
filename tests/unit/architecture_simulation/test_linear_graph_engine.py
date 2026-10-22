@@ -111,9 +111,7 @@ def test_cache_is_not_treated_as_simple_linear_service() -> None:
     with pytest.raises(GraphExecutionError) as error:
         engine.simulate(
             GraphRequestTrace(plan=plan, arrival_times_seconds=[0], seed=5),
-            SimulationWindow(
-                warmup_seconds=0, measurement_seconds=10, max_events=100
-            ),
+            SimulationWindow(warmup_seconds=0, measurement_seconds=10, max_events=100),
         )
     assert error.value.code == GraphExecutionFailure.CACHE_UNSUPPORTED
 

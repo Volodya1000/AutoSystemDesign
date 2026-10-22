@@ -79,9 +79,7 @@ class SimPyLinearGraphEngine:
         for arrival_index, arrival_seconds in enumerate(trace.arrival_times_seconds):
             if arrival_seconds >= window.horizon_seconds:
                 continue
-            environment.process(
-                self._traverse(runtime, arrival_index, arrival_seconds)
-            )
+            environment.process(self._traverse(runtime, arrival_index, arrival_seconds))
 
         run_simulation_until_horizon(environment, window)
 
@@ -94,8 +92,7 @@ class SimPyLinearGraphEngine:
             completed[index] for index in measured_indices if index in completed
         ]
         warmup_arrivals: int = sum(
-            arrival < window.warmup_seconds
-            for arrival in trace.arrival_times_seconds
+            arrival < window.warmup_seconds for arrival in trace.arrival_times_seconds
         )
         return GraphTraceWindowResult(
             observations=observations,
@@ -159,9 +156,7 @@ class SimPyLinearGraphEngine:
         resource: SimulatedResource
         for edge, resource in runtime.route:
             yield runtime.environment.timeout(edge.network_latency_seconds)
-            replicas: list[simpy.Resource] = runtime.node_resources[
-                resource.identifier
-            ]
+            replicas: list[simpy.Resource] = runtime.node_resources[resource.identifier]
             replica_index: int = runtime.next_replica[resource.identifier] % len(
                 replicas
             )
@@ -191,9 +186,7 @@ class SimPyLinearGraphEngine:
         shape: float = (
             resource.mean_service_seconds / resource.std_service_seconds
         ) ** 2
-        scale: float = (
-            resource.std_service_seconds**2 / resource.mean_service_seconds
-        )
+        scale: float = resource.std_service_seconds**2 / resource.mean_service_seconds
         service_seconds: float = rng.gammavariate(shape, scale)
         if service_seconds <= 0:
             message: str = "Gamma service duration must be positive"
