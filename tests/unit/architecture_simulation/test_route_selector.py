@@ -16,13 +16,14 @@ from domain.architecture_simulation.graph_execution import (
 from domain.architecture_simulation.graph_plan import GraphSimulationPlan
 from domain.architecture_simulation.kernel import SimulationWindow
 from domain.models.enums import EdgeRoutingMode
-from domain.models.nodes import CacheNode, ClientNode
+from domain.models.nodes import ClientNode
 from domain.models.topology import ArchitectureGraph
 from infrastructure.architecture_simulation.linear_graph_engine import (
     SimPyLinearGraphEngine,
 )
 from infrastructure.architecture_simulation.routing import StochasticRouteSelector
 from tests.unit.architecture_simulation.factories import (
+    make_cache_graph,
     make_compute,
     make_database,
     make_edge,
@@ -50,38 +51,15 @@ def _alternative_plan() -> GraphSimulationPlan:
 
 
 def _cache_plan(hit_probability: float) -> GraphSimulationPlan:
-    cache: CacheNode = CacheNode(
-        identifier="cache",
-        service_channels_per_replica=1,
-        maximum_concurrency=3,
-        maximum_queue_size=4,
-        mean_processing_time_milliseconds=3,
-        standard_deviation_processing_time=0,
-        monthly_cost_usd=20,
-        cache_hit_rate_probability=hit_probability,
+    return ArchitectureSimulationPlanMapper().map(
+        make_cache_graph(hit_probability), make_scenario()
     )
-    graph: ArchitectureGraph = ArchitectureGraph(
-        nodes=[
-            ClientNode(identifier="web"),
-            make_compute(std_milliseconds=0),
-            cache,
-            make_database(),
-        ],
-        edges=[
-            make_edge("web", "api"),
-            make_edge("api", "cache"),
-            make_edge("cache", "db"),
-        ],
-    )
-    return ArchitectureSimulationPlanMapper().map(graph, make_scenario())
 
 
 def _simulate(plan: GraphSimulationPlan) -> GraphTraceWindowResult:
     return SimPyLinearGraphEngine().simulate(
         GraphRequestTrace(plan=plan, arrival_times_seconds=[0], seed=99),
-        SimulationWindow(
-            warmup_seconds=0, measurement_seconds=1, max_events=200
-        ),
+        SimulationWindow(warmup_seconds=0, measurement_seconds=1, max_events=200),
     )
 
 
@@ -93,9 +71,7 @@ def test_alternative_routes_select_exactly_one_database_per_request() -> None:
             arrival_times_seconds=[0.1 * index for index in range(10)],
             seed=2,
         ),
-        SimulationWindow(
-            warmup_seconds=0, measurement_seconds=3, max_events=1000
-        ),
+        SimulationWindow(warmup_seconds=0, measurement_seconds=3, max_events=1000),
     )
 
     assert result.measured_arrivals == 10
@@ -150,9 +126,7 @@ def test_cache_hit_skips_db_and_miss_calls_it_once(
     assert len(result.rejections) == 0
     assert len(result.observations) == 1
     assert result.observations[0].visited_resources == expected_path
-    assert result.observations[0].traversal_seconds == pytest.approx(
-        expected_duration
-    )
+    assert result.observations[0].traversal_seconds == pytest.approx(expected_duration)
 
 
 def test_cache_hits_are_seeded_for_each_request_not_whole_experiment() -> None:
@@ -186,7 +160,7 @@ def test_cache_cannot_invent_a_missing_fallback() -> None:
     plan.connections = [
         connection
         for connection in plan.connections
-        if connection.source_identifier != "cache"
+        if connection.target_identifier != "db"
     ]
     selector: StochasticRouteSelector = StochasticRouteSelector()
 
