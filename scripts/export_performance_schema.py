@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import argparse
-from difflib import unified_diff
 import json
 import logging
+from difflib import unified_diff
 from pathlib import Path
 
 from domain.performance_analysis.report import PerformanceAnalysisReport
@@ -54,7 +54,7 @@ def main() -> int:
                 tofile="generated",
             )
         )
-        _logger.error("Published schema is stale:\\n%s", difference)
+        _logger.error("Published schema is stale:\n%s", difference)
         return 1
     _logger.info("Published schema matches the Pydantic contract")
     return 0
