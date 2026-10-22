@@ -4,7 +4,6 @@ from collections.abc import Generator
 
 import simpy
 
-from infrastructure.architecture_simulation.horizon import run_simulation_until_horizon
 from domain.architecture_simulation.kernel import (
     CompletedRequestObservation,
     ScheduledRequest,
@@ -13,6 +12,7 @@ from domain.architecture_simulation.kernel import (
     SingleNodeSimulationResult,
     WindowSimulationResult,
 )
+from infrastructure.architecture_simulation.horizon import run_simulation_until_horizon
 
 
 class SimPySingleNodeEngine:

@@ -23,7 +23,6 @@ from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 from tests.unit.architecture_simulation.factories import (
     make_compute,
-    make_database,
     make_edge,
     make_graph,
     make_scenario,
@@ -115,7 +114,10 @@ def test_missing_workload_does_not_invent_an_arrival_rate() -> None:
     ("edges", "reason"),
     [
         ([make_edge("web", "missing")], MappingFailure.UNKNOWN_ENDPOINT),
-        ([make_edge("web", "api"), make_edge("web", "api")], MappingFailure.DUPLICATE_EDGE),
+        (
+            [make_edge("web", "api"), make_edge("web", "api")],
+            MappingFailure.DUPLICATE_EDGE,
+        ),
         (
             [make_edge("web", "api"), make_edge("api", "db"), make_edge("db", "api")],
             MappingFailure.CYCLE,

@@ -18,10 +18,10 @@ from domain.architecture_simulation.graph_execution import (
 from domain.architecture_simulation.graph_plan import GraphSimulationPlan
 from domain.architecture_simulation.kernel import SimulationWindow
 from domain.models.enums import NodeType
-from tests.unit.architecture_simulation.factories import make_graph, make_scenario
 from infrastructure.architecture_simulation.linear_graph_engine import (
     SimPyLinearGraphEngine,
 )
+from tests.unit.architecture_simulation.factories import make_graph, make_scenario
 
 pytestmark = pytest.mark.unit
 
