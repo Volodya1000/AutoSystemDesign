@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.outcome import StageOutcome, StageStatus
 from application.pipeline.stage import StageId
+
 if TYPE_CHECKING:
     from pathlib import Path
 
