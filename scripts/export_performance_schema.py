@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from difflib import unified_diff
 import json
 import logging
 from pathlib import Path
@@ -43,8 +44,17 @@ def main() -> int:
     if not _SCHEMA_PATH.is_file():
         _logger.error("Schema file is missing: %s", _SCHEMA_PATH)
         return 1
-    if _SCHEMA_PATH.read_text(encoding="utf-8") != expected:
-        _logger.error("Published schema is stale. Run with --write to regenerate.")
+    published: str = _SCHEMA_PATH.read_text(encoding="utf-8")
+    if published != expected:
+        difference: str = "".join(
+            unified_diff(
+                published.splitlines(keepends=True),
+                expected.splitlines(keepends=True),
+                fromfile="published",
+                tofile="generated",
+            )
+        )
+        _logger.error("Published schema is stale:\\n%s", difference)
         return 1
     _logger.info("Published schema matches the Pydantic contract")
     return 0
