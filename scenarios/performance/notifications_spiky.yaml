@@ -1,0 +1,26 @@
+identifier: notifications_spiky
+description: "Burst traffic and asynchronous notification processing"
+workload:
+  baseline_requests_per_second: 30.0
+  peak_requests_per_second: 400.0
+  read_ratio: 0.2
+requirements:
+  - type_identifier: latency
+    threshold_value: 800.0
+    percentile: 99.0
+  - type_identifier: availability
+    threshold_value: 99.0
+    operator: ">="
+functional_requirements:
+  - identifier: notification_enqueue
+    name: "Enqueue notification"
+    text: >
+      A business service submits an email or push notification.
+      The API validates the payload, stores a delivery request and
+      asynchronously queues work without waiting for provider delivery.
+  - identifier: notification_retry
+    name: "Retry failed delivery"
+    text: >
+      A background worker sends notifications using an external provider.
+      Temporary failures are retried with a bounded retry budget; duplicate
+      attempts must not generate multiple customer-visible notifications.

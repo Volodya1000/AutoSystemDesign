@@ -36,6 +36,13 @@ class TestFragments:
         ):
             assert protocol.name in schema_text
 
+    def test_schema_includes_edge_routing_modes(self) -> None:
+        schema_text: str = render_output_schema()
+
+        assert "routing_mode" in schema_text
+        assert '"alternative"' in schema_text
+        assert '"fan_out"' in schema_text
+
     def test_few_shot_example_is_a_valid_graph(self) -> None:
         graph: ArchitectureGraph = ArchitectureGraph.model_validate(
             json.loads(FEW_SHOT_GRAPH_JSON)

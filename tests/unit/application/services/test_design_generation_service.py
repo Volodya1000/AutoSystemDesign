@@ -111,7 +111,7 @@ def _build_service(
 ) -> tuple[DesignGenerationService, FakeDesigner]:
     designer: FakeDesigner = FakeDesigner(script)
     service: DesignGenerationService = DesignGenerationService(
-        designer=designer,  # type: ignore[arg-type]
+        designer=designer,
         validators=[StructuralTopologyValidator()],
         max_attempts=max_attempts,
     )
@@ -204,7 +204,7 @@ class TestDesignGenerationService:
     ) -> None:
         designer: FakeDesigner = FakeDesigner([_proposal(_isolated_graph(), 10, 5)])
         service: DesignGenerationService = DesignGenerationService(
-            designer=designer,  # type: ignore[arg-type]
+            designer=designer,
             validators=[StructuralTopologyValidator(), StructuralTopologyValidator()],
             max_attempts=1,
         )
@@ -223,7 +223,7 @@ class TestDesignGenerationService:
             GenerationConfigurationError, match="At least one validator is required"
         ):
             DesignGenerationService(
-                designer=FakeDesigner([]),  # type: ignore[arg-type]
+                designer=FakeDesigner([]),
                 validators=[],
                 max_attempts=3,
             )
@@ -233,7 +233,7 @@ class TestDesignGenerationService:
             GenerationConfigurationError, match="max_attempts must be between"
         ):
             DesignGenerationService(
-                designer=FakeDesigner([]),  # type: ignore[arg-type]
+                designer=FakeDesigner([]),
                 validators=[StructuralTopologyValidator()],
                 max_attempts=0,
             )
@@ -241,7 +241,7 @@ class TestDesignGenerationService:
             GenerationConfigurationError, match="max_attempts must be between"
         ):
             DesignGenerationService(
-                designer=FakeDesigner([]),  # type: ignore[arg-type]
+                designer=FakeDesigner([]),
                 validators=[StructuralTopologyValidator()],
                 max_attempts=11,
             )

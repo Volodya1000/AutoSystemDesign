@@ -11,13 +11,13 @@ if TYPE_CHECKING:
     from domain.specifications.interfaces import ValidationResult
 
 
-class SequenceCatalogValidator(Protocol):
+class SequenceCatalogValidatorProtocol(Protocol):
     """Validates a roles catalog."""
 
     def validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult: ...
 
 
-class SequenceScenarioValidator(Protocol):
+class SequenceScenarioValidatorProtocol(Protocol):
     """Validates a scenario against its context."""
 
     def validate_scenario(

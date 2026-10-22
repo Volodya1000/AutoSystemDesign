@@ -1,0 +1,25 @@
+identifier: catalog_read_heavy
+description: "High read ratio product catalog with optional caching"
+workload:
+  baseline_requests_per_second: 150.0
+  peak_requests_per_second: 600.0
+  read_ratio: 0.95
+requirements:
+  - type_identifier: latency
+    threshold_value: 300.0
+    percentile: 95.0
+  - type_identifier: availability
+    threshold_value: 99.0
+    operator: ">="
+functional_requirements:
+  - identifier: catalog_search
+    name: "Search products"
+    text: >
+      Customers search the catalog by keyword and optional category.
+      The API returns paginated product summaries and must not return
+      unpublished products. Caching of frequently requested reads is allowed.
+  - identifier: catalog_details
+    name: "Read product details"
+    text: >
+      Customers read product details and availability. Product updates
+      invalidate stale cached representations so future reads are consistent.

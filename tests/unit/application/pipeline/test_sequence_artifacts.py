@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
+    from application.pipeline.stage import StageId
+
 pytestmark = pytest.mark.unit
 
 
@@ -47,7 +49,7 @@ class FakeRenderer:
 
 
 def _context(tmp_path: Path, writer: InMemoryWriter) -> StageContext:
-    upstream: Mapping[str, StageOutcome[object]] = {}
+    upstream: Mapping[StageId, StageOutcome[object]] = {}
     return StageContext(
         scenario=DesignScenario(identifier="demo", description="Test scenario"),
         out_dir=tmp_path / "output",

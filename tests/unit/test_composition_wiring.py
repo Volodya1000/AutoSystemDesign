@@ -1,26 +1,27 @@
-"""Unit tests of the stage builders in the composition root.
-
-These exercise the wiring without any LLM: ``_build_*_stage`` accepts an
-explicit ``AppSettings``, so no environment variables or real endpoint
-are required.
-"""
-
 import pytest
 from pydantic import SecretStr
 
+from application.pipeline.stage import StageId
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
+from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from application.pipeline.stages.sequence import SequenceStage
+from application.results import GenerationStatus
+from application.tasks import DesignProposal, DesignTask
+from application.usage import TokenUsage
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
 from infrastructure.composition import (
     _build_api_stage,
     _build_c4_stage,
+    _build_performance_analysis_stage,
     _build_sequence_stage,
+    build_design_generation_service,
     build_pipeline,
 )
 from infrastructure.reporting import LoggingGenerationReporter
 from infrastructure.visualisation.plantuml import DiagramImageFormat
+from tests.factories import create_test_latency_graph, create_test_latency_scenario
 
 pytestmark = pytest.mark.unit
 
@@ -44,8 +45,15 @@ def test_build_c4_stage_without_renderer() -> None:
         _settings(), renderer=None, reporter=LoggingGenerationReporter()
     )
     assert isinstance(stage, C4Stage)
-    assert stage.name == "c4"
+    assert stage.name is StageId.C4
     assert not stage.depends_on
+
+
+def test_build_performance_analysis_stage_depends_on_c4() -> None:
+    stage = _build_performance_analysis_stage()
+    assert isinstance(stage, PerformanceAnalysisStage)
+    assert stage.name is StageId.PERFORMANCE_ANALYSIS
+    assert stage.depends_on == (StageId.C4,)
 
 
 def test_build_sequence_stage_depends_on_c4() -> None:
@@ -53,15 +61,15 @@ def test_build_sequence_stage_depends_on_c4() -> None:
         _settings(), renderer=None, reporter=LoggingGenerationReporter()
     )
     assert isinstance(stage, SequenceStage)
-    assert stage.name == "sequence"
-    assert stage.depends_on == ("c4",)
+    assert stage.name is StageId.SEQUENCE
+    assert stage.depends_on == (StageId.C4,)
 
 
 def test_build_api_stage_depends_on_c4_and_sequence() -> None:
     stage = _build_api_stage(_settings(), reporter=LoggingGenerationReporter())
     assert isinstance(stage, ApiStage)
-    assert stage.name == "api"
-    assert stage.depends_on == ("c4", "sequence")
+    assert stage.name is StageId.API
+    assert stage.depends_on == (StageId.C4, StageId.SEQUENCE)
 
 
 def test_build_pipeline_reuses_provided_settings(
@@ -83,3 +91,48 @@ def test_build_pipeline_reuses_provided_settings(
 
     assert wiring.runner is not None
     assert wiring.writer is not None
+
+
+class _FakeLlmClient:
+    def __init__(self, settings: AppSettings) -> None:
+        del settings
+
+
+class _FixedArchitectureDesigner:
+    def __init__(self, proposal: DesignProposal) -> None:
+        self._proposal = proposal
+        self.received_tasks: list[DesignTask] = []
+
+    def propose(self, task: DesignTask) -> DesignProposal:
+        self.received_tasks.append(task)
+        return self._proposal
+
+
+def test_unmodelled_percentile_target_does_not_trigger_repair_attempts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    graph = create_test_latency_graph()
+    scenario = create_test_latency_scenario()
+    designer = _FixedArchitectureDesigner(
+        DesignProposal(graph=graph, raw_content="{}", usage=TokenUsage())
+    )
+
+    def build_fixed_designer(
+        client: _FakeLlmClient,
+        settings: AppSettings,
+    ) -> _FixedArchitectureDesigner:
+        del client, settings
+        return designer
+
+    monkeypatch.setattr("infrastructure.composition.LiteLlmClient", _FakeLlmClient)
+    monkeypatch.setattr(
+        "infrastructure.composition.ArchitectureDesignerAgent",
+        build_fixed_designer,
+    )
+
+    service = build_design_generation_service(settings=_settings())
+    result = service.generate(scenario)
+
+    assert result.status is GenerationStatus.SUCCEEDED
+    assert len(result.attempts) == 1
+    assert len(designer.received_tasks) == 1

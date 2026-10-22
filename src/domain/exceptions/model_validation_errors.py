@@ -18,6 +18,7 @@ class ModelValidationCode(StrEnum):
     INVALID_INTERVAL_BOUNDS = "requirements.invalid_interval_bounds"
     ABSTRACT_BASE_NODE = "topology.abstract_base_node"
     ABSTRACT_CAPACITY_NODE = "topology.abstract_capacity_node"
+    SERVICE_CHANNELS_EXCEED_CONCURRENCY = "topology.service_channels_exceed_concurrency"
     WORKLOAD_PEAK_BELOW_BASELINE = "scenario.workload_peak_below_baseline"
     EMPTY_LIFELINE_ID = "sequence.empty_lifeline_id"
     DUPLICATE_LIFELINE_ID = "sequence.duplicate_lifeline_id"
@@ -25,6 +26,7 @@ class ModelValidationCode(StrEnum):
     UNKNOWN_MESSAGE_RECIPIENT = "sequence.unknown_message_recipient"
     UNUSED_LIFELINES = "sequence.unused_lifelines"
     TOPOLOGY_CYCLE = "topology.cycle"
+    AMBIGUOUS_CACHE_MISS_PATH = "topology.ambiguous_cache_miss_path"
     DUPLICATE_REQUIREMENT_VALIDATOR = "requirements.duplicate_validator"
 
 
@@ -72,6 +74,10 @@ class ModelValidationError(ValueError):
         ModelValidationCode.ABSTRACT_CAPACITY_NODE: (
             "CapacityNode is abstract: instantiate a concrete node subclass"
         ),
+        ModelValidationCode.SERVICE_CHANNELS_EXCEED_CONCURRENCY: (
+            "Independent service channels ({channels}) cannot exceed "
+            "maximum concurrent in-flight requests ({concurrency}) per replica."
+        ),
         ModelValidationCode.WORKLOAD_PEAK_BELOW_BASELINE: (
             "peak_requests_per_second must be greater than or equal "
             "to baseline_requests_per_second"
@@ -95,6 +101,10 @@ class ModelValidationError(ValueError):
         ),
         ModelValidationCode.TOPOLOGY_CYCLE: (
             "Graph contains a cycle; topology must be a DAG"
+        ),
+        ModelValidationCode.AMBIGUOUS_CACHE_MISS_PATH: (
+            "Compute node '{node_identifier}' reads from multiple caches, so "
+            "database fallback traffic cannot be assigned unambiguously."
         ),
         ModelValidationCode.DUPLICATE_REQUIREMENT_VALIDATOR: (
             "Duplicate RequirementValidator for {requirement_type}"

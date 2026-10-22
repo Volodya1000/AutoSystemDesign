@@ -1,7 +1,7 @@
-"""Capacity utilization: nodes must not exceed the saturation threshold.
+"""Calculate node capacity and validate estimated utilization.
 
-Pure module. The 98% threshold is hardcoded by the roadmap (F4): a node at
-or above it has an infinite queue and will collapse at peak load.
+Pure domain logic. The 98% threshold is an early-warning margin used by the
+validator; mathematical queue instability occurs at 100% offered utilization.
 """
 
 from __future__ import annotations
@@ -27,14 +27,15 @@ if TYPE_CHECKING:
 SATURATION_THRESHOLD: float = 0.98
 
 
-def _node_max_rps(node: CapacityNode) -> float:
-    """Maximum processing rate of one capacity node, requests/sec."""
-    return (
-        node.replicas_count
-        * node.maximum_concurrency
-        * 1000.0
-        / node.mean_processing_time_milliseconds
+def compute_node_capacity_rps(node: CapacityNode) -> float:
+    """Calculate capacity from known service channels, else concurrency proxy."""
+    independent_channels = node.queueing_server_count
+    parallelism = (
+        independent_channels
+        if independent_channels is not None
+        else node.replicas_count * node.maximum_concurrency
     )
+    return parallelism * 1000.0 / node.mean_processing_time_milliseconds
 
 
 def compute_node_utilization(
@@ -44,7 +45,9 @@ def compute_node_utilization(
     """Return utilization ratio per capacity node.
 
     Utilization = incoming_rps / max_rps, where
-    max_rps = replicas_count * maximum_concurrency * 1000 / mean_processing_time_ms.
+    max_rps = parallelism * 1000 / mean_processing_time_ms.
+    Parallelism is the explicit queueing server count when known; otherwise
+    replicas_count * maximum_concurrency is a provisional capacity proxy.
 
     Client nodes are excluded. Nodes with zero incoming RPS are present with
     utilization 0.0. Returns an empty dict if scenario.workload is None.
@@ -60,7 +63,7 @@ def compute_node_utilization(
             continue
         utilization[node.identifier] = incoming.get(
             node.identifier, 0.0
-        ) / _node_max_rps(node)
+        ) / compute_node_capacity_rps(node)
 
     return utilization
 
@@ -91,7 +94,7 @@ class CapacitySaturationValidator(ScenarioValidator):
             if not isinstance(node, CapacityNode):
                 continue
 
-            max_rps = _node_max_rps(node)
+            max_rps = compute_node_capacity_rps(node)
             arrival_rps = incoming.get(node.identifier, 0.0)
             utilization = arrival_rps / max_rps
 

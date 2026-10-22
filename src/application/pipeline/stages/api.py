@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext, require_payload
 from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
+from application.pipeline.stage import StageId
 from application.results import ApiGenerationResult, GenerationStatus
 from domain.models.topology import ArchitectureGraph
 
@@ -15,8 +16,11 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from application.pipeline.ports import ApiArtifactRenderer, GenerationReporter
-    from application.pipeline.services import ApiGenerator
+    from application.pipeline.protocols import (
+        ApiArtifactRendererProtocol,
+        GenerationReporterProtocol,
+    )
+    from application.pipeline.service_protocols import ApiGeneratorProtocol
     from domain.models.api import ApiDesign
     from domain.models.scenarios import DesignScenario
     from domain.models.sequence import InteractionScenario
@@ -25,18 +29,18 @@ _logger: logging.Logger = logging.getLogger("pipeline.api")
 
 
 class ApiStage:
-    name: str = "api"
-    depends_on: tuple[str, ...] = ("c4", "sequence")
+    name: StageId = StageId.API
+    depends_on: tuple[StageId, ...] = (StageId.C4, StageId.SEQUENCE)
 
     def __init__(
         self,
-        service: ApiGenerator,
-        renderer: ApiArtifactRenderer | None,
-        reporter: GenerationReporter,
+        service: ApiGeneratorProtocol,
+        renderer: ApiArtifactRendererProtocol | None,
+        reporter: GenerationReporterProtocol,
     ) -> None:
-        self._service: ApiGenerator = service
-        self._renderer: ApiArtifactRenderer | None = renderer
-        self._reporter: GenerationReporter = reporter
+        self._service: ApiGeneratorProtocol = service
+        self._renderer: ApiArtifactRendererProtocol | None = renderer
+        self._reporter: GenerationReporterProtocol = reporter
 
     def run(self, context: StageContext) -> StageOutcome[ApiDesign]:
         stage_start: float = time.perf_counter()
@@ -55,9 +59,11 @@ class ApiStage:
                 message="No functional requirements provided; skipping API generation.",
             )
 
-        graph: ArchitectureGraph = require_payload(context, "c4", ArchitectureGraph)
+        graph: ArchitectureGraph = require_payload(
+            context, StageId.C4, ArchitectureGraph
+        )
         sequences: Mapping[str, InteractionScenario] = require_payload(
-            context, "sequence", dict
+            context, StageId.SEQUENCE, dict
         )
 
         generation_start: float = time.perf_counter()

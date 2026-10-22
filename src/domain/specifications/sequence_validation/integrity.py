@@ -8,7 +8,10 @@ from domain.exceptions.sequence_errors import SequenceIntegrityError
 from domain.models.sequence import ComponentLifeline, InteractionScenario, UserLifeline
 from domain.specifications.interfaces import ValidationResult
 
-from .protocols import SequenceCatalogValidator, SequenceScenarioValidator
+from .protocols import (
+    SequenceCatalogValidatorProtocol,
+    SequenceScenarioValidatorProtocol,
+)
 
 if TYPE_CHECKING:
     from domain.exceptions.architecture_errors import ArchitectureValidationError
@@ -16,7 +19,10 @@ if TYPE_CHECKING:
     from domain.models.topology import ArchitectureGraph
 
 
-class SequenceIntegrityValidator(SequenceCatalogValidator, SequenceScenarioValidator):
+class SequenceIntegrityValidator(
+    SequenceCatalogValidatorProtocol,
+    SequenceScenarioValidatorProtocol,
+):
     """Validate references between the roles catalog, architecture and scenario."""
 
     def validate_catalog(self, catalog: ProjectRolesCatalog) -> ValidationResult:

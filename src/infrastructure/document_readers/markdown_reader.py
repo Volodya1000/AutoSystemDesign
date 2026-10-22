@@ -2,10 +2,10 @@
 
 from pathlib import Path
 
-from application.document_reader import DocumentInputError, DocumentReader
+from application.document_reader import DocumentInputError, DocumentReaderProtocol
 
 
-class MarkdownReader(DocumentReader):
+class MarkdownReader(DocumentReaderProtocol):
     """Read UTF-8 Markdown without modifying its semantic content."""
 
     def read_text(self, path: Path) -> str:

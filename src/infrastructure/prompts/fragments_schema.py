@@ -45,22 +45,35 @@ OUTPUT_HARD_RULES: Final[str] = (
     "and message_broker -> message_broker are invalid. If you do not need "
     "async decoupling, do not add a broker at all.\n"
     "9. Every cache node MUST be on a real read path:\n"
-    "   - at least one SYNCHRONOUS incoming edge from a compute node "
-    "(the read attempt);\n"
-    "   - that SAME compute node MUST also have another outgoing edge "
-    "to the database (the cache-miss fallback).\n"
-    "   Canonical pattern: compute -> cache (synchronous read) AND "
-    "compute -> database (synchronous fallback). Both edges originate "
-    "from the compute node. NEVER connect cache -> database: cache is "
-    "not a caller and must not own the fallback path.\n"
+    "   - at least one SYNCHRONOUS incoming edge from a compute node;\n"
+    "   - that SAME compute node has a SYNCHRONOUS outgoing edge to a database "
+    "for cache-miss fallback.\n"
+    "   Canonical pattern: compute -> cache AND compute -> database. The "
+    "compute-to-cache edge carries cache lookup traffic; the sibling "
+    "compute-to-database edge carries only cache misses. NEVER connect "
+    "cache -> database: the cache is not the caller that performs fallback.\n"
     "   An async-only edge into a cache is a write-only sink: the cache "
     "receives data but nobody reads it, and cache_hit_rate is dead. "
-    "Either use the canonical read + fallback pattern, or remove the cache.\n"
+    "Either use the synchronous read + compute-owned miss path, or remove "
+    "the cache. One compute node must not read from multiple caches because "
+    "the fallback-to-cache mapping would be ambiguous.\n"
     "10. Before returning JSON, check every edge against the whitelist and "
-    "re-check cache directionality: cache -> database is forbidden.\n"
+    "check that every used cache has a synchronous database fallback from "
+    "each compute reader. Do not treat this paired database fallback as an "
+    "ordinary branch: its rate is derived from the cache lookup edge and "
+    "cache_hit_rate_probability.\n"
     "11. Before returning JSON, trace every path through each message_broker. "
     "Confirm that its producer and consumer are different compute nodes, "
-    "and that no edge creates a cycle or a self-loop."
+    "and that no edge creates a cycle or a self-loop.\n"
+    "12. Set routing_mode explicitly on every edge. alternative means the "
+    "outgoing request rate is split equally among alternative edges from the "
+    "same source; fan_out means each fan-out edge receives the full outgoing "
+    "request rate. Use fan_out when one request invokes every listed dependency; "
+    "use alternative when one of several routes is selected. Alternative routing "
+    "weights are not supported; do not invent them. For a compute node with a "
+    "cache read, the paired database fallback receives cache-edge traffic times "
+    "(1 - cache_hit_rate_probability); if several database fallback edges exist, "
+    "their routing_mode distributes or duplicates only that miss traffic."
 )
 
 FEW_SHOT_GRAPH_JSON: Final[str] = """{
@@ -82,13 +95,13 @@ FEW_SHOT_GRAPH_JSON: Final[str] = """{
   "edges": [
     {"source_identifier": "web_client", "target_identifier": "edge_lb",
      "protocol": {"name": "sync_rest_http", "is_asynchronous": false},
-     "network_latency_milliseconds": 5.0},
+     "routing_mode": "alternative", "network_latency_milliseconds": 5.0},
     {"source_identifier": "edge_lb", "target_identifier": "orders_api",
      "protocol": {"name": "sync_grpc", "is_asynchronous": false},
-     "network_latency_milliseconds": 2.0},
+     "routing_mode": "alternative", "network_latency_milliseconds": 2.0},
     {"source_identifier": "orders_api", "target_identifier": "orders_db",
      "protocol": {"name": "sync_database_tcp", "is_asynchronous": false},
-     "network_latency_milliseconds": 1.0}
+     "routing_mode": "alternative", "network_latency_milliseconds": 1.0}
   ]
 }"""
 

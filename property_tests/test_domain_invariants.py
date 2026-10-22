@@ -47,9 +47,7 @@ def test_workload_maintains_valid_rates_and_ratio(
     peak=st.floats(min_value=0.1, max_value=100_000),
     gap=st.floats(min_value=0.1, max_value=100_000),
 )
-def test_workload_rejects_peak_below_baseline(
-    peak: float, gap: float
-) -> None:
+def test_workload_rejects_peak_below_baseline(peak: float, gap: float) -> None:
     """Peak traffic must not be lower than baseline traffic."""
     with pytest.raises(ValidationError):
         WorkloadProfile(
@@ -84,9 +82,7 @@ def test_interval_requirement_observes_inclusive_bounds(
     first=st.sampled_from(tuple(_FIRST_CHARACTERS)),
     rest=st.text(alphabet=_REMAINING_CHARACTERS, max_size=30),
 )
-def test_scenario_accepts_safe_artifact_identifiers(
-    first: str, rest: str
-) -> None:
+def test_scenario_accepts_safe_artifact_identifiers(first: str, rest: str) -> None:
     """Valid, path-safe artifact identifiers survive model validation."""
     identifier: str = first + rest
     scenario: DesignScenario = DesignScenario(

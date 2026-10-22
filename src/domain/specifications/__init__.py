@@ -17,7 +17,6 @@ from domain.specifications.interfaces import (
     ScenarioValidator,
     ValidationResult,
 )
-from domain.specifications.latency_validator import LatencySloValidator
 from domain.specifications.metrics import compute_project_metrics, format_metrics_title
 from domain.specifications.requirement_dispatch import (
     RequirementValidationDispatcher,
@@ -46,7 +45,6 @@ __all__ = [
     "CacheUsageValidator",
     "CapacitySaturationValidator",
     "ConnectionType",
-    "LatencySloValidator",
     "MessageBrokerConsumerValidator",
     "RequirementValidationDispatcher",
     "RequirementValidator",

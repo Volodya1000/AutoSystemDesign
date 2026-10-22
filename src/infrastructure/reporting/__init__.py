@@ -3,8 +3,8 @@
 The package is split into two modules:
 
 - ``helpers``: pure formatting functions with no port dependency;
-- ``adapters``: implementations of ``GenerationReporter`` and
-  ``PipelineReporter`` that delegate to the helpers.
+- ``adapters``: implementations of ``GenerationReporterProtocol`` and
+  ``PipelineReporterProtocol`` that delegate to the helpers.
 
 The original single-module import path (``infrastructure.reporting``)
 is preserved by re-exporting the public surface from this package.

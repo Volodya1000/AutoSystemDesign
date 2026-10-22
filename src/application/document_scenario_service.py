@@ -14,9 +14,9 @@ from application.document_scenario_functions import (
     slug_identifier,
     validate_source_backed_notes,
 )
-from application.document_scenario_ports import (
-    DocumentRequirementsProvider,
-    DocumentScenarioMapper,
+from application.document_scenario_protocols import (
+    DocumentRequirementsProviderProtocol,
+    DocumentScenarioMapperProtocol,
 )
 from domain.document_requirements import (
     DocumentRequirements,
@@ -37,8 +37,8 @@ class DocumentScenarioService:
 
     def __init__(
         self,
-        requirements_service: DocumentRequirementsProvider,
-        mapper: DocumentScenarioMapper,
+        requirements_service: DocumentRequirementsProviderProtocol,
+        mapper: DocumentScenarioMapperProtocol,
     ) -> None:
         self._requirements_service = requirements_service
         self._mapper = mapper
