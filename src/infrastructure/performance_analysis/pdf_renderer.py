@@ -24,6 +24,7 @@ from reportlab.platypus import (
 )
 
 from application.performance_analysis.protocols import PdfRenderingUnavailableError
+from infrastructure.performance_analysis.pdf_diagnostics import diagnostic_cards
 
 if TYPE_CHECKING:
     from reportlab.pdfgen.canvas import Canvas
@@ -39,9 +40,9 @@ _FONT_PATHS: tuple[Path, ...] = (
 )
 _EMPTY_METRIC = "нет оценки"
 _STATUS_LABELS: dict[str, str] = {
-    "complete": "Полный",
-    "partial": "Частичный (есть ограничения модели)",
-    "unavailable": "Недоступен (недостаточно исходных данных)",
+    "complete": "Доступные характеристики рассчитаны с учётом допущений",
+    "partial": "Расчёты выполнены, но не все характеристики удалось проверить",
+    "unavailable": "Недоступен: для расчётов недостаточно исходных данных",
 }
 _PAGE_WIDTH, _PAGE_HEIGHT = A4
 _CONTENT_WIDTH = _PAGE_WIDTH - 36 * mm
@@ -86,13 +87,13 @@ class PerformanceReportPdfRenderer:
                 styles["body"],
             ),
             Paragraph(
-                f"Полнота анализа: {_STATUS_LABELS[report.status.value]}",
+                f"Результат: {_STATUS_LABELS[report.status.value]}",
                 styles["body"],
             ),
             Spacer(1, 4 * mm),
             Paragraph("Сводка", styles["heading"]),
             Paragraph(
-                "Оценка самого длинного синхронного пути из средних задержек: "
+                "Максимальная оценка средней задержки синхронного пути: "
                 + _metric(
                     report.estimated_longest_synchronous_path_mean_milliseconds,
                     "мс",
@@ -109,13 +110,30 @@ class PerformanceReportPdfRenderer:
                 styles["body"],
             ),
             Spacer(1, 3 * mm),
-            Paragraph("Метрики узлов", styles["heading"]),
+            Paragraph("Показатели обрабатывающих компонентов", styles["heading"]),
+            Paragraph(
+                "Нагрузка показывает число поступающих запросов в секунду. "
+                "Пропускная способность — сколько запросов в секунду "
+                "компонент теоретически способен обработать. Загрузка — "
+                "отношение нагрузки к пропускной способности.",
+                styles["note"],
+            ),
         ]
-        headers = ("Узел", "RPS", "Мощн. RPS", "Доля", "Очередь, мс", "Ответ, мс")
+        headers = (
+            "Компонент",
+            "Нагрузка,<br/>запр./с",
+            "Пропускная<br/>способность,<br/>запр./с",
+            "Загрузка",
+            "Ожидание,<br/>мс",
+            "Ответ,<br/>мс",
+        )
         rows: list[list[Paragraph]] = [
             [Paragraph(cell, styles["table_header"]) for cell in headers]
         ]
         for node in report.nodes:
+            if node.estimated_capacity_requests_per_second is None:
+                # Clients generate traffic; they are not processing components.
+                continue
             values = (
                 escape(node.node_identifier),
                 _metric(node.incoming_requests_per_second),
@@ -129,7 +147,7 @@ class PerformanceReportPdfRenderer:
             rows,
             colWidths=[
                 _CONTENT_WIDTH * portion
-                for portion in (0.25, 0.11, 0.16, 0.12, 0.18, 0.18)
+                for portion in (0.235, 0.14, 0.22, 0.115, 0.145, 0.145)
             ],
             repeatRows=1,
             hAlign="LEFT",
@@ -155,36 +173,12 @@ class PerformanceReportPdfRenderer:
         )
         story.append(table)
         story.extend(
-            [Spacer(1, 5 * mm), Paragraph("Диагностические выводы", styles["heading"])]
+            [
+                Spacer(1, 5 * mm),
+                Paragraph("Выводы и ограничения", styles["heading"]),
+                *diagnostic_cards(report, styles, _CONTENT_WIDTH),
+            ]
         )
-        if not report.findings:
-            story.append(Paragraph("Диагностических выводов нет.", styles["body"]))
-        for finding in report.findings:
-            affected = ", ".join(finding.affected_node_identifiers) or "весь сценарий"
-            story.extend(
-                [
-                    Paragraph(
-                        escape(f"[{finding.severity.value}] {finding.title}"),
-                        styles["finding"],
-                    ),
-                    Paragraph(
-                        "Код: "
-                        + escape(finding.finding_code.value)
-                        + "; узлы: "
-                        + escape(affected),
-                        styles["note"],
-                    ),
-                    Paragraph(escape(finding.description), styles["body"]),
-                ]
-            )
-            if finding.recommendation is not None:
-                story.append(
-                    Paragraph(
-                        "Рекомендация: " + escape(finding.recommendation),
-                        styles["body"],
-                    )
-                )
-            story.append(Spacer(1, 2 * mm))
         story.extend(
             [
                 Spacer(1, 4 * mm),
@@ -195,20 +189,23 @@ class PerformanceReportPdfRenderer:
                     styles["body"],
                 ),
                 Paragraph(
-                    "Модель задержки предполагает пуассоновский поток поступлений "
-                    "и использует аппроксимацию Аллена - Каннина. "
-                    "Средние оценки не подтверждают p95/p99.",
+                    "Модель предполагает случайный поток поступления запросов "
+                    "и использует приближённую формулу Аллена — Каннина. "
+                    "Среднее время ответа само по себе не подтверждает p95/p99.",
                     styles["body"],
                 ),
                 Paragraph(
-                    "Конечные буферы, неизвестные каналы обслуживания и "
-                    "переполнение могут делать часть метрик неприменимой. "
-                    "Значение «нет оценки» означает null в JSON, а не ноль.",
+                    "Ограничение длины очереди, неизвестное число параллельно "
+                    "обрабатываемых запросов и перегрузка могут делать "
+                    "некоторые расчёты неприменимыми. Отсутствие оценки "
+                    "не означает нулевое время ожидания.",
                     styles["body"],
                 ),
                 Paragraph(
-                    "Максимум средних задержек путей не равен среднему времени "
-                    "завершения параллельного fan-out.",
+                    "Если система одновременно обращается к нескольким сервисам, "
+                    "ответ завершится после самого медленного из них. "
+                    "Поэтому максимальная оценка средней задержки пути "
+                    "не является точным средним временем ответа всей системы.",
                     styles["body"],
                 ),
             ]
