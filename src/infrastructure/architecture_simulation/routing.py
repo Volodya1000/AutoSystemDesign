@@ -112,7 +112,7 @@ class StochasticRouteSelector:
     def select(
         self, plan: GraphSimulationPlan, seed: int, request_index: int
     ) -> list[tuple[SimulatedConnection, SimulatedResource]]:
-        """Route a cache miss via the original compute reader's database edge."""
+        """Route each miss through the compute reader's physical database edge."""
         edges: dict[str, list[SimulatedConnection]] = self._group_edges(plan)
         resources: dict[str, SimulatedResource] = {
             resource.identifier: resource for resource in plan.resources
@@ -120,41 +120,57 @@ class StochasticRouteSelector:
         current: str = plan.client_identifier
         route: list[tuple[SimulatedConnection, SimulatedResource]] = []
         while current in edges:
-            outgoing: list[SimulatedConnection] = edges[current]
-            cache_lookups: list[SimulatedConnection] = [
-                edge
-                for edge in outgoing
-                if resources[edge.target_identifier].node_type == NodeType.CACHE
-            ]
-            fallback_edges: list[SimulatedConnection] = [
-                edge
-                for edge in outgoing
-                if cache_lookups
-                and resources[edge.target_identifier].node_type == NodeType.DATABASE
-            ]
-            primary_edges: list[SimulatedConnection] = [
-                edge for edge in outgoing if edge not in fallback_edges
-            ]
-            choice: SimulatedConnection = self._choose(
-                primary_edges, seed, request_index, current, "route"
+            steps, next_source = self._select_step(
+                edges[current], resources, seed, request_index, current
             )
-            resource: SimulatedResource = resources[choice.target_identifier]
-            route.append((choice, resource))
-            if resource.node_type == NodeType.CACHE:
-                hits: Random = Random(
-                    f"{seed}:cache:{request_index}:{resource.identifier}"
-                )
-                probability: float = resource.cache_hit_probability or 0.0
-                if hits.random() < probability:
-                    break
-                fallback: SimulatedConnection = self._choose(
-                    fallback_edges, seed, request_index, current, "fallback"
-                )
-                route.append((fallback, resources[fallback.target_identifier]))
-                current = fallback.target_identifier
-            else:
-                current = resource.identifier
+            route.extend(steps)
+            if next_source is None:
+                break
+            current = next_source
         return route
+
+    def _select_step(
+        self,
+        outgoing: list[SimulatedConnection],
+        resources: dict[str, SimulatedResource],
+        seed: int,
+        request_index: int,
+        source_identifier: str,
+    ) -> tuple[list[tuple[SimulatedConnection, SimulatedResource]], str | None]:
+        """Resolve a primary edge followed by its conditional miss fallback."""
+        cache_lookups: list[SimulatedConnection] = [
+            edge
+            for edge in outgoing
+            if resources[edge.target_identifier].node_type == NodeType.CACHE
+        ]
+        fallback_edges: list[SimulatedConnection] = [
+            edge
+            for edge in outgoing
+            if cache_lookups
+            and resources[edge.target_identifier].node_type == NodeType.DATABASE
+        ]
+        primary_edges: list[SimulatedConnection] = [
+            edge for edge in outgoing if edge not in fallback_edges
+        ]
+        choice: SimulatedConnection = self._choose(
+            primary_edges, seed, request_index, source_identifier, "route"
+        )
+        resource: SimulatedResource = resources[choice.target_identifier]
+        if resource.node_type != NodeType.CACHE:
+            return [(choice, resource)], resource.identifier
+
+        hits: Random = Random(f"{seed}:cache:{request_index}:{resource.identifier}")
+        probability: float = resource.cache_hit_probability or 0.0
+        if hits.random() < probability:
+            return [(choice, resource)], None
+
+        fallback: SimulatedConnection = self._choose(
+            fallback_edges, seed, request_index, source_identifier, "fallback"
+        )
+        return [
+            (choice, resource),
+            (fallback, resources[fallback.target_identifier]),
+        ], fallback.target_identifier
 
     @staticmethod
     def _choose(
