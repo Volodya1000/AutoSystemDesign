@@ -89,16 +89,29 @@ class SimPyLinearGraphEngine:
 
         run_simulation_until_horizon(environment, window)
 
+        return self._collect_window(trace, window, runtime)
+
+    @staticmethod
+    def _collect_window(
+        trace: GraphRequestTrace,
+        window: SimulationWindow,
+        runtime: _LinearRuntime,
+    ) -> GraphTraceWindowResult:
+        """Account for completed, rejected and censored measured root requests."""
         measured_indices: list[int] = [
             index
             for index, arrival in enumerate(trace.arrival_times_seconds)
             if window.warmup_seconds <= arrival < window.horizon_seconds
         ]
         observations: list[GraphTraversalObservation] = [
-            completed[index] for index in measured_indices if index in completed
+            runtime.completed[index]
+            for index in measured_indices
+            if index in runtime.completed
         ]
         rejected: list[GraphRequestRejection] = [
-            rejections[index] for index in measured_indices if index in rejections
+            runtime.rejections[index]
+            for index in measured_indices
+            if index in runtime.rejections
         ]
         warmup_arrivals: int = sum(
             arrival < window.warmup_seconds for arrival in trace.arrival_times_seconds
