@@ -1,0 +1,50 @@
+name: Mutation tests
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - .github/workflows/mutation.yml
+      - pyproject.toml
+      - src/domain/models/base_constraints.py
+      - tests/unit/domain/test_numeric_requirements.py
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Mutmut domain pilot
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked project dependencies
+        run: uv sync --locked --all-groups
+      - name: Run focused mutation tests
+        run: uv run --with mutmut==3.7.0 mutmut run --max-children 2
+      - name: Show mutation results
+        if: always()
+        run: uv run --with mutmut==3.7.0 mutmut results
+      - name: Upload mutation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-results
+          path: |
+            mutants/mutmut-stats.json
+            mutants/src/domain/models/base_constraints.py.meta
+          if-no-files-found: error

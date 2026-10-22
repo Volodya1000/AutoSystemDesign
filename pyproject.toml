@@ -133,6 +133,13 @@ disable = [
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.mutmut]
+# Ограниченный пилот: проверяем доменную логику численных требований.
+source_paths = ["src/"]
+only_mutate = ["src/domain/models/base_constraints.py"]
+also_copy = ["scripts/", "scenarios/", "config.yaml"]
+pytest_add_cli_args_test_selection = ["tests/unit"]
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 

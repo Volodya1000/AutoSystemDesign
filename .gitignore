@@ -21,6 +21,11 @@ dist/
 
 output/
 
+# Mutation-testing output
+mutants/
+.mutmut-cache/
+.mutmut-cache
+
 # Coverage reports
 .coverage
 .coverage.*
