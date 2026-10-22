@@ -17,7 +17,9 @@ if TYPE_CHECKING:
 class SimulationEngineProtocol(Protocol):
     """Execute deterministic and horizon-limited single-node traces."""
 
-    def simulate(self, plan: SingleNodeSimulationPlan) -> SingleNodeSimulationResult: ...
+    def simulate(
+        self, plan: SingleNodeSimulationPlan
+    ) -> SingleNodeSimulationResult: ...
 
     def simulate_window(
         self, plan: SingleNodeSimulationPlan, window: SimulationWindow
