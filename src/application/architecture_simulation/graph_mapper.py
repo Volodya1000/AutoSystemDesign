@@ -6,7 +6,7 @@ from application.architecture_simulation.simulation_graph_validator import Simul
 from domain.architecture_simulation.graph_plan import GraphSimulationPlan, SimulatedConnection, SimulatedResource
 from domain.models.edges import Edge
 from domain.models.nodes import CacheNode, CapacityNode, ClientNode, MessageBrokerNode
-from domain.models.scenarios import DesignScenario
+from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import AnyNode, ArchitectureGraph
 
 
@@ -17,7 +17,7 @@ class ArchitectureSimulationPlanMapper:
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> GraphSimulationPlan:
         """Validate topology before converting timings from milliseconds."""
-        workload = scenario.workload
+        workload: WorkloadProfile | None = scenario.workload
         if workload is None:
             raise GraphMappingError(
                 MappingFailure.MISSING_WORKLOAD, scenario.identifier
