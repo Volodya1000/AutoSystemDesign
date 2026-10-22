@@ -113,7 +113,10 @@ def test_pdf_omits_unassessed_diagnostics_while_preserving_json() -> None:
 
     assert "[warning]" not in text
     assert "bounded_queue_unmodeled" not in text
-    assert report.findings[0].finding_code is PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED
+    assert (
+        report.findings[0].finding_code
+        is PerformanceFindingCode.BOUNDED_QUEUE_UNMODELED
+    )
     assert report.findings[0].title not in text
 
 
@@ -132,10 +135,7 @@ def test_pdf_keeps_request_source_outside_processing_table() -> None:
             BytesIO(PerformanceReportPdfRenderer().render(report))
         ).pages
     )
-    table_content = text.split("Показатели компонентов", 1)[1]
-    table_content = table_content.split("Все значения", 1)[0]
-
-    assert "client" not in table_content
+    assert text.count("client") == 1
     assert "Критический путь: client" in text
 
 
