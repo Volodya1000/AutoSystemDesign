@@ -78,7 +78,7 @@ def main() -> PipelineExitCode:
         scenario: DesignScenario = _load_scenario(args.scenario)
     except ValidationError as error:
         _log_scenario_validation_errors(args.scenario, error)
-        return 2
+        return PipelineExitCode.INPUT_OR_CONNECTION_ERROR
     except (OSError, yaml.YAMLError):
         _logger.exception("Scenario error")
         return PipelineExitCode.INPUT_OR_CONNECTION_ERROR
