@@ -84,4 +84,3 @@ class SimulationGraphValidator:
             missing: str = min(set(nodes) - reachable)
             raise GraphMappingError(MappingFailure.DISCONNECTED, missing)
         return result
-
