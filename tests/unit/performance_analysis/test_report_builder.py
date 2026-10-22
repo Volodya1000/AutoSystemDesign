@@ -64,6 +64,11 @@ def test_report_reuses_existing_capacity_calculation() -> None:
     )
 
     assert report.scenario_identifier == "capacity_report"
+    assert report.schema_version == "1.1"
+    assert report.workload is not None
+    assert report.workload.baseline_requests_per_second == pytest.approx(12.5)
+    assert report.workload.peak_requests_per_second == pytest.approx(25.0)
+    assert report.workload.analyzed_profile == "peak"
     assert report.status is PerformanceAnalysisStatus.PARTIAL
     assert client_metrics.node_identifier == "client"
     assert client_metrics.incoming_requests_per_second == pytest.approx(25.0)
@@ -150,6 +155,8 @@ def test_missing_workload_does_not_turn_unknown_load_into_zero() -> None:
     )
 
     assert report.status is PerformanceAnalysisStatus.UNAVAILABLE
+    assert report.schema_version == "1.1"
+    assert report.workload is None
     assert service_metrics.incoming_requests_per_second is None
     assert service_metrics.estimated_capacity_requests_per_second == pytest.approx(50.0)
     assert service_metrics.utilization_ratio is None

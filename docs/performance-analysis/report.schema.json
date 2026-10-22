@@ -169,6 +169,34 @@
       ],
       "title": "PerformanceFindingSeverity",
       "type": "string"
+    },
+    "PerformanceLoadContext": {
+      "additionalProperties": false,
+      "description": "Preserve the source workload and the exact profile used by the analysis.",
+      "properties": {
+        "analyzed_profile": {
+          "const": "peak",
+          "default": "peak",
+          "title": "Analyzed Profile",
+          "type": "string"
+        },
+        "baseline_requests_per_second": {
+          "exclusiveMinimum": 0.0,
+          "title": "Baseline Requests Per Second",
+          "type": "number"
+        },
+        "peak_requests_per_second": {
+          "exclusiveMinimum": 0.0,
+          "title": "Peak Requests Per Second",
+          "type": "number"
+        }
+      },
+      "required": [
+        "baseline_requests_per_second",
+        "peak_requests_per_second"
+      ],
+      "title": "PerformanceLoadContext",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -216,14 +244,29 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "1.0",
       "default": "1.0",
       "description": "Version of the published performance JSON contract. Legacy payloads without this field are interpreted as 1.0.",
+      "enum": [
+        "1.0",
+        "1.1"
+      ],
       "title": "Schema Version",
       "type": "string"
     },
     "status": {
       "$ref": "#/$defs/PerformanceAnalysisStatus"
+    },
+    "workload": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PerformanceLoadContext"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Original baseline and peak workload with the analyzed profile. Added in version 1.1; absent in legacy reports."
     }
   },
   "required": [

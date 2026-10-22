@@ -14,6 +14,7 @@ from domain.performance_analysis.report import (
     PerformanceFinding,
     PerformanceFindingCode,
     PerformanceFindingSeverity,
+    PerformanceLoadContext,
 )
 from domain.specifications.capacity_validator import (
     SATURATION_THRESHOLD,
@@ -51,6 +52,7 @@ def build_performance_analysis_report(
     if scenario.workload is None:
         return PerformanceAnalysisReport(
             scenario_identifier=scenario.identifier,
+            schema_version="1.1",
             status=PerformanceAnalysisStatus.UNAVAILABLE,
             nodes=[
                 NodePerformanceMetrics(
@@ -91,6 +93,11 @@ def build_performance_analysis_report(
 
     return PerformanceAnalysisReport(
         scenario_identifier=scenario.identifier,
+        schema_version="1.1",
+        workload=PerformanceLoadContext(
+            baseline_requests_per_second=scenario.workload.baseline_requests_per_second,
+            peak_requests_per_second=scenario.workload.peak_requests_per_second,
+        ),
         status=(
             PerformanceAnalysisStatus.PARTIAL
             if (

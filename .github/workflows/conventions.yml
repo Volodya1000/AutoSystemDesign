@@ -2,8 +2,6 @@ name: PR conventions and changelog
 
 on:
   pull_request:
-    branches:
-      - master
     types: [opened, synchronize, edited, reopened]
 
 permissions:

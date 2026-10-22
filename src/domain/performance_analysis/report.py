@@ -114,6 +114,16 @@ class PerformanceFinding(BaseModel):
     )
 
 
+class PerformanceLoadContext(BaseModel):
+    """Preserve the source workload and the exact profile used by the analysis."""
+
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    baseline_requests_per_second: float = Field(gt=0.0)
+    peak_requests_per_second: float = Field(gt=0.0)
+    analyzed_profile: Literal["peak"] = "peak"
+
+
 class PerformanceAnalysisReport(BaseModel):
     """Collect the machine-readable performance analysis result for a scenario.
 
@@ -125,7 +135,7 @@ class PerformanceAnalysisReport(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
     scenario_identifier: str = Field(min_length=1)
-    schema_version: Literal["1.0"] = Field(
+    schema_version: Literal["1.0", "1.1"] = Field(
         default="1.0",
         description=(
             "Version of the published performance JSON contract. "
@@ -133,6 +143,13 @@ class PerformanceAnalysisReport(BaseModel):
         ),
     )
     status: PerformanceAnalysisStatus
+    workload: PerformanceLoadContext | None = Field(
+        default=None,
+        description=(
+            "Original baseline and peak workload with the analyzed profile. "
+            "Added in version 1.1; absent in legacy reports."
+        ),
+    )
     nodes: list[NodePerformanceMetrics] = Field(default_factory=list)
     findings: list[PerformanceFinding] = Field(default_factory=list)
     estimated_longest_synchronous_path_mean_milliseconds: float | None = Field(

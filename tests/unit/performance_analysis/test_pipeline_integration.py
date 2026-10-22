@@ -144,6 +144,9 @@ def test_linear_mm1_metrics_match_hand_calculation_in_json_and_pdf(
     ]
     assert all(outcome.status is StageStatus.SUCCEEDED for outcome in reporter.outcomes)
     assert report.status is PerformanceAnalysisStatus.PARTIAL
+    assert report.schema_version == "1.1"
+    assert report.workload is not None
+    assert report.workload.analyzed_profile == "peak"
     service = next(node for node in report.nodes if node.node_identifier == "service")
     assert service.incoming_requests_per_second == pytest.approx(10.0)
     assert service.estimated_capacity_requests_per_second == pytest.approx(20.0)
@@ -160,6 +163,8 @@ def test_linear_mm1_metrics_match_hand_calculation_in_json_and_pdf(
     assert "100.00" in pdf_text
     assert "101.00" in pdf_text
     assert "Начало пути" in pdf_text
+    assert "Нагрузка: базовая 10.00 запр./с" in pdf_text
+    assert "Максимальная расчётная загрузка: service" in pdf_text
     assert "Среднее время в узле: 100.00 мс" in pdf_text
     assert "Предупреждение" not in pdf_text
     assert (tmp_path / "architecture_graph.json").is_file()

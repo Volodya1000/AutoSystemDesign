@@ -14,6 +14,7 @@ from domain.performance_analysis.report import (
     PerformanceFinding,
     PerformanceFindingCode,
     PerformanceFindingSeverity,
+    PerformanceLoadContext,
 )
 
 pytestmark = pytest.mark.unit
@@ -145,3 +146,25 @@ def test_old_report_json_defaults_new_optional_path_fields() -> None:
 
     assert restored.estimated_longest_synchronous_path_mean_milliseconds is None
     assert restored.critical_path_node_identifiers == []
+
+
+def test_version_1_1_context_round_trip_and_legacy_v1_supported() -> None:
+    modern = PerformanceAnalysisReport(
+        scenario_identifier="modern",
+        schema_version="1.1",
+        status=PerformanceAnalysisStatus.PARTIAL,
+        workload=PerformanceLoadContext(
+            baseline_requests_per_second=20.0,
+            peak_requests_per_second=60.0,
+        ),
+    )
+    restored = PerformanceAnalysisReport.model_validate_json(modern.model_dump_json())
+    legacy = PerformanceAnalysisReport.model_validate_json(
+        '{"scenario_identifier":"legacy","schema_version":"1.0","status":"partial"}'
+    )
+
+    assert restored == modern
+    assert restored.workload is not None
+    assert restored.workload.analyzed_profile == "peak"
+    assert legacy.schema_version == "1.0"
+    assert legacy.workload is None
