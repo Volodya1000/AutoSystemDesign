@@ -8,7 +8,10 @@ from application.architecture_simulation.graph_mapper import (
     GraphMappingError,
     MappingFailure,
 )
-from domain.architecture_simulation.graph_plan import GraphSimulationPlan
+from domain.architecture_simulation.graph_plan import (
+    GraphSimulationPlan,
+    SimulatedResource,
+)
 from domain.models.edges import Edge
 from domain.models.enums import EdgeRoutingMode
 from domain.models.nodes import (
@@ -237,7 +240,7 @@ def test_plan_json_round_trip() -> None:
 
 def test_non_finite_resource_times_are_rejected_by_contract() -> None:
     plan: GraphSimulationPlan = _map(_graph())
+    invalid_payload: dict[str, object] = plan.resources[0].model_dump()
+    invalid_payload["mean_service_seconds"] = float("inf")
     with pytest.raises(ValidationError):
-        plan.resources[0].model_copy(
-            update={"mean_service_seconds": float("inf")}
-        ).model_validate(plan.resources[0].model_dump())
+        SimulatedResource.model_validate(invalid_payload)
