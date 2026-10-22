@@ -69,9 +69,7 @@ def critical_path_diagram(
     ]
     for index, identifier in enumerate(report.critical_path_node_identifiers):
         node: NodePerformanceMetrics | None = metrics_by_id.get(identifier)
-        details: list[Flowable] = [
-            Paragraph(escape(identifier), styles["path_node"])
-        ]
+        details: list[Flowable] = [Paragraph(escape(identifier), styles["path_node"])]
         if index == 0 and (
             node is None or node.estimated_capacity_requests_per_second is None
         ):
