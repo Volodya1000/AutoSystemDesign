@@ -75,7 +75,7 @@ class SimulationGraphValidator:
         reachable: set[str] = {client_identifier}
         queue: list[str] = [client_identifier]
         while queue:
-            current = queue.pop()
+            current: str = queue.pop()
             for target in outgoing[current]:
                 if target not in reachable:
                     reachable.add(target)
