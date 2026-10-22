@@ -5,9 +5,9 @@ from pydantic import ValidationError
 
 from application.architecture_simulation.graph_mapper import (
     ArchitectureSimulationPlanMapper,
-    GraphMappingError,
-    MappingFailure,
 )
+from application.architecture_simulation.graph_mapping_errors import GraphMappingError
+from application.architecture_simulation.mapping_failures import MappingFailure
 from domain.architecture_simulation.graph_plan import (
     GraphSimulationPlan,
     SimulatedResource,
