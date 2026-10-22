@@ -151,7 +151,7 @@ def test_pdf_keeps_request_source_outside_processing_table() -> None:
         ).pages
     )
     assert text.count("client") == 1
-    assert "Критический путь: client" in text
+    assert "Начало пути" in text
 
 
 def test_repeated_headroom_diagnostics_are_not_echoed_in_pdf() -> None:
@@ -227,3 +227,83 @@ def test_confirmed_overload_is_visible_without_unrelated_warning() -> None:
     assert overload.title in text
     assert overload.description in text
     assert report.findings[0].title not in text
+
+
+@pytest.mark.parametrize("node_count", [1, 3, 15])
+def test_vertical_path_keeps_node_order_and_values(node_count: int) -> None:
+    """Typed steps remain ordered and long paths span A4 pages."""
+    identifiers: list[str] = ["client"] + [
+        f"service_{index}" for index in range(node_count - 1)
+    ]
+    report = PerformanceAnalysisReport(
+        scenario_identifier="vertical_path",
+        status=PerformanceAnalysisStatus.PARTIAL,
+        critical_path_node_identifiers=identifiers,
+        estimated_longest_synchronous_path_mean_milliseconds=10.0,
+        nodes=[
+            NodePerformanceMetrics(node_identifier="client"),
+            *[
+                NodePerformanceMetrics(
+                    node_identifier=identifier,
+                    estimated_capacity_requests_per_second=100.0,
+                    estimated_mean_queue_wait_milliseconds=2.0,
+                    estimated_mean_response_time_milliseconds=10.0,
+                )
+                for identifier in identifiers[1:]
+            ],
+        ],
+    )
+
+    reader = PdfReader(BytesIO(PerformanceReportPdfRenderer().render(report)))
+    text = "\n".join(page.extract_text() for page in reader.pages)
+
+    assert "Путь сверху вниз" in text
+    assert "Начало пути" in text
+    assert text.count("Из них ожидание: 2.00 мс") == node_count - 1
+    for index in range(len(identifiers) - 1):
+        assert text.find(identifiers[index]) < text.find(identifiers[index + 1])
+    if node_count == 15:
+        assert len(reader.pages) > 1
+        assert sum("Путь сверху вниз" in (p.extract_text() or "") for p in reader.pages) > 1
+
+
+def test_long_path_identifier_wraps_without_truncation() -> None:
+    """A long identifier survives PDF extraction without losing its tail."""
+    long_identifier = "service_" + "очень_длинный_" * 18 + "окончание"
+    report = PerformanceAnalysisReport(
+        scenario_identifier="long_path",
+        status=PerformanceAnalysisStatus.PARTIAL,
+        critical_path_node_identifiers=["client", long_identifier],
+        estimated_longest_synchronous_path_mean_milliseconds=22.0,
+        nodes=[
+            NodePerformanceMetrics(node_identifier="client"),
+            NodePerformanceMetrics(
+                node_identifier=long_identifier,
+                estimated_capacity_requests_per_second=100.0,
+                estimated_mean_response_time_milliseconds=20.0,
+            ),
+        ],
+    )
+    reader = PdfReader(BytesIO(PerformanceReportPdfRenderer().render(report)))
+    text = "\n".join(page.extract_text() for page in reader.pages)
+
+    assert "окончание" in text
+    assert "20.00 мс" in text
+    assert all(float(page.mediabox.width) < 610 for page in reader.pages)
+
+
+def test_missing_path_does_not_show_empty_diagram() -> None:
+    report = PerformanceAnalysisReport(
+        scenario_identifier="missing_path",
+        status=PerformanceAnalysisStatus.UNAVAILABLE,
+        critical_path_node_identifiers=[],
+    )
+    text = "\n".join(
+        page.extract_text()
+        for page in PdfReader(
+            BytesIO(PerformanceReportPdfRenderer().render(report))
+        ).pages
+    )
+
+    assert "Путь сверху вниз" not in text
+    assert "Для этого сценария расчётных показателей нет." in text
