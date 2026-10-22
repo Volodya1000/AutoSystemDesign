@@ -24,6 +24,7 @@ from infrastructure.architecture_simulation.linear_graph_engine import (
 )
 from tests.unit.architecture_simulation.factories import (
     make_cache,
+    make_cache_graph,
     make_compute,
     make_database,
     make_edge,
@@ -34,23 +35,6 @@ if TYPE_CHECKING:
     from domain.architecture_simulation.graph_plan import GraphSimulationPlan
 
 pytestmark = pytest.mark.unit
-
-
-def _cache_graph(hit_probability: float) -> ArchitectureGraph:
-    """Model cache reads and database misses as sibling compute edges."""
-    return ArchitectureGraph(
-        nodes=[
-            ClientNode(identifier="web"),
-            make_compute(std_milliseconds=0),
-            make_cache(hit_probability),
-            make_database(),
-        ],
-        edges=[
-            make_edge("web", "api"),
-            make_edge("api", "cache"),
-            make_edge("api", "db"),
-        ],
-    )
 
 
 def _simulate(
@@ -89,7 +73,7 @@ def test_c4_analytics_and_simpy_agree_on_cache_misses(
     hit_probability: float, expected_db_fraction: float
 ) -> None:
     """Each lookup reaches cache; only misses reach its sibling DB edge."""
-    graph: ArchitectureGraph = _cache_graph(hit_probability)
+    graph: ArchitectureGraph = make_cache_graph(hit_probability)
     assert StructuralTopologyValidator().validate(graph).is_successful
     assert CacheUsageValidator().validate(graph).is_successful
 
@@ -169,7 +153,7 @@ def test_multiple_cache_readers_keep_separate_fallbacks_and_root_identity() -> N
 
 def test_legacy_cache_to_database_edge_is_not_a_valid_c4_contract() -> None:
     """Reject the misleading physical edge instead of changing C4 rules."""
-    graph: ArchitectureGraph = _cache_graph(0.5)
+    graph: ArchitectureGraph = make_cache_graph(0.5)
     graph.edges[-1].source_identifier = "cache"
 
     assert not StructuralTopologyValidator().validate(graph).is_successful
