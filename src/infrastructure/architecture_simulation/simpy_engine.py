@@ -1,45 +1,81 @@
-"""Execute a single-node request trace in SimPy's virtual time.
-
-This adapter owns SimPy resources and scheduling. All inputs and observations
-remain independent of SimPy, so future routing and statistics can use them
-without leaking the simulation framework into the domain.
-"""
+"""Execute FIFO single-node request traces with SimPy virtual time."""
 
 from collections.abc import Generator
 
 import simpy
 
+from application.architecture_simulation.errors import SimulationEventLimitExceeded
 from domain.architecture_simulation.kernel import (
     CompletedRequestObservation,
     ScheduledRequest,
+    SimulationWindow,
     SingleNodeSimulationPlan,
     SingleNodeSimulationResult,
+    WindowSimulationResult,
 )
 
 
 class SimPySingleNodeEngine:
-    """Run a finite deterministic trace on a FIFO resource with c channels."""
+    """Simulate a resource with one or more identical FIFO channels."""
 
     def simulate(self, plan: SingleNodeSimulationPlan) -> SingleNodeSimulationResult:
-        """Drain scheduled requests and preserve original input ordering."""
+        """Drain a deterministic schedule and preserve its original order."""
+        environment, completed = self._prepare(plan)
+        environment.run()
+        observations: list[CompletedRequestObservation] = [
+            completed[index] for index in range(len(plan.requests))
+        ]
+        return SingleNodeSimulationResult(observations=observations)
+
+    def simulate_window(
+        self, plan: SingleNodeSimulationPlan, window: SimulationWindow
+    ) -> WindowSimulationResult:
+        """End before the horizon and retain censored measured requests."""
+        environment, completed = self._prepare(plan)
+        event_count: int = 0
+        while environment.peek() < window.horizon_seconds:
+            if event_count >= window.max_events:
+                raise SimulationEventLimitExceeded(
+                    event_limit=window.max_events,
+                    stopped_at_seconds=float(environment.now),
+                )
+            environment.step()
+            event_count += 1
+
+        indices: list[int] = [
+            index
+            for index, request in enumerate(plan.requests)
+            if window.warmup_seconds <= request.arrival_seconds < window.horizon_seconds
+        ]
+        observations: list[CompletedRequestObservation] = [
+            completed[index] for index in indices if index in completed
+        ]
+        warmup_arrivals: int = sum(
+            request.arrival_seconds < window.warmup_seconds for request in plan.requests
+        )
+        return WindowSimulationResult(
+            observations=observations,
+            measured_arrivals=len(indices),
+            unfinished=len(indices) - len(observations),
+            warmup_arrivals=warmup_arrivals,
+        )
+
+    def _prepare(
+        self, plan: SingleNodeSimulationPlan
+    ) -> tuple[simpy.Environment, dict[int, CompletedRequestObservation]]:
+        """Schedule all input arrivals in a fresh SimPy environment."""
         environment: simpy.Environment = simpy.Environment()
         resource: simpy.Resource = simpy.Resource(
             environment, capacity=plan.service_channels
         )
         completed: dict[int, CompletedRequestObservation] = {}
-
         index: int
         request: ScheduledRequest
         for index, request in enumerate(plan.requests):
             environment.process(
                 self._serve(environment, resource, index, request, completed)
             )
-
-        environment.run()
-        observations: list[CompletedRequestObservation] = [
-            completed[index] for index in range(len(plan.requests))
-        ]
-        return SingleNodeSimulationResult(observations=observations)
+        return environment, completed
 
     @staticmethod
     def _serve(

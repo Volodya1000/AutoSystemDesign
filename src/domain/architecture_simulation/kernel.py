@@ -68,3 +68,57 @@ class SingleNodeSimulationResult(SimulationKernelModel):
     """Collect completed observations in original input order."""
 
     observations: list[CompletedRequestObservation] = Field(default_factory=list)
+
+
+class SimulationWindow(SimulationKernelModel):
+    """Describe a warm-up, measured interval, and execution budget."""
+
+    warmup_seconds: float = Field(ge=0)
+    measurement_seconds: float = Field(gt=0)
+    max_events: int = Field(gt=0)
+
+    @property
+    def horizon_seconds(self) -> float:
+        """Calculate the stopping point in virtual seconds."""
+        return self.warmup_seconds + self.measurement_seconds
+
+
+class WindowSimulationResult(SimulationKernelModel):
+    """Account for completed and censored requests from the measured cohort."""
+
+    observations: list[CompletedRequestObservation] = Field(default_factory=list)
+    measured_arrivals: int = Field(ge=0)
+    unfinished: int = Field(ge=0)
+    warmup_arrivals: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def check_cohort_accounting(self) -> Self:
+        """Ensure that no measured request disappears from the denominator."""
+        if len(self.observations) + self.unfinished != self.measured_arrivals:
+            message = "measured arrivals must equal completed plus unfinished"
+            raise ValueError(message)
+        return self
+
+
+class StochasticSingleNodePlan(SimulationKernelModel):
+    """Specify Poisson arrivals and Gamma or constant service moments."""
+
+    service_channels: int = Field(ge=1)
+    arrival_rate_per_second: float = Field(ge=0)
+    mean_service_seconds: float = Field(gt=0)
+    std_service_seconds: float = Field(ge=0)
+
+
+class ReplicationResult(SimulationKernelModel):
+    """Retain one observation window and its independent pseudorandom streams."""
+
+    index: int = Field(ge=0)
+    arrival_seed: int = Field(ge=0)
+    service_seed: int = Field(ge=0)
+    window_result: WindowSimulationResult
+
+
+class StochasticExperimentResult(SimulationKernelModel):
+    """Keep replications separate until statistical aggregation is defined."""
+
+    replications: list[ReplicationResult] = Field(default_factory=list)
