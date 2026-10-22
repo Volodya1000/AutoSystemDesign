@@ -24,7 +24,7 @@ from infrastructure.visualisation.plantuml.models import (
     DiagramArtifacts,
     DiagramImageFormat,
 )
-from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder
+from infrastructure.visualisation.plantuml.protocols import DiagramSourceBuilderProtocol
 from infrastructure.visualisation.plantuml.renderer import (
     AUTO_SERVER_SELECTION,
     KROKI_PUBLIC_SERVER_URL,
@@ -32,7 +32,7 @@ from infrastructure.visualisation.plantuml.renderer import (
     DiagramRenderingError,
     FallbackImageRenderer,
     KrokiImageRenderer,
-    PlantumlImageRenderer,
+    PlantumlImageRendererProtocol,
     PlantumlServerImageRenderer,
     resolve_image_renderer,
 )
@@ -55,10 +55,10 @@ __all__ = [
     "DiagramRenderingError",
     "DiagramSavingError",
     "DiagramService",
-    "DiagramSourceBuilder",
+    "DiagramSourceBuilderProtocol",
     "FallbackImageRenderer",
     "KrokiImageRenderer",
-    "PlantumlImageRenderer",
+    "PlantumlImageRendererProtocol",
     "PlantumlServerImageRenderer",
     "SequenceDiagramBuilder",
     "build_kroki_url",

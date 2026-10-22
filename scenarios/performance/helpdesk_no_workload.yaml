@@ -1,0 +1,17 @@
+identifier: helpdesk_no_workload
+description: "Helpdesk flow intentionally missing any measured workload profile"
+requirements:
+  - type_identifier: availability
+    threshold_value: 99.0
+    operator: ">="
+functional_requirements:
+  - identifier: ticket_create
+    name: "Open helpdesk ticket"
+    text: >
+      An employee creates a ticket with a description and priority.
+      The service assigns an identifier and stores ticket history.
+  - identifier: ticket_status
+    name: "Check ticket status"
+    text: >
+      An employee reads the current state of their ticket and its
+      processing history without accessing tickets belonging to others.

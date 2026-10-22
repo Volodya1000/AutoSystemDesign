@@ -17,11 +17,11 @@ if TYPE_CHECKING:
     from domain.models.topology import ArchitectureGraph
 
 
-class DesignGenerator(Protocol):
+class DesignGeneratorProtocol(Protocol):
     def generate(self, scenario: DesignScenario) -> DesignGenerationResult: ...
 
 
-class SequenceGenerator(Protocol):
+class SequenceGeneratorProtocol(Protocol):
     def generate(
         self,
         scenario: DesignScenario,
@@ -29,7 +29,7 @@ class SequenceGenerator(Protocol):
     ) -> SequenceGenerationResult: ...
 
 
-class ApiGenerator(Protocol):
+class ApiGeneratorProtocol(Protocol):
     def generate(
         self,
         scenario: DesignScenario,

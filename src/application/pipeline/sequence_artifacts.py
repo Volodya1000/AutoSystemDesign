@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from application.pipeline.context import StageContext
     from application.pipeline.outcome import DiagramRenderResult
-    from application.pipeline.ports import DiagramRenderer
+    from application.pipeline.protocols import DiagramRendererProtocol
     from domain.models.roles import ProjectRolesCatalog
     from domain.models.sequence import InteractionScenario
     from domain.models.topology import ArchitectureGraph
@@ -27,9 +27,11 @@ class SequenceArtifactProcessor:
 
     def __init__(
         self,
-        renderer: DiagramRenderer[SequenceDiagramSubject] | None,
+        renderer: DiagramRendererProtocol[SequenceDiagramSubject] | None,
     ) -> None:
-        self._renderer: DiagramRenderer[SequenceDiagramSubject] | None = renderer
+        self._renderer: DiagramRendererProtocol[SequenceDiagramSubject] | None = (
+            renderer
+        )
 
     @staticmethod
     def persist_roles_catalog(

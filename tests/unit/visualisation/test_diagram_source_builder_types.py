@@ -1,9 +1,9 @@
 """Static regression tests for diagram source builder subject types."""
 
+from importlib import import_module
 from pathlib import Path
 
 import pytest
-from mypy import api as mypy_api
 
 pytestmark = pytest.mark.unit
 
@@ -20,13 +20,16 @@ def test_mypy_rejects_builder_for_the_wrong_subject_type(
         "from application.pipeline.diagram_subjects import SequenceDiagramSubject\n"
         "from infrastructure.visualisation.plantuml.c4_container_builder "
         "import C4ContainerDiagramBuilder\n"
-        "from infrastructure.visualisation.plantuml.ports import DiagramSourceBuilder\n"
-        "builder: DiagramSourceBuilder[SequenceDiagramSubject] = "
+        "from infrastructure.visualisation.plantuml.protocols "
+        "import DiagramSourceBuilderProtocol\n"
+        "builder: DiagramSourceBuilderProtocol[SequenceDiagramSubject] = "
         "C4ContainerDiagramBuilder()\n",
         encoding="utf-8",
     )
 
-    stdout, stderr, exit_status = mypy_api.run(
+    mypy_api = import_module("mypy.api")
+    mypy_run = mypy_api.run
+    stdout, stderr, exit_status = mypy_run(
         [
             "--config-file",
             str(repo_root / "pyproject.toml"),

@@ -1,4 +1,5 @@
 import math
+from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -11,6 +12,10 @@ from domain.models.enums import Operator
 
 class BaseRequirement(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    # Признак необходимого входного профиля, не поле YAML/JSON сценария.
+    # Расширения задают его в конкретном типе требования.
+    requires_workload: ClassVar[bool] = False
 
     def is_met_requirement(self, actual_value: float) -> bool:
         raise NotImplementedError()

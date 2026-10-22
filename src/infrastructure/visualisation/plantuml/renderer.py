@@ -52,7 +52,7 @@ class DiagramRenderingError(Exception):
         return cls("All diagram servers failed: " + "; ".join(failures))
 
 
-class PlantumlImageRenderer(Protocol):
+class PlantumlImageRendererProtocol(Protocol):
     """Port: turns PlantUML source into images.
 
     `build_image_url` is a pure offline computation and is safe to call
@@ -188,10 +188,10 @@ class FallbackImageRenderer:
     always point at the preferred server.
     """
 
-    def __init__(self, renderers: Sequence[PlantumlImageRenderer]) -> None:
+    def __init__(self, renderers: Sequence[PlantumlImageRendererProtocol]) -> None:
         if not renderers:
             raise RendererConfigurationError
-        self._renderers: tuple[PlantumlImageRenderer, ...] = tuple(renderers)
+        self._renderers: tuple[PlantumlImageRendererProtocol, ...] = tuple(renderers)
 
     def build_image_url(self, source: str, image_format: DiagramImageFormat) -> str:
         """Return the image URL of the primary renderer."""
@@ -200,7 +200,7 @@ class FallbackImageRenderer:
     def render(self, source: str, image_format: DiagramImageFormat) -> bytes:
         """Render through the first server that responds successfully."""
         failures: list[str] = []
-        renderer: PlantumlImageRenderer
+        renderer: PlantumlImageRendererProtocol
         for renderer in self._renderers:
             try:
                 image_bytes: bytes = renderer.render(source, image_format)
@@ -212,7 +212,7 @@ class FallbackImageRenderer:
         raise DiagramRenderingError.all_servers_failed(failures)
 
 
-def resolve_image_renderer(server: str) -> PlantumlImageRenderer:
+def resolve_image_renderer(server: str) -> PlantumlImageRendererProtocol:
     """Build the renderer for a server selection string.
 
     Supported selections:

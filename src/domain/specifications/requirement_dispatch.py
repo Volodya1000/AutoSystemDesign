@@ -13,6 +13,12 @@ from domain.exceptions.model_validation_errors import (
     ModelValidationCode,
     ModelValidationError,
 )
+from domain.models.requirement_coverage import (
+    RequirementAssessment,
+    RequirementCheckReason,
+    RequirementCheckStatus,
+    requirement_identifier,
+)
 from domain.specifications.interfaces import (
     RequirementValidator,
     ScenarioValidator,
@@ -31,9 +37,11 @@ if TYPE_CHECKING:
 class RequirementValidationDispatcher(ScenarioValidator):
     """Adapts a set of RequirementValidator instances into one ScenarioValidator.
 
-    Requirements without a registered validator are silently skipped, so
-    partially supported scenarios keep working: adding support for a new
-    requirement kind means registering one more validator, nothing else.
+    Requirements without a registered validator produce non-blocking,
+    traceable NOT_EVALUATED assessments. Validation errors still drive repair.
+
+    A heterogeneous registry needs an erased generic parameter at lookup.
+    Runtime matching by exact requirement class guards the validator call.
     """
 
     def __init__(self, validators: Sequence[RequirementValidator[Any]]) -> None:
@@ -51,11 +59,40 @@ class RequirementValidationDispatcher(ScenarioValidator):
     def validate(
         self, graph: ArchitectureGraph, scenario: DesignScenario
     ) -> ValidationResult:
-        """Run every requirement through its registered validator, in order."""
+        """Run each distinct requirement occurrence, preserving its identity."""
         errors: list[ArchitectureValidationError] = []
-        for requirement in scenario.requirements:
-            validator = self._by_type.get(type(requirement))
+        assessments: list[RequirementAssessment] = []
+        for index, requirement in enumerate(scenario.requirements):
+            identifier: str = requirement_identifier(index)
+            kind: str = requirement.type_identifier
+            validator: RequirementValidator[Any] | None = self._by_type.get(
+                type(requirement)
+            )
             if validator is None:
+                reason: RequirementCheckReason = RequirementCheckReason.NO_VALIDATOR
+                if scenario.workload is None and requirement.requires_workload:
+                    reason = RequirementCheckReason.MISSING_WORKLOAD
+                assessments.append(
+                    RequirementAssessment.not_evaluated(
+                        identifier=identifier, kind=kind, reason=reason
+                    )
+                )
                 continue
-            errors.extend(validator.validate(graph, requirement))
-        return ValidationResult(errors=errors)
+
+            violations: list[ArchitectureValidationError] = validator.validate(
+                graph, requirement
+            )
+            errors.extend(violations)
+            assessments.append(
+                RequirementAssessment(
+                    requirement_identifier=identifier,
+                    type_identifier=kind,
+                    status=(
+                        RequirementCheckStatus.VIOLATED
+                        if violations
+                        else RequirementCheckStatus.SATISFIED
+                    ),
+                    validator_identifier=type(validator).__name__,
+                )
+            )
+        return ValidationResult(errors=errors, requirement_assessments=assessments)

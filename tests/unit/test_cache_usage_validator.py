@@ -1,9 +1,8 @@
 """Unit tests of CacheUsageValidator.
 
-Covers the write-only sink (the exact pattern the live run produced), the
-broken miss path, the correct read+fallback pattern, multiple caches,
-mixed sync/async incoming, and the scope boundaries (fully isolated
-cache belongs to StructuralTopologyValidator).
+Cover write-only caches, missing database miss paths, correct read-through
+patterns, multiple readers, mixed synchronous/asynchronous incoming edges,
+and the structural validator's responsibility for isolated nodes.
 """
 
 from __future__ import annotations
@@ -11,6 +10,7 @@ from __future__ import annotations
 import pytest
 
 from domain.exceptions.architecture_errors import (
+    AmbiguousCacheMissPathError,
     CacheMissPathMissingError,
     CacheWriteOnlySinkError,
 )
@@ -29,9 +29,7 @@ from domain.specifications.cache_usage_validator import (
     CacheUsageValidator,
 )
 from domain.specifications.structural_validator import StructuralTopologyValidator
-from tests.unit.test_structural_validator import (
-    create_test_node,
-)
+from tests.factories import create_test_node
 
 pytestmark = pytest.mark.unit
 
@@ -98,8 +96,8 @@ def _graph(*nodes: AnyNode, edges: list[Edge]) -> ArchitectureGraph:
 
 
 class TestCacheWithReadAndFallback:
-    def test_sync_read_and_compute_fallback_is_accepted(self) -> None:
-        """Canonical pattern: compute reads cache, misses go to database."""
+    def test_sync_read_and_compute_database_fallback_is_accepted(self) -> None:
+        """Canonical pattern: compute -> cache and compute -> database."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             _compute("processor"),
@@ -113,9 +111,11 @@ class TestCacheWithReadAndFallback:
         )
 
         result = CacheUsageValidator().validate(graph)
+        structural_result = StructuralTopologyValidator().validate(graph)
 
         assert result.is_successful is True
         assert result.errors == []
+        assert structural_result.is_successful is True
 
     def test_mixed_sync_and_async_incoming_is_accepted(self) -> None:
         """Read-through plus write-behind: both edges present, no error."""
@@ -186,12 +186,13 @@ class TestWriteOnlySink:
 
 
 class TestMissPathMissing:
-    def test_sync_read_without_fallback_is_rejected(self) -> None:
-        """Compute reads cache, but its only outgoing edge IS the cache edge."""
+    def test_sync_read_without_cache_miss_path_is_rejected(self) -> None:
+        """Require a database fallback from each synchronous cache reader."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             _compute("processor"),
             _cache("message_cache"),
+            _db("message_db"),
             edges=[
                 _edge("client", "processor", SYNCHRONOUS_REST_HTTP),
                 _edge("processor", "message_cache", SYNCHRONOUS_GRPC),
@@ -209,35 +210,13 @@ class TestMissPathMissing:
         assert "processor" in error.message
         assert "miss" in error.message.lower()
 
-    def test_only_non_cache_outgoing_counts_as_fallback(self) -> None:
-        """A second edge to the SAME cache is not a fallback."""
-        graph = _graph(
-            create_test_node("client", NodeType.CLIENT),
-            _compute("processor"),
-            _cache("message_cache"),
-            edges=[
-                _edge("client", "processor", SYNCHRONOUS_REST_HTTP),
-                _edge("processor", "message_cache", SYNCHRONOUS_GRPC),
-                _edge("processor", "message_cache", ASYNCHRONOUS_MESSAGE_QUEUE),
-            ],
-        )
-
-        result = CacheUsageValidator().validate(graph)
-
-        assert result.is_successful is False
-        assert any(isinstance(e, CacheMissPathMissingError) for e in result.errors)
-
 
 # -------------------------------------------------- multiple sync readers
 
 
 class TestMultipleSyncReaders:
-    def test_only_compute_without_fallback_is_reported(self) -> None:
-        """Report only the reader without a database fallback.
-
-        Two compute nodes read the same cache; one has a DB fallback, and the other does
-        not.
-        """
+    def test_missing_fallback_is_reported_for_one_reader(self) -> None:
+        """Require a compute-to-database fallback from every cache reader."""
         graph = _graph(
             create_test_node("client", NodeType.CLIENT),
             _compute("producer_a"),
@@ -250,7 +229,6 @@ class TestMultipleSyncReaders:
                 _edge("producer_a", "message_cache", SYNCHRONOUS_GRPC),
                 _edge("producer_b", "message_cache", SYNCHRONOUS_GRPC),
                 _edge("producer_a", "shared_db", SYNCHRONOUS_DATABASE_TCP),
-                # producer_b has NO fallback
             ],
         )
 
@@ -263,6 +241,37 @@ class TestMultipleSyncReaders:
         assert miss_errors[0].affected_node_identifiers == [
             "message_cache",
             "producer_b",
+        ]
+
+
+class TestAmbiguousCacheMissPath:
+    def test_one_compute_cannot_fall_back_for_multiple_caches(self) -> None:
+        graph = _graph(
+            create_test_node("client", NodeType.CLIENT),
+            _compute("processor"),
+            _cache("primary_cache"),
+            _cache("secondary_cache"),
+            _db("message_db"),
+            edges=[
+                _edge("client", "processor", SYNCHRONOUS_REST_HTTP),
+                _edge("processor", "primary_cache", SYNCHRONOUS_GRPC),
+                _edge("processor", "secondary_cache", SYNCHRONOUS_GRPC),
+                _edge("processor", "message_db", SYNCHRONOUS_DATABASE_TCP),
+            ],
+        )
+
+        result = CacheUsageValidator().validate(graph)
+
+        ambiguity_errors = [
+            error
+            for error in result.errors
+            if isinstance(error, AmbiguousCacheMissPathError)
+        ]
+        assert len(ambiguity_errors) == 1
+        assert ambiguity_errors[0].affected_node_identifiers == [
+            "processor",
+            "primary_cache",
+            "secondary_cache",
         ]
 
 

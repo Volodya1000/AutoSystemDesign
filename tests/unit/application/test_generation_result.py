@@ -13,7 +13,7 @@ from domain.exceptions.architecture_errors import IsolatedNodeError
 from domain.models.enums import NodeType
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.interfaces import ValidationResult
-from tests.unit.test_structural_validator import create_test_node
+from tests.factories import create_test_node
 
 pytestmark = pytest.mark.unit
 

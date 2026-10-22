@@ -5,7 +5,6 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from infrastructure.visualisation.plantuml import renderer as renderer_module
 from infrastructure.visualisation.plantuml.models import DiagramImageFormat
 from infrastructure.visualisation.plantuml.renderer import (
     DiagramRenderingError,
@@ -126,7 +125,7 @@ def test_http_renderer_rejects_non_http_url_before_opening(
         del args, kwargs
         raise AssertionError
 
-    monkeypatch.setattr(renderer_module.httpx, "get", unexpected_get)
+    monkeypatch.setattr(httpx, "get", unexpected_get)
     renderer = PlantumlServerImageRenderer(server_url="file://localhost/tmp")
 
     with pytest.raises(ValueError, match="Invalid diagram URL"):
@@ -144,7 +143,7 @@ def test_http_renderer_sets_user_agent_and_returns_response_bytes(
         request = httpx.Request("GET", url)
         return httpx.Response(200, content=b"rendered-image", request=request)
 
-    monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
+    monkeypatch.setattr(httpx, "get", fake_get)
     renderer = PlantumlServerImageRenderer(
         server_url="https://plantuml.example/", timeout_seconds=4.0
     )
@@ -172,7 +171,7 @@ def test_http_renderer_maps_http_errors_to_domain_error(
         message = "Forbidden"
         raise httpx.HTTPStatusError(message, request=request, response=response)
 
-    monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
+    monkeypatch.setattr(httpx, "get", fake_get)
     renderer = PlantumlServerImageRenderer(server_url="https://plantuml.example")
 
     with pytest.raises(DiagramRenderingError, match="HTTP 403"):
@@ -187,7 +186,7 @@ def test_http_renderer_maps_connection_errors_to_domain_error(
         message = "network down"
         raise httpx.ConnectError(message)
 
-    monkeypatch.setattr(renderer_module.httpx, "get", fake_get)
+    monkeypatch.setattr(httpx, "get", fake_get)
     renderer = KrokiImageRenderer(server_url="https://kroki.example")
 
     with pytest.raises(DiagramRenderingError, match="Cannot reach Kroki server"):
