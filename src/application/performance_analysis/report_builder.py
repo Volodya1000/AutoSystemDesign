@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph
 
+
 def build_performance_analysis_report(
     graph: ArchitectureGraph,
     scenario: DesignScenario,
