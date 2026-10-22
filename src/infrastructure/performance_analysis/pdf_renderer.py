@@ -82,6 +82,37 @@ class PerformanceReportPdfRenderer:
                 styles["body"],
             ),
         ]
+        if report.workload is not None:
+            story.append(
+                Paragraph(
+                    "Нагрузка: базовая "
+                    f"{_metric(report.workload.baseline_requests_per_second)} запр./с"
+                    " · пиковая "
+                    f"{_metric(report.workload.peak_requests_per_second)} запр./с"
+                    " (расчёт для пика).",
+                    styles["body"],
+                )
+            )
+        utilizations: list[tuple[float, str]] = sorted(
+            (node.utilization_ratio, node.node_identifier)
+            for node in report.nodes
+            if node.utilization_ratio is not None
+        )
+        if utilizations:
+            maximum_load: float = max(value for value, _ in utilizations)
+            most_loaded: str = next(
+                identifier
+                for value, identifier in utilizations
+                if value == maximum_load
+            )
+            story.append(
+                Paragraph(
+                    "Максимальная расчётная загрузка: "
+                    + escape(most_loaded)
+                    + f" · {maximum_load:.1%}.",
+                    styles["body"],
+                )
+            )
         if report.estimated_longest_synchronous_path_mean_milliseconds is not None:
             story.extend(
                 [
