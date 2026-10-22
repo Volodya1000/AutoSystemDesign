@@ -1,0 +1,58 @@
+name: Performance report demo (offline)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/performance-analysis-report-contract
+    paths:
+      - .github/workflows/performance-report-demo.yml
+      - scripts/run_offline_performance_demo.py
+      - changelog.d/+pr-90-offline-report.misc.md
+
+permissions:
+  contents: read
+
+jobs:
+  offline-performance:
+    name: Offline C4 -> performance JSON / PDF
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@v4
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked dependencies
+        run: uv sync --locked --all-groups
+      - name: Run mathematical and pipeline regression tests
+        run: uv run pytest -m unit tests/unit/performance_analysis
+      - name: Generate four real performance reports without LLM
+        run: uv run python scripts/run_offline_performance_demo.py --out-dir output/performance-demo
+      - name: Verify all four JSON and PDF reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          for scenario in checkout_baseline catalog_read_heavy notifications_spiky helpdesk_no_workload; do
+            options=()
+            if [[ "$scenario" == "helpdesk_no_workload" ]]; then
+              options+=(--expect-status unavailable)
+            fi
+            uv run python scripts/check_performance_acceptance.py \
+              --out-dir "output/performance-demo/$scenario" \
+              --scenario "$scenario" --require-pdf "${options[@]}"
+          done
+      - name: Publish generated reports, fixture C4, and JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-reports-offline
+          path: output/performance-demo/
+          if-no-files-found: error
+          retention-days: 30
