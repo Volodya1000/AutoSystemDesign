@@ -139,7 +139,7 @@ def test_branch_preserves_explicit_routing_modes_without_simulating_them() -> No
     plan: GraphSimulationPlan = _map(graph)
 
     assert plan.resources[1].cache_hit_probability == 0.7
-    assert plan.connections[1].routing_mode == EdgeRoutingMode.FAN_OUT
+    assert plan.connections[0].routing_mode == EdgeRoutingMode.FAN_OUT
 
 
 def test_missing_service_channels_are_not_guessed_from_concurrency() -> None:

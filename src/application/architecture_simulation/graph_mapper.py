@@ -53,7 +53,9 @@ class ArchitectureSimulationPlanMapper:
         """Validate topology before converting timings from milliseconds."""
         workload = scenario.workload
         if workload is None:
-            raise GraphMappingError(MappingFailure.MISSING_WORKLOAD, scenario.identifier)
+            raise GraphMappingError(
+                MappingFailure.MISSING_WORKLOAD, scenario.identifier
+            )
 
         nodes: dict[str, AnyNode] = {}
         node: AnyNode
@@ -177,7 +179,7 @@ class ArchitectureSimulationPlanMapper:
                     reachable.add(target)
                     queue.append(target)
         if reachable != set(nodes):
-            missing: str = sorted(set(nodes) - reachable)[0]
+            missing: str = min(set(nodes) - reachable)
             raise GraphMappingError(MappingFailure.DISCONNECTED, missing)
         return result
 
