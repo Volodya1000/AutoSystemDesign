@@ -50,7 +50,7 @@ class TestAppSettings:
         monkeypatch.setenv("ASD_LLM__MAX_TOKENS", "1024")
         monkeypatch.setenv("ASD_LLM__TIMEOUT_SECONDS", "30.0")
         monkeypatch.setenv("ASD_LLM__STRUCTURED_OUTPUT_MODE", "json_schema")
-        settings: AppSettings = AppSettings()  # type: ignore[call-arg]
+        settings: AppSettings = AppSettings()
         assert settings.base_url == "http://localhost:1234/v1"
         assert settings.api_key.get_secret_value() == "lm-studio"
         assert settings.llm.model == "lm_studio/env-model"
@@ -63,7 +63,7 @@ class TestAppSettings:
             "ASD_BASE_URL=http://localhost:9999/v1\nASD_API_KEY=envfile-key\n",
         )
         _write_config_file(tmp_path, _LLM_YAML)
-        settings: AppSettings = AppSettings()  # type: ignore[call-arg]
+        settings: AppSettings = AppSettings()
         assert settings.base_url == "http://localhost:9999/v1"
         assert settings.api_key.get_secret_value() == "envfile-key"
         assert settings.llm.model == "lm_studio/yaml-model"
@@ -77,7 +77,7 @@ class TestAppSettings:
         )
         _write_config_file(tmp_path, _LLM_YAML)
         monkeypatch.setenv("ASD_BASE_URL", "http://localhost:1234/v1")
-        settings: AppSettings = AppSettings()  # type: ignore[call-arg]
+        settings: AppSettings = AppSettings()
         assert settings.base_url == "http://localhost:1234/v1"
         assert settings.api_key.get_secret_value() == "envfile-key"
 
@@ -86,7 +86,7 @@ class TestAppSettings:
     ) -> None:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, _LLM_YAML + "generation:\n  max_attempts: 7\n")
-        settings: AppSettings = AppSettings()  # type: ignore[call-arg]
+        settings: AppSettings = AppSettings()
         assert settings.llm.model == "lm_studio/yaml-model"
         assert settings.llm.temperature == 0.4
         assert settings.generation.max_attempts == 7
@@ -98,7 +98,7 @@ class TestAppSettings:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, _LLM_YAML)
         monkeypatch.setenv("ASD_LLM__MODEL", "lm_studio/env-model")
-        settings: AppSettings = AppSettings()  # type: ignore[call-arg]
+        settings: AppSettings = AppSettings()
         assert settings.llm.model == "lm_studio/env-model"
         assert settings.llm.temperature == 0.4
 
@@ -108,7 +108,7 @@ class TestAppSettings:
         _set_env_only(monkeypatch)
         (tmp_path / "custom.yaml").write_text(_LLM_YAML, encoding="utf-8")
         monkeypatch.setenv(CONFIG_FILE_ENV_VAR, "custom.yaml")
-        settings: AppSettings = AppSettings()  # type: ignore[call-arg]
+        settings: AppSettings = AppSettings()
         assert settings.llm.model == "lm_studio/yaml-model"
 
     def test_base_url_in_yaml_is_rejected(
@@ -118,7 +118,7 @@ class TestAppSettings:
         _write_config_file(tmp_path, "base_url: http://localhost:1234/v1\n" + _LLM_YAML)
         # The yaml loader refuses env-owned fields with a plain ValueError.
         with pytest.raises(ValueError, match="must not contain"):
-            AppSettings()  # type: ignore[call-arg]
+            AppSettings()
 
     def test_base_url_inside_llm_section_is_rejected(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -135,7 +135,7 @@ class TestAppSettings:
             "  structured_output_mode: prompt\n",
         )
         with pytest.raises(ValidationError):
-            AppSettings()  # type: ignore[call-arg]
+            AppSettings()
 
     def test_unknown_environment_variable_is_rejected(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -144,7 +144,7 @@ class TestAppSettings:
         _write_config_file(tmp_path, _LLM_YAML)
         monkeypatch.setenv("ASD_LLM__TIEMOUT", "60")  # typo
         with pytest.raises(ValidationError):
-            AppSettings()  # type: ignore[call-arg]
+            AppSettings()
 
     def test_unknown_yaml_key_is_rejected(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -152,7 +152,7 @@ class TestAppSettings:
         _set_env_only(monkeypatch)
         _write_config_file(tmp_path, _LLM_YAML + "  tiemout: 60\n")
         with pytest.raises(ValidationError):
-            AppSettings()  # type: ignore[call-arg]
+            AppSettings()
 
     def test_full_init_kwargs(self) -> None:
         settings: AppSettings = AppSettings(

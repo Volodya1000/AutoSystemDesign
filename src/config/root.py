@@ -124,7 +124,7 @@ AppSettings.model_rebuild(_types_namespace={"LlmSettings": LlmSettings})
 
 def load_app_settings() -> AppSettings:
     """Entry point: env vars, .env and the yaml config file."""
-    return AppSettings()  # type: ignore[call-arg]  # fields come from sources
+    return AppSettings()
 
 
 def with_llm_updates(settings: AppSettings, **updates: object) -> AppSettings:

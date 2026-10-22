@@ -7,7 +7,12 @@ import time
 from typing import TYPE_CHECKING
 
 from application.pipeline.context import StageContext, require_payload
-from application.pipeline.outcome import DiagramRenderResult, StageOutcome, StageStatus
+from application.pipeline.outcome import (
+    DiagramRenderResult,
+    StageDiagnostics,
+    StageOutcome,
+    StageStatus,
+)
 from application.pipeline.stage import StageId
 from application.results import ApiGenerationResult, GenerationStatus
 from domain.models.topology import ArchitectureGraph
@@ -56,7 +61,11 @@ class ApiStage:
                 duration_seconds=time.perf_counter() - stage_start,
                 total_tokens=0,
                 payload=None,
-                message="No functional requirements provided; skipping API generation.",
+                diagnostics=StageDiagnostics(
+                    message=(
+                        "No functional requirements provided; skipping API generation."
+                    )
+                ),
             )
 
         graph: ArchitectureGraph = require_payload(
@@ -98,7 +107,9 @@ class ApiStage:
                 total_tokens=result.total_usage.total_tokens,
                 artifacts=tuple(artifacts),
                 payload=None,
-                message="REST API design generation failed",
+                diagnostics=StageDiagnostics(
+                    message="REST API design generation failed"
+                ),
             )
 
         if self._renderer is not None:
@@ -119,5 +130,5 @@ class ApiStage:
             total_tokens=result.total_usage.total_tokens,
             artifacts=tuple(artifacts),
             payload=api_design,
-            warnings=tuple(warnings),
+            diagnostics=StageDiagnostics(warnings=tuple(warnings)),
         )
