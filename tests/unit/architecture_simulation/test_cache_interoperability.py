@@ -1,5 +1,9 @@
 """Cross-layer tests for the canonical compute-owned cache miss path."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 
 from application.architecture_simulation.graph_mapper import (
@@ -9,7 +13,6 @@ from domain.architecture_simulation.graph_execution import (
     GraphRequestTrace,
     GraphTraceWindowResult,
 )
-from domain.architecture_simulation.graph_plan import GraphSimulationPlan
 from domain.architecture_simulation.kernel import SimulationWindow
 from domain.models.nodes import ClientNode
 from domain.models.topology import ArchitectureGraph
@@ -26,6 +29,9 @@ from tests.unit.architecture_simulation.factories import (
     make_edge,
     make_scenario,
 )
+
+if TYPE_CHECKING:
+    from domain.architecture_simulation.graph_plan import GraphSimulationPlan
 
 pytestmark = pytest.mark.unit
 
