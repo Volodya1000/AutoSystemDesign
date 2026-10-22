@@ -148,7 +148,7 @@ build-backend = "setuptools.build_meta"
 # Ограниченный пилот: проверяем доменную логику численных требований.
 source_paths = ["src/"]
 only_mutate = ["src/domain/models/base_constraints.py"]
-also_copy = ["scripts/", "scenarios/", "config.yaml"]
+also_copy = ["scripts/", "scenarios/", "examples/", "config.yaml"]
 pytest_add_cli_args_test_selection = ["tests/unit"]
 
 [tool.commitizen]
