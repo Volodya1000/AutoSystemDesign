@@ -1,5 +1,7 @@
 """Convert validated C4 topology into typed simulation input without an LLM."""
 
+from typing import TYPE_CHECKING
+
 from application.architecture_simulation.graph_mapping_errors import GraphMappingError
 from application.architecture_simulation.mapping_failures import MappingFailure
 from application.architecture_simulation.simulation_graph_validator import (
@@ -10,7 +12,6 @@ from domain.architecture_simulation.graph_plan import (
     SimulatedConnection,
     SimulatedResource,
 )
-from domain.models.edges import Edge
 from domain.models.nodes import (
     CacheNode,
     CapacityNode,
@@ -19,6 +20,9 @@ from domain.models.nodes import (
 )
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import AnyNode, ArchitectureGraph
+
+if TYPE_CHECKING:
+    from domain.models.edges import Edge
 
 
 class ArchitectureSimulationPlanMapper:
