@@ -11,6 +11,8 @@ from application.architecture_simulation.graph_execution_errors import (
     GraphExecutionFailure,
 )
 from domain.architecture_simulation.graph_execution import (
+    GraphRejectionReason,
+    GraphRequestRejection,
     GraphRequestTrace,
     GraphTraceWindowResult,
     GraphTraversalObservation,
@@ -22,6 +24,7 @@ from domain.architecture_simulation.graph_plan import (
 )
 from domain.architecture_simulation.kernel import SimulationWindow
 from domain.models.enums import NodeType
+from infrastructure.architecture_simulation.admission import rejection_reason
 from infrastructure.architecture_simulation.horizon import run_simulation_until_horizon
 
 
@@ -35,6 +38,7 @@ class _LinearRuntime:
     service_rng: dict[str, Random]
     next_replica: dict[str, int]
     completed: dict[int, GraphTraversalObservation]
+    rejections: dict[int, GraphRequestRejection]
 
 
 class SimPyLinearGraphEngine:
@@ -66,6 +70,7 @@ class SimPyLinearGraphEngine:
             resource.identifier: 0 for resource in trace.plan.resources
         }
         completed: dict[int, GraphTraversalObservation] = {}
+        rejections: dict[int, GraphRequestRejection] = {}
         runtime: _LinearRuntime = _LinearRuntime(
             environment=environment,
             route=route,
@@ -73,6 +78,7 @@ class SimPyLinearGraphEngine:
             service_rng=service_rng,
             next_replica=next_replica,
             completed=completed,
+            rejections=rejections,
         )
         arrival_index: int
         arrival_seconds: float
@@ -91,13 +97,17 @@ class SimPyLinearGraphEngine:
         observations: list[GraphTraversalObservation] = [
             completed[index] for index in measured_indices if index in completed
         ]
+        rejected: list[GraphRequestRejection] = [
+            rejections[index] for index in measured_indices if index in rejections
+        ]
         warmup_arrivals: int = sum(
             arrival < window.warmup_seconds for arrival in trace.arrival_times_seconds
         )
         return GraphTraceWindowResult(
             observations=observations,
+            rejections=rejected,
             measured_arrivals=len(measured_indices),
-            unfinished=len(measured_indices) - len(observations),
+            unfinished=len(measured_indices) - len(observations) - len(rejected),
             warmup_arrivals=warmup_arrivals,
         )
 
@@ -161,6 +171,18 @@ class SimPyLinearGraphEngine:
                 replicas
             )
             runtime.next_replica[resource.identifier] += 1
+            reason: GraphRejectionReason | None = rejection_reason(
+                replicas[replica_index], resource
+            )
+            if reason is not None:
+                runtime.rejections[request_index] = GraphRequestRejection(
+                    request_index=request_index,
+                    node_identifier=resource.identifier,
+                    replica_index=replica_index,
+                    at_seconds=float(runtime.environment.now),
+                    reason_code=reason,
+                )
+                return
             admission: simpy.resources.resource.Request = replicas[
                 replica_index
             ].request()
