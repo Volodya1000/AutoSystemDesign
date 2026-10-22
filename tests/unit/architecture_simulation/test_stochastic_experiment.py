@@ -185,7 +185,7 @@ def test_generation_event_budget_fails_before_allocating_large_trace() -> None:
 
 def test_measured_cohort_accounting_rejects_lost_requests() -> None:
     with pytest.raises(ValidationError):
-        WindowSimulationResult(measured_arrivals=2, unfinished=0)
+        WindowSimulationResult(measured_arrivals=2, unfinished=0, warmup_arrivals=0)
 
 
 def test_invalid_service_moments_are_rejected() -> None:
