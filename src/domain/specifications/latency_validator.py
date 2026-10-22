@@ -16,8 +16,9 @@ from domain.exceptions.model_validation_errors import (
     ModelValidationError,
 )
 from domain.models.nodes import CapacityNode, ClientNode
-from domain.performance_analysis.queueing import MAX_SUPPORTED_SERVER_COUNT
 from domain.specifications.traffic_flow import compute_node_incoming_rps
+
+MAX_SUPPORTED_SERVER_COUNT = 10_000
 
 if TYPE_CHECKING:
     from domain.models.edges import Edge
