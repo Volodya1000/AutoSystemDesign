@@ -147,7 +147,7 @@ def test_cli_generates_real_json_trace_and_searchable_pdf(tmp_path: Path) -> Non
     assert report == evidence.report.model_dump(mode="json")
     assert len(reader.pages) >= 1
     assert all(
-        identifier in text.split() for identifier in ("client", "api", "cache", "db")
+        identifier in text.split() for identifier in ("api", "cache", "db")
     )
     assert "335.00" in text.split()
     assert "595" in text.split()

@@ -10,6 +10,7 @@ from typing import Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from domain.architecture_simulation.configuration import SimulationConfiguration
+from domain.models.enums import Operator
 
 
 class SimulationReportStatus(StrEnum):
@@ -76,6 +77,7 @@ class SimulationLimitationCode(StrEnum):
     FORWARD_PATH_ONLY = "forward_path_only"
     DESCRIPTIVE_STATISTICS = "descriptive_statistics"
     PERIODIC_ARRIVALS = "periodic_arrivals"
+    TIMEOUTS_UNMODELED = "timeouts_unmodeled"
 
 
 class SimulationDataModel(BaseModel):
@@ -131,7 +133,7 @@ class SimulationExperiment(SimulationDataModel):
     completed_requests: int = Field(ge=0)
     rejected_requests: int = Field(ge=0)
     unfinished_requests: int = Field(ge=0)
-    timed_out_requests: int = Field(default=0, ge=0)
+    timed_out_requests: int | None = Field(default=None, ge=0)
     failed_requests: int = Field(default=0, ge=0)
     client_latency_milliseconds: LatencyQuantiles = Field(
         default_factory=LatencyQuantiles
@@ -141,6 +143,8 @@ class SimulationExperiment(SimulationDataModel):
     )
     completed_root_node_visits: dict[str, int] = Field(default_factory=dict)
     throughput_requests_per_second: float | None = Field(default=None, ge=0.0)
+    rejected_ratio: float | None = Field(default=None, ge=0.0, le=1.0)
+    unfinished_ratio: float | None = Field(default=None, ge=0.0, le=1.0)
     nodes: list[NodeSimulationMetrics] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -150,7 +154,7 @@ class SimulationExperiment(SimulationDataModel):
             self.completed_requests
             + self.rejected_requests
             + self.unfinished_requests
-            + self.timed_out_requests
+            + (self.timed_out_requests or 0)
             + self.failed_requests
         )
         if terminal != self.generated_requests:
@@ -182,6 +186,7 @@ class RequirementEvaluation(SimulationDataModel):
     requirement_index: int = Field(ge=0)
     type_identifier: RequirementKind
     phase: SimulationWorkload
+    operator: Operator | None = None
     threshold_value: float | None = Field(default=None, ge=0.0)
     minimum_value: float | None = Field(default=None, ge=0.0)
     maximum_value: float | None = Field(default=None, ge=0.0)
@@ -237,6 +242,7 @@ class SimulationReport(SimulationDataModel):
     configuration: SimulationConfiguration = Field(
         default_factory=SimulationConfiguration
     )
+    timeouts_modeled: bool | None = None
     experiments: list[SimulationExperiment] = Field(default_factory=list)
     requirements: list[RequirementEvaluation] = Field(default_factory=list)
     findings: list[SimulationFinding] = Field(default_factory=list)
