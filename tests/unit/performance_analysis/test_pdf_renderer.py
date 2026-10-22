@@ -120,6 +120,22 @@ def test_pdf_omits_unassessed_diagnostics_while_preserving_json() -> None:
     assert report.findings[0].title not in text
 
 
+
+def test_pdf_is_unchanged_when_legacy_nonactionable_findings_are_removed() -> None:
+    """Removing obsolete JSON diagnostics must not change the readable PDF."""
+    report = _report()
+    without_obsolete_findings = report.model_copy(update={"findings": []})
+
+    old_reader = PdfReader(BytesIO(PerformanceReportPdfRenderer().render(report)))
+    new_reader = PdfReader(
+        BytesIO(PerformanceReportPdfRenderer().render(without_obsolete_findings))
+    )
+    old_pages = [page.extract_text() for page in old_reader.pages]
+    new_pages = [page.extract_text() for page in new_reader.pages]
+
+    assert old_pages == new_pages
+
+
 def test_pdf_keeps_request_source_outside_processing_table() -> None:
     """The client is part of the route but cannot have processing capacity."""
     report = _report()
