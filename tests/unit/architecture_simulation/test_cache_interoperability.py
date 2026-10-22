@@ -97,9 +97,7 @@ def test_c4_analytics_and_simpy_agree_on_cache_misses(
     if expected_db_fraction in (0.0, 1.0):
         assert db_visits == len(arrivals) * expected_db_fraction
     else:
-        assert db_visits == pytest.approx(
-            len(arrivals) * expected_db_fraction, abs=80
-        )
+        assert db_visits == pytest.approx(len(arrivals) * expected_db_fraction, abs=80)
 
 
 def test_multiple_cache_readers_keep_separate_fallbacks_and_root_identity() -> None:
