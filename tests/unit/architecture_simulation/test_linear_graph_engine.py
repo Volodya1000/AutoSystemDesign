@@ -12,6 +12,7 @@ from application.architecture_simulation.graph_mapper import (
     ArchitectureSimulationPlanMapper,
 )
 from domain.architecture_simulation.graph_execution import (
+    GraphRejectionReason,
     GraphRequestTrace,
     GraphTraceWindowResult,
 )
@@ -56,7 +57,7 @@ def test_two_node_chain_adds_network_and_service_times() -> None:
     assert len(result.observations) == 1
     assert result.observations[0].visited_resources == ["api", "db"]
     assert result.observations[0].traversal_seconds == pytest.approx(0.078)
-    assert result.queue_model == "unbounded_prototype"
+    assert result.queue_model == "bounded_per_replica"
 
 
 def test_two_simultaneous_requests_queue_at_the_single_channel_database() -> None:
@@ -136,3 +137,69 @@ def test_graph_execution_json_round_trip() -> None:
     assert result == GraphTraceWindowResult.model_validate_json(
         result.model_dump_json()
     )
+
+
+def test_full_database_queue_rejects_without_waiting_indefinitely() -> None:
+    plan: GraphSimulationPlan = _plan()
+    plan.resources[1].maximum_queue_size_per_replica = 0
+    result: GraphTraceWindowResult = _simulate(plan, [0, 0], horizon=1)
+
+    assert result.measured_arrivals == 2
+    assert len(result.observations) == 1
+    assert len(result.rejections) == 1
+    assert result.unfinished == 0
+    assert result.rejections[0].node_identifier == "db"
+    assert result.rejections[0].replica_index == 0
+    assert result.rejections[0].reason_code == GraphRejectionReason.QUEUE_FULL
+    assert result.rejections[0].at_seconds == pytest.approx(0.058)
+
+
+def test_one_waiting_slot_admits_second_request_but_rejects_third() -> None:
+    plan: GraphSimulationPlan = _plan()
+    plan.resources[1].maximum_queue_size_per_replica = 1
+    result: GraphTraceWindowResult = _simulate(plan, [0, 0, 0], horizon=1)
+
+    assert result.measured_arrivals == 3
+    assert len(result.observations) == 2
+    assert len(result.rejections) == 1
+    assert result.unfinished == 0
+    assert [observation.traversal_seconds for observation in result.observations] == (
+        pytest.approx([0.078, 0.098])
+    )
+    assert result.rejections[0].reason_code == GraphRejectionReason.QUEUE_FULL
+
+
+def test_concurrency_limit_can_reject_before_queue_is_full() -> None:
+    plan: GraphSimulationPlan = _plan()
+    plan.resources[1].maximum_concurrency_per_replica = 1
+    plan.resources[1].maximum_queue_size_per_replica = 10
+    result: GraphTraceWindowResult = _simulate(plan, [0, 0], horizon=1)
+
+    assert len(result.observations) == 1
+    assert len(result.rejections) == 1
+    assert result.rejections[0].reason_code == GraphRejectionReason.CONCURRENCY_LIMIT
+    assert result.unfinished == 0
+
+
+def test_rejected_measured_request_does_not_count_as_warmup_outcome() -> None:
+    plan: GraphSimulationPlan = _plan()
+    plan.resources[1].maximum_queue_size_per_replica = 0
+    engine: SimPyLinearGraphEngine = SimPyLinearGraphEngine()
+    result: GraphTraceWindowResult = engine.simulate(
+        GraphRequestTrace(plan=plan, arrival_times_seconds=[0, 0.001], seed=1),
+        SimulationWindow(warmup_seconds=0.001, measurement_seconds=1, max_events=100),
+    )
+
+    assert result.warmup_arrivals == 1
+    assert result.measured_arrivals == 1
+    assert len(result.observations) == 0
+    assert len(result.rejections) == 1
+    assert result.rejections[0].request_index == 1
+    assert result.unfinished == 0
+
+
+def test_bounded_admission_is_reproducible_for_same_schedule() -> None:
+    plan: GraphSimulationPlan = _plan()
+    plan.resources[1].maximum_queue_size_per_replica = 0
+
+    assert _simulate(plan, [0, 0, 0], 1) == _simulate(plan, [0, 0, 0], 1)

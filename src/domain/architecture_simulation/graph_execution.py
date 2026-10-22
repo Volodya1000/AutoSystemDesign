@@ -1,5 +1,6 @@
 """Define client-traversal observations for the linear-graph prototype."""
 
+from enum import StrEnum
 from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -45,19 +46,38 @@ class GraphTraversalObservation(GraphExecutionModel):
         return self.completion_seconds - self.arrival_seconds
 
 
+class GraphRejectionReason(StrEnum):
+    """Identify the actual limit that prevented one replica's admission."""
+
+    CONCURRENCY_LIMIT = "concurrency_limit"
+    QUEUE_FULL = "queue_full"
+
+
+class GraphRequestRejection(GraphExecutionModel):
+    """Record one rejected client transaction and its downstream cause."""
+
+    request_index: int = Field(ge=0)
+    node_identifier: str = Field(min_length=1)
+    replica_index: int = Field(ge=0)
+    at_seconds: float = Field(ge=0)
+    reason_code: GraphRejectionReason
+
+
 class GraphTraceWindowResult(GraphExecutionModel):
-    """Keep censored root requests visible and disclose unbounded queues."""
+    """Track complete, rejected and censored requests without hidden losses."""
 
     observations: list[GraphTraversalObservation] = Field(default_factory=list)
+    rejections: list[GraphRequestRejection] = Field(default_factory=list)
     measured_arrivals: int = Field(ge=0)
     unfinished: int = Field(ge=0)
     warmup_arrivals: int = Field(ge=0)
-    queue_model: Literal["unbounded_prototype"] = "unbounded_prototype"
+    queue_model: Literal["bounded_per_replica"] = "bounded_per_replica"
 
     @model_validator(mode="after")
     def validate_accounting(self) -> Self:
         """Preserve every measured arrival across the stopping horizon."""
-        if len(self.observations) + self.unfinished != self.measured_arrivals:
-            message = "root arrivals must equal completed plus unfinished"
+        counted: int = len(self.observations) + len(self.rejections) + self.unfinished
+        if counted != self.measured_arrivals:
+            message = "root arrivals must equal completed plus rejected plus unfinished"
             raise ValueError(message)
         return self
