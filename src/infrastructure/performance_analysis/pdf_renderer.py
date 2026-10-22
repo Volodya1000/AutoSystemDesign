@@ -24,6 +24,7 @@ from reportlab.platypus import (
 )
 
 from application.performance_analysis.protocols import PdfRenderingUnavailableError
+from infrastructure.performance_analysis.pdf_critical_path import critical_path_diagram
 from infrastructure.performance_analysis.pdf_diagnostics import diagnostic_cards
 
 if TYPE_CHECKING:
@@ -99,14 +100,7 @@ class PerformanceReportPdfRenderer:
                     ),
                 ]
             )
-            if report.critical_path_node_identifiers:
-                story.append(
-                    Paragraph(
-                        "Критический путь: "
-                        + escape(" -> ".join(report.critical_path_node_identifiers)),
-                        styles["body"],
-                    )
-                )
+            story.extend(critical_path_diagram(report, styles, _CONTENT_WIDTH))
 
         metrics_table = _render_metrics_table(report, styles)
         if metrics_table is not None:
@@ -286,6 +280,12 @@ def _build_styles(font: str) -> dict[str, ParagraphStyle]:
         ),
         "table_header": ParagraphStyle(
             "ASDTableHead", parent=base, fontSize=7, leading=10, spaceAfter=0
+        ),
+        "path_node": ParagraphStyle(
+            "ASDPathNode", parent=base, fontSize=8, leading=12, spaceAfter=1
+        ),
+        "path_meta": ParagraphStyle(
+            "ASDPathMeta", parent=base, fontSize=7, leading=10, spaceAfter=0
         ),
     }
 
