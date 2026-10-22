@@ -8,13 +8,13 @@ import pytest
 from pydantic import ValidationError
 
 from domain.performance_analysis.report import (
-    PerformanceLoadContext,
     NodePerformanceMetrics,
     PerformanceAnalysisReport,
     PerformanceAnalysisStatus,
     PerformanceFinding,
     PerformanceFindingCode,
     PerformanceFindingSeverity,
+    PerformanceLoadContext,
 )
 
 pytestmark = pytest.mark.unit
