@@ -120,7 +120,6 @@ def test_pdf_omits_unassessed_diagnostics_while_preserving_json() -> None:
     assert report.findings[0].title not in text
 
 
-
 def test_pdf_is_unchanged_when_legacy_nonactionable_findings_are_removed() -> None:
     """Removing obsolete JSON diagnostics must not change the readable PDF."""
     report = _report()
