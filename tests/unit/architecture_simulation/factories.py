@@ -1,7 +1,7 @@
 """Build one canonical, strictly typed C4 scenario for simulation tests."""
 
 from domain.models.edges import Edge
-from domain.models.nodes import ClientNode, ComputeNode, DatabaseNode
+from domain.models.nodes import CacheNode, ClientNode, ComputeNode, DatabaseNode
 from domain.models.protocols import SYNCHRONOUS_REST_HTTP
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
@@ -22,6 +22,22 @@ def make_compute(
         mean_processing_time_milliseconds=50,
         standard_deviation_processing_time=std_milliseconds,
         monthly_cost_usd=100,
+    )
+
+
+def make_cache(
+    hit_probability: float, identifier: str = "cache"
+) -> CacheNode:
+    """Build one deterministic cache resource for cross-layer tests."""
+    return CacheNode(
+        identifier=identifier,
+        service_channels_per_replica=1,
+        maximum_concurrency=3,
+        maximum_queue_size=4,
+        mean_processing_time_milliseconds=3,
+        standard_deviation_processing_time=0,
+        monthly_cost_usd=20,
+        cache_hit_rate_probability=hit_probability,
     )
 
 
