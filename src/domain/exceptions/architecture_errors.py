@@ -301,16 +301,38 @@ class CacheWriteOnlySinkError(ArchitectureValidationError):
         sources: str = ", ".join(
             f"'{identifier}'" for identifier in incoming_source_identifiers
         )
+        source_details: str = f" from {sources}" if sources else ""
         message: str = (
-            f"Cache '{cache_identifier}' is a write-only sink: all incoming "
-            f"edges (from {sources}) are asynchronous writes, so no client "
-            f"ever reads from the cache and its cache_hit_rate is never "
-            f"realized. Add at least one synchronous read edge "
-            f"(compute -> cache), or remove the cache."
+            f"Cache '{cache_identifier}' is a write-only or unread cache: "
+            f"it has no synchronous incoming read edge{source_details}. "
+            "Incoming edges are asynchronous writes or absent, so its "
+            "cache_hit_rate is not realized. Add a synchronous read edge "
+            "(compute -> cache), or remove the cache."
         )
         super().__init__(
             message=message,
             affected_node_identifiers=[cache_identifier],
+        )
+
+
+class AmbiguousCacheMissPathError(ArchitectureValidationError):
+    error_code: str = "AMBIGUOUS_CACHE_MISS_PATH"
+
+    def __init__(
+        self,
+        compute_identifier: str,
+        cache_identifiers: list[str],
+    ) -> None:
+        caches = ", ".join(f"'{identifier}'" for identifier in cache_identifiers)
+        message = (
+            f"Compute node '{compute_identifier}' reads from multiple caches "
+            f"({caches}), so its database miss traffic is ambiguous. Use one "
+            "cache per compute reader or introduce an explicit cache-to-fallback "
+            "mapping."
+        )
+        super().__init__(
+            message=message,
+            affected_node_identifiers=[compute_identifier, *cache_identifiers],
         )
 
 
@@ -325,9 +347,8 @@ class CacheMissPathMissingError(ArchitectureValidationError):
         message: str = (
             f"Cache '{cache_identifier}' has a synchronous read from compute "
             f"node '{compute_identifier}', but that compute node has no "
-            f"other outgoing edge, so a cache miss has nowhere to fall back "
-            f"to. Add a synchronous miss path (e.g., "
-            f"'{compute_identifier}' -> database), or remove the cache."
+            "synchronous outgoing edge to a database for cache misses. Add a "
+            f"'{compute_identifier} -> database' fallback edge, or remove the cache."
         )
         super().__init__(
             message=message,

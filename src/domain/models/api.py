@@ -175,7 +175,7 @@ class ApiDesign(ApiModel):
     version: str = "1.0.0"
     description: str | None = None
 
-    schemas: dict[str, dict] = Field(
+    schemas: dict[str, dict[str, object]] = Field(
         default_factory=dict,
         description="Central registry of reusable JSON Schemas (DTOs)",
     )

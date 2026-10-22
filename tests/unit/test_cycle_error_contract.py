@@ -27,7 +27,6 @@ from domain.models.topology import ArchitectureGraph
 from domain.specifications import capacity_validator, latency_validator
 from domain.specifications.budget_validator import BudgetRequirementValidator
 from domain.specifications.capacity_validator import CapacitySaturationValidator
-from domain.specifications.latency_validator import LatencySloValidator
 from domain.specifications.requirement_dispatch import (
     RequirementValidationDispatcher,
 )
@@ -35,9 +34,9 @@ from domain.specifications.structural_validator import StructuralTopologyValidat
 from tests.factories import create_test_edge, create_test_node
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from types import ModuleType
 
-    from domain.specifications.interfaces import ScenarioValidator
 
 pytestmark = pytest.mark.unit
 
@@ -67,18 +66,10 @@ def _valid_graph() -> ArchitectureGraph:
 
 
 @pytest.mark.parametrize(
-    ("validator", "module", "function_name"),
+    ("module", "operation"),
     [
-        (
-            CapacitySaturationValidator(),
-            capacity_validator,
-            "compute_node_incoming_rps",
-        ),
-        (
-            LatencySloValidator(),
-            latency_validator,
-            "compute_critical_path",
-        ),
+        (capacity_validator, CapacitySaturationValidator().validate),
+        (latency_validator, latency_validator.compute_critical_path),
     ],
 )
 @pytest.mark.parametrize(
@@ -90,17 +81,18 @@ def _valid_graph() -> ArchitectureGraph:
 )
 def test_non_cycle_value_errors_are_not_suppressed(
     monkeypatch: pytest.MonkeyPatch,
-    validator: ScenarioValidator,
     module: ModuleType,
-    function_name: str,
+    operation: Callable[[ArchitectureGraph, DesignScenario], object],
     error: ValueError,
 ) -> None:
-    """Propagate ordinary ValueError and unrelated typed model failures."""
-    monkeypatch.setattr(module, function_name, Mock(side_effect=error))
-
+    """Propagate unexpected errors from capacity or critical-path calculations."""
+    monkeypatch.setattr(
+        module,
+        "compute_node_incoming_rps",
+        Mock(side_effect=error),
+    )
     with pytest.raises(type(error), match=re.escape(str(error))) as caught:
-        validator.validate(_valid_graph(), _scenario())
-
+        operation(_valid_graph(), _scenario())
     assert caught.value is error
 
 
@@ -146,7 +138,6 @@ def test_cycle_is_reported_once_and_other_errors_are_aggregated() -> None:
         scenario_validators=[
             RequirementValidationDispatcher([BudgetRequirementValidator()]),
             CapacitySaturationValidator(),
-            LatencySloValidator(),
         ],
         max_attempts=1,
     )

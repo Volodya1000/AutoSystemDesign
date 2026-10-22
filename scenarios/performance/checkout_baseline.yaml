@@ -1,0 +1,26 @@
+identifier: checkout_baseline
+description: "Order checkout with payment authorization and stock reservation"
+workload:
+  baseline_requests_per_second: 20.0
+  peak_requests_per_second: 60.0
+  read_ratio: 0.55
+requirements:
+  - type_identifier: latency
+    threshold_value: 450.0
+    percentile: 99.0
+  - type_identifier: availability
+    threshold_value: 99.9
+    operator: ">="
+functional_requirements:
+  - identifier: checkout_create
+    name: "Create order"
+    text: >
+      A customer submits a cart for checkout. The service validates prices,
+      reserves inventory and creates an order with a unique identifier.
+      An unsuccessful reservation must not confirm the order.
+  - identifier: checkout_pay
+    name: "Authorize payment"
+    text: >
+      The customer authorizes payment for an existing order. The system
+      records a successful payment, updates order state and publishes
+      a confirmation event for notification delivery.

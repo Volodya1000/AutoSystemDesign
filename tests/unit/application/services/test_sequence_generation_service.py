@@ -174,7 +174,7 @@ def _service(
     max_parallel_workers: int = 1,
 ) -> SequenceGenerationService:
     return SequenceGenerationService(
-        designer=designer,  # type: ignore[arg-type]
+        designer=designer,
         catalog_validators=[ValidCatalogValidator()],
         scenario_validators=[ValidScenarioValidator()],
         max_attempts=max_attempts,

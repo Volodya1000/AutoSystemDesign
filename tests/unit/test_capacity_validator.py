@@ -17,6 +17,7 @@ from domain.models.topology import AnyNode, ArchitectureGraph
 from domain.specifications.capacity_validator import (
     SATURATION_THRESHOLD,
     CapacitySaturationValidator,
+    compute_node_capacity_rps,
     compute_node_utilization,
 )
 from tests.factories import (
@@ -318,3 +319,25 @@ class TestCycleTolerance:
 
         assert result.is_successful is True
         assert result.errors == []
+
+
+def test_explicit_service_channels_determine_capacity() -> None:
+    """A concurrency limit is not a count of independent service channels."""
+    node = create_test_compute_node(
+        "service",
+        concurrency=100,
+        replicas=2,
+        mean_ms=100.0,
+        service_channels_per_replica=1,
+    )
+
+    assert node.queueing_server_count == 2
+    assert compute_node_capacity_rps(node) == pytest.approx(20.0)
+
+
+def test_unknown_channels_keep_legacy_capacity_proxy() -> None:
+    """Legacy scenarios retain their provisional concurrency-based estimate."""
+    node = create_test_compute_node("service", concurrency=100, mean_ms=100.0)
+
+    assert node.queueing_server_count is None
+    assert compute_node_capacity_rps(node) == pytest.approx(1_000.0)
