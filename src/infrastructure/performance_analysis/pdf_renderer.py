@@ -111,11 +111,6 @@ class PerformanceReportPdfRenderer:
                 [
                     Spacer(1, 3 * mm),
                     Paragraph("Показатели компонентов", styles["heading"]),
-                    Paragraph(
-                        "Нагрузка и пропускная способность указаны в запросах "
-                        "в секунду. Загрузка — доля расчётной пропускной способности.",
-                        styles["note"],
-                    ),
                     metrics_table,
                 ]
             )
