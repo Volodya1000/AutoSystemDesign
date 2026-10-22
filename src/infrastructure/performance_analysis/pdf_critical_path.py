@@ -60,7 +60,12 @@ def critical_path_diagram(
         spaceAfter=0,
     )
     rows: list[list[Flowable | list[Flowable]]] = [
-        [Paragraph("Путь сверху вниз · продолжение на следующих страницах", heading_style)]
+        [
+            Paragraph(
+                "Путь сверху вниз · продолжение на следующих страницах",
+                heading_style,
+            )
+        ]
     ]
     for index, identifier in enumerate(report.critical_path_node_identifiers):
         node: NodePerformanceMetrics | None = metrics_by_id.get(identifier)
