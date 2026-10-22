@@ -25,7 +25,9 @@ _logger = logging.getLogger("pipeline.report")
 class LoggingGenerationReporter:
     """Adapter: GenerationReporterProtocol port -> logging helpers."""
 
-    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None:
+    def attempts[PayloadT](
+        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+    ) -> None:
         log_attempts(attempts, label)
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:

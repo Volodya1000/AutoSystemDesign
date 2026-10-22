@@ -86,7 +86,7 @@ def _operation(**overrides: Unpack[_OperationOverrides]) -> ApiOperation:
 def _validate(
     operations: list[ApiOperation],
     *,
-    schemas: dict[str, dict] | None = None,
+    schemas: dict[str, dict[str, object]] | None = None,
     requirement_ids: set[str] | None = None,
 ) -> ValidationResult:
     api = ApiDesign(title="Test API", operations=operations, schemas=schemas or {})

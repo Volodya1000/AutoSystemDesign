@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.unit
 
 LEGACY_SCENARIO_YAML = """
-project_name: legacy_project
+identifier: legacy_project
 description: A legacy C4 scenario without functional requirements
 workload:
   baseline_requests_per_second: 100.0
@@ -50,7 +50,9 @@ requirements:
 
 
 class NullGenerationReporter:
-    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None:
+    def attempts[PayloadT](
+        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+    ) -> None:
         del attempts, label
 
     def tokens(self, usage: TokenUsage, generation_seconds: float) -> None:

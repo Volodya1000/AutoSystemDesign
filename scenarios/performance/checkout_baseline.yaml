@@ -1,4 +1,4 @@
-project_name: checkout_baseline
+identifier: checkout_baseline
 description: "Order checkout with payment authorization and stock reservation"
 workload:
   baseline_requests_per_second: 20.0

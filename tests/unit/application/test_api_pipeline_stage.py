@@ -26,7 +26,9 @@ class NullReporter:
     def __init__(self) -> None:
         self.labels: list[str] = []
 
-    def attempts(self, attempts: Sequence[GenerationAttempt], label: str) -> None:
+    def attempts[PayloadT](
+        self, attempts: Sequence[GenerationAttempt[PayloadT]], label: str
+    ) -> None:
         self.labels.append(label)
         assert attempts
 
