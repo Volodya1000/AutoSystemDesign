@@ -76,6 +76,23 @@ def make_graph(std_milliseconds: float = 5.0) -> ArchitectureGraph:
     )
 
 
+def make_cache_graph(hit_probability: float) -> ArchitectureGraph:
+    """Represent cache lookup and conditional database fallback in one C4 graph."""
+    return ArchitectureGraph(
+        nodes=[
+            ClientNode(identifier="web"),
+            make_compute(std_milliseconds=0),
+            make_cache(hit_probability),
+            make_database(),
+        ],
+        edges=[
+            make_edge("web", "api"),
+            make_edge("api", "cache"),
+            make_edge("api", "db"),
+        ],
+    )
+
+
 def make_scenario() -> DesignScenario:
     """Build baseline and peak RPS without an LLM dependency."""
     return DesignScenario(
