@@ -23,7 +23,7 @@ from infrastructure.architecture_simulation.linear_graph_engine import (
 )
 from infrastructure.architecture_simulation.routing import StochasticRouteSelector
 from tests.unit.architecture_simulation.factories import (
-    make_cache,
+    make_cache_graph,
     make_compute,
     make_database,
     make_edge,
@@ -51,21 +51,9 @@ def _alternative_plan() -> GraphSimulationPlan:
 
 
 def _cache_plan(hit_probability: float) -> GraphSimulationPlan:
-    graph: ArchitectureGraph = ArchitectureGraph(
-        nodes=[
-            ClientNode(identifier="web"),
-            make_compute(std_milliseconds=0),
-            make_cache(hit_probability),
-            make_database(),
-        ],
-        edges=[
-            make_edge("web", "api"),
-            make_edge("api", "cache"),
-            make_edge("api", "db"),
-        ],
+    return ArchitectureSimulationPlanMapper().map(
+        make_cache_graph(hit_probability), make_scenario()
     )
-    return ArchitectureSimulationPlanMapper().map(graph, make_scenario())
-
 
 def _simulate(plan: GraphSimulationPlan) -> GraphTraceWindowResult:
     return SimPyLinearGraphEngine().simulate(
