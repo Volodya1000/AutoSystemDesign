@@ -11,6 +11,7 @@ from html import escape
 from typing import TYPE_CHECKING
 
 from reportlab.lib import colors
+from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
 
 from domain.performance_analysis.report import (
@@ -135,5 +136,5 @@ def diagnostic_cards(
     cards: list[Flowable] = []
     for finding in visible_findings(report):
         cards.append(diagnostic_card(finding, styles, content_width))
-        cards.append(Spacer(1, 3 * 2.8346456693))
+        cards.append(Spacer(1, 3 * mm))
     return cards
