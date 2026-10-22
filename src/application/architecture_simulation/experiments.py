@@ -43,9 +43,7 @@ class StochasticExperimentRunner:
             trace: SingleNodeSimulationPlan = self._schedule_generator.generate(
                 plan, window, arrival_seed, service_seed
             )
-            result: WindowSimulationResult = self._engine.simulate_window(
-                trace, window
-            )
+            result: WindowSimulationResult = self._engine.simulate_window(trace, window)
             replications.append(
                 ReplicationResult(
                     index=replication_index,

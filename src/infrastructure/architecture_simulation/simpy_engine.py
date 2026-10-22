@@ -45,15 +45,13 @@ class SimPySingleNodeEngine:
         indices: list[int] = [
             index
             for index, request in enumerate(plan.requests)
-            if window.warmup_seconds <= request.arrival_seconds
-            < window.horizon_seconds
+            if window.warmup_seconds <= request.arrival_seconds < window.horizon_seconds
         ]
         observations: list[CompletedRequestObservation] = [
             completed[index] for index in indices if index in completed
         ]
         warmup_arrivals: int = sum(
-            request.arrival_seconds < window.warmup_seconds
-            for request in plan.requests
+            request.arrival_seconds < window.warmup_seconds for request in plan.requests
         )
         return WindowSimulationResult(
             observations=observations,

@@ -105,8 +105,7 @@ def test_zero_arrival_rate_produces_no_requests() -> None:
         for replication in result.replications
     )
     assert all(
-        replication.window_result.unfinished == 0
-        for replication in result.replications
+        replication.window_result.unfinished == 0 for replication in result.replications
     )
 
 
@@ -164,9 +163,7 @@ def test_event_budget_failure_is_not_a_successful_replication() -> None:
                 service_channels=1,
                 requests=[ScheduledRequest(arrival_seconds=0, service_seconds=1)],
             ),
-            SimulationWindow(
-                warmup_seconds=0, measurement_seconds=5, max_events=1
-            ),
+            SimulationWindow(warmup_seconds=0, measurement_seconds=5, max_events=1),
         )
 
 
@@ -180,9 +177,7 @@ def test_generation_event_budget_fails_before_allocating_large_trace() -> None:
                 mean_service_seconds=0.1,
                 std_service_seconds=0,
             ),
-            SimulationWindow(
-                warmup_seconds=0, measurement_seconds=10, max_events=2
-            ),
+            SimulationWindow(warmup_seconds=0, measurement_seconds=10, max_events=2),
             7,
             8,
         )
