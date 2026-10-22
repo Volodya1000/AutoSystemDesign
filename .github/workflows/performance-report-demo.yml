@@ -3,11 +3,11 @@ name: Performance report demo (offline)
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - master
     paths:
       - 'src/infrastructure/performance_analysis/**'
       - 'src/application/performance_analysis/**'
+      - 'src/domain/performance_analysis/**'
+      - 'docs/performance-analysis/report.schema.json'
       - 'tests/unit/performance_analysis/**'
       - '.github/workflows/performance-report-demo.yml'
   push:
