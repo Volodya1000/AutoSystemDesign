@@ -10,12 +10,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from application.pipeline.outcome import StageOutcome, StageStatus
+from application.pipeline.result import PipelineRunResult
 from infrastructure.reporting.helpers import log_attempts, log_token_totals
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from application.pipeline.outcome import StageOutcome, StageStatus
     from application.results import GenerationAttempt
     from application.usage import TokenUsage
 
@@ -38,7 +39,7 @@ class LoggingPipelineReporter:
     """Adapter: PipelineReporterProtocol port -> aggregated INFO summary."""
 
     def report(self, outcomes: Sequence[StageOutcome[object]]) -> None:
-        overall: StageStatus = self._overall_status(outcomes)
+        overall: StageStatus = PipelineRunResult(tuple(outcomes)).status
         _logger.info("=" * 64)
         _logger.info("Pipeline summary")
         _logger.info("  status : %s", overall.value)
@@ -70,13 +71,3 @@ class LoggingPipelineReporter:
             total_artifacts,
         )
         _logger.info("=" * 64)
-
-    @staticmethod
-    def _overall_status(
-        outcomes: Sequence[StageOutcome[object]],
-    ) -> StageStatus:
-        if any(o.status is StageStatus.FAILED for o in outcomes):
-            return StageStatus.FAILED
-        if any(o.status is StageStatus.PARTIAL for o in outcomes):
-            return StageStatus.PARTIAL
-        return StageStatus.SUCCEEDED

@@ -9,9 +9,11 @@ from __future__ import annotations
 import argparse
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 
+from application.pipeline.outcome import StageStatus
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from domain.models.edges import Edge
@@ -30,6 +32,9 @@ from infrastructure.performance_analysis.pdf_renderer import (
 )
 from infrastructure.persistence.artifact_writer import FileSystemArtifactWriter
 from infrastructure.reporting.adapters import LoggingPipelineReporter
+
+if TYPE_CHECKING:
+    from application.pipeline.result import PipelineRunResult
 
 _SCENARIOS: tuple[str, ...] = (
     "checkout_baseline",
@@ -202,10 +207,10 @@ def main() -> int:
             ],
             reporter=LoggingPipelineReporter(),
         )
-        exit_code: int = runner.run(scenario, directory, writer)
-        if exit_code != 0:
+        result: PipelineRunResult = runner.run(scenario, directory, writer)
+        if result.status is StageStatus.FAILED:
             _LOGGER.error("Pipeline failed for scenario=%s", identifier)
-            return exit_code
+            return 1
         _LOGGER.info("Generated JSON and PDF for %s in %s", identifier, directory)
     return 0
 
