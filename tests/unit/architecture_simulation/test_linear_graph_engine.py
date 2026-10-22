@@ -57,7 +57,7 @@ def test_two_node_chain_adds_network_and_service_times() -> None:
     assert len(result.observations) == 1
     assert result.observations[0].visited_resources == ["api", "db"]
     assert result.observations[0].traversal_seconds == pytest.approx(0.078)
-    assert result.queue_model == "unbounded_prototype"
+    assert result.queue_model == "bounded_per_replica"
 
 
 def test_two_simultaneous_requests_queue_at_the_single_channel_database() -> None:

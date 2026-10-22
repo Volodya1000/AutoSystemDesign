@@ -1,4 +1,4 @@
-"""Implement bounded per-replica admission without borrowing C4 concurrency as capacity."""
+"""Enforce bounded admission without confusing concurrency with channels."""
 
 import simpy
 
