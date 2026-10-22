@@ -18,6 +18,7 @@ from domain.performance_analysis.report import (
     PerformanceFinding,
     PerformanceFindingCode,
     PerformanceFindingSeverity,
+    PerformanceLoadContext,
 )
 from infrastructure.performance_analysis.pdf_renderer import (
     PdfFontUnavailableError,
@@ -310,3 +311,61 @@ def test_missing_path_does_not_show_empty_diagram() -> None:
 
     assert "Путь сверху вниз" not in text
     assert "Для этого сценария расчётных показателей нет." in text
+
+
+def test_pdf_summary_uses_only_v1_1_workload_and_calculated_utilization() -> None:
+    report = PerformanceAnalysisReport(
+        scenario_identifier="workload_summary",
+        schema_version="1.1",
+        status=PerformanceAnalysisStatus.PARTIAL,
+        workload=PerformanceLoadContext(
+            baseline_requests_per_second=30.0,
+            peak_requests_per_second=90.0,
+        ),
+        nodes=[
+            NodePerformanceMetrics(
+                node_identifier="zeta",
+                estimated_capacity_requests_per_second=100.0,
+                utilization_ratio=0.9,
+            ),
+            NodePerformanceMetrics(
+                node_identifier="alpha",
+                estimated_capacity_requests_per_second=100.0,
+                utilization_ratio=0.9,
+            ),
+            NodePerformanceMetrics(
+                node_identifier="unknown",
+                estimated_capacity_requests_per_second=100.0,
+            ),
+        ],
+    )
+    text = "\n".join(
+        page.extract_text()
+        for page in PdfReader(
+            BytesIO(PerformanceReportPdfRenderer().render(report))
+        ).pages
+    )
+
+    assert "базовая 30.00 запр./с" in text
+    assert "пиковая 90.00 запр./с" in text
+    assert "расчёт для пика" in text
+    assert "Максимальная расчётная загрузка: alpha" in text
+    assert "90.0%" in text
+    assert "не проверено" not in text.lower()
+
+
+def test_old_json_without_workload_does_not_show_fictitious_load_summary() -> None:
+    report = PerformanceAnalysisReport(
+        scenario_identifier="legacy",
+        status=PerformanceAnalysisStatus.PARTIAL,
+        nodes=[NodePerformanceMetrics(node_identifier="client")],
+    )
+    text = "\n".join(
+        page.extract_text()
+        for page in PdfReader(
+            BytesIO(PerformanceReportPdfRenderer().render(report))
+        ).pages
+    )
+
+    assert "Нагрузка: базовая" not in text
+    assert "Максимальная расчётная загрузка" not in text
