@@ -80,8 +80,7 @@ def build_performance_analysis_report(
         for requirement in scenario.requirements
     )
     has_bounded_queues: bool = any(
-        isinstance(node, CapacityNode)
-        and incoming_by_node[node.identifier] > 0.0
+        isinstance(node, CapacityNode) and incoming_by_node[node.identifier] > 0.0
         for node in graph.nodes
     )
     findings = sorted(
@@ -192,5 +191,3 @@ def _capacity_findings(
                 )
             )
     return findings
-
-
