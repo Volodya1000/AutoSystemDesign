@@ -1,11 +1,11 @@
 """Execute a forward-only linear C4 chain with explicit SimPy resources."""
 
 from collections.abc import Generator
+from dataclasses import dataclass
 from random import Random
 
 import simpy
 
-from application.architecture_simulation.errors import SimulationEventLimitExceeded
 from application.architecture_simulation.graph_execution_errors import (
     GraphExecutionError,
     GraphExecutionFailure,
@@ -22,6 +22,19 @@ from domain.architecture_simulation.graph_plan import (
 )
 from domain.architecture_simulation.kernel import SimulationWindow
 from domain.models.enums import NodeType
+from infrastructure.architecture_simulation.horizon import run_simulation_until_horizon
+
+
+@dataclass(slots=True)
+class _LinearRuntime:
+    """Carry one isolated SimPy experiment's services and progress."""
+
+    environment: simpy.Environment
+    route: list[tuple[SimulatedConnection, SimulatedResource]]
+    node_resources: dict[str, list[simpy.Resource]]
+    service_rng: dict[str, Random]
+    next_replica: dict[str, int]
+    completed: dict[int, GraphTraversalObservation]
 
 
 class SimPyLinearGraphEngine:
@@ -53,33 +66,24 @@ class SimPyLinearGraphEngine:
             resource.identifier: 0 for resource in trace.plan.resources
         }
         completed: dict[int, GraphTraversalObservation] = {}
+        runtime: _LinearRuntime = _LinearRuntime(
+            environment=environment,
+            route=route,
+            node_resources=node_resources,
+            service_rng=service_rng,
+            next_replica=next_replica,
+            completed=completed,
+        )
         arrival_index: int
         arrival_seconds: float
         for arrival_index, arrival_seconds in enumerate(trace.arrival_times_seconds):
             if arrival_seconds >= window.horizon_seconds:
                 continue
             environment.process(
-                self._traverse(
-                    environment,
-                    route,
-                    node_resources,
-                    service_rng,
-                    next_replica,
-                    completed,
-                    arrival_index,
-                    arrival_seconds,
-                )
+                self._traverse(runtime, arrival_index, arrival_seconds)
             )
 
-        event_count: int = 0
-        while environment.peek() < window.horizon_seconds:
-            if event_count >= window.max_events:
-                raise SimulationEventLimitExceeded(
-                    event_limit=window.max_events,
-                    stopped_at_seconds=float(environment.now),
-                )
-            environment.step()
-            event_count += 1
+        run_simulation_until_horizon(environment, window)
 
         measured_indices: list[int] = [
             index
@@ -144,39 +148,38 @@ class SimPyLinearGraphEngine:
 
     def _traverse(
         self,
-        environment: simpy.Environment,
-        route: list[tuple[SimulatedConnection, SimulatedResource]],
-        node_resources: dict[str, list[simpy.Resource]],
-        service_rng: dict[str, Random],
-        next_replica: dict[str, int],
-        completed: dict[int, GraphTraversalObservation],
+        runtime: _LinearRuntime,
         request_index: int,
         arrival_seconds: float,
     ) -> Generator[simpy.events.Event]:
-        """Visit each service node after its one-way network delay."""
-        yield environment.timeout(arrival_seconds)
+        """Visit each resource with network delays and deterministic replica choice."""
+        yield runtime.environment.timeout(arrival_seconds)
         visited: list[str] = []
         edge: SimulatedConnection
         resource: SimulatedResource
-        for edge, resource in route:
-            yield environment.timeout(edge.network_latency_seconds)
-            replicas: list[simpy.Resource] = node_resources[resource.identifier]
-            replica_index: int = next_replica[resource.identifier] % len(replicas)
-            next_replica[resource.identifier] += 1
+        for edge, resource in runtime.route:
+            yield runtime.environment.timeout(edge.network_latency_seconds)
+            replicas: list[simpy.Resource] = runtime.node_resources[
+                resource.identifier
+            ]
+            replica_index: int = runtime.next_replica[resource.identifier] % len(
+                replicas
+            )
+            runtime.next_replica[resource.identifier] += 1
             admission: simpy.resources.resource.Request = replicas[
                 replica_index
             ].request()
             with admission:
                 yield admission
                 service_seconds: float = self._sample_service(
-                    resource, service_rng[resource.identifier]
+                    resource, runtime.service_rng[resource.identifier]
                 )
-                yield environment.timeout(service_seconds)
+                yield runtime.environment.timeout(service_seconds)
             visited.append(resource.identifier)
-        completed[request_index] = GraphTraversalObservation(
+        runtime.completed[request_index] = GraphTraversalObservation(
             request_index=request_index,
             arrival_seconds=arrival_seconds,
-            completion_seconds=float(environment.now),
+            completion_seconds=float(runtime.environment.now),
             visited_resources=visited,
         )
 

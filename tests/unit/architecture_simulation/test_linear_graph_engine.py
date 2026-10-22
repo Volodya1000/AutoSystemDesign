@@ -17,11 +17,8 @@ from domain.architecture_simulation.graph_execution import (
 )
 from domain.architecture_simulation.graph_plan import GraphSimulationPlan
 from domain.architecture_simulation.kernel import SimulationWindow
-from domain.models.edges import Edge
-from domain.models.nodes import CacheNode, ClientNode, ComputeNode, DatabaseNode
-from domain.models.protocols import SYNCHRONOUS_REST_HTTP
-from domain.models.scenarios import DesignScenario, WorkloadProfile
-from domain.models.topology import ArchitectureGraph
+from domain.models.enums import NodeType
+from tests.unit.architecture_simulation.factories import make_graph, make_scenario
 from infrastructure.architecture_simulation.linear_graph_engine import (
     SimPyLinearGraphEngine,
 )
@@ -29,55 +26,9 @@ from infrastructure.architecture_simulation.linear_graph_engine import (
 pytestmark = pytest.mark.unit
 
 
-def _compute() -> ComputeNode:
-    return ComputeNode(
-        identifier="api",
-        replicas_count=3,
-        maximum_concurrency=10,
-        maximum_queue_size=20,
-        service_channels_per_replica=2,
-        mean_processing_time_milliseconds=50,
-        standard_deviation_processing_time=0,
-        monthly_cost_usd=100,
-    )
-
-
-def _db() -> DatabaseNode:
-    return DatabaseNode(
-        identifier="db",
-        maximum_concurrency=5,
-        maximum_queue_size=10,
-        service_channels_per_replica=1,
-        mean_processing_time_milliseconds=20,
-        standard_deviation_processing_time=0,
-        monthly_cost_usd=70,
-    )
-
-
-def _edge(source: str, target: str) -> Edge:
-    return Edge(
-        source_identifier=source,
-        target_identifier=target,
-        protocol=SYNCHRONOUS_REST_HTTP,
-        network_latency_milliseconds=4,
-    )
-
-
 def _plan() -> GraphSimulationPlan:
     mapper: ArchitectureSimulationPlanMapper = ArchitectureSimulationPlanMapper()
-    graph: ArchitectureGraph = ArchitectureGraph(
-        nodes=[ClientNode(identifier="web"), _compute(), _db()],
-        edges=[_edge("web", "api"), _edge("api", "db")],
-    )
-    scenario: DesignScenario = DesignScenario(
-        identifier="orders",
-        description="Order processing",
-        workload=WorkloadProfile(
-            baseline_requests_per_second=10,
-            peak_requests_per_second=20,
-        ),
-    )
-    return mapper.map(graph, scenario)
+    return mapper.map(make_graph(std_milliseconds=0), make_scenario())
 
 
 def _simulate(
@@ -134,33 +85,27 @@ def test_graph_trace_is_independent_of_resource_input_order() -> None:
     reversed_plan.resources.reverse()
     reversed_plan.connections.reverse()
 
-    assert _simulate(plan, [0, 0.1], 2) == _simulate(
-        reversed_plan, [0, 0.1], 2
-    )
+    assert _simulate(plan, [0, 0.1], 2) == _simulate(reversed_plan, [0, 0.1], 2)
 
 
 def test_branching_graph_is_rejected_until_routing_semantics_exist() -> None:
     plan: GraphSimulationPlan = _plan()
     plan.connections.append(
-        plan.connections[1].model_copy(
-            update={"target_identifier": "api"}
-        )
+        plan.connections[1].model_copy(update={"target_identifier": "api"})
     )
     engine: SimPyLinearGraphEngine = SimPyLinearGraphEngine()
 
     with pytest.raises(GraphExecutionError) as error:
         engine.simulate(
             GraphRequestTrace(plan=plan, arrival_times_seconds=[0], seed=5),
-            SimulationWindow(
-                warmup_seconds=0, measurement_seconds=10, max_events=100
-            ),
+            SimulationWindow(warmup_seconds=0, measurement_seconds=10, max_events=100),
         )
     assert error.value.code == GraphExecutionFailure.BRANCHING_UNSUPPORTED
 
 
 def test_cache_is_not_treated_as_simple_linear_service() -> None:
     plan: GraphSimulationPlan = _plan()
-    plan.resources[1].node_type = CacheNode.model_fields["node_type"].default
+    plan.resources[1].node_type = NodeType.CACHE
     engine: SimPyLinearGraphEngine = SimPyLinearGraphEngine()
 
     with pytest.raises(GraphExecutionError) as error:
@@ -177,12 +122,8 @@ def test_event_budget_interrupts_work_instead_of_returning_partial_success() -> 
     engine: SimPyLinearGraphEngine = SimPyLinearGraphEngine()
     with pytest.raises(SimulationEventLimitExceeded):
         engine.simulate(
-            GraphRequestTrace(
-                plan=_plan(), arrival_times_seconds=[0], seed=1
-            ),
-            SimulationWindow(
-                warmup_seconds=0, measurement_seconds=1, max_events=1
-            ),
+            GraphRequestTrace(plan=_plan(), arrival_times_seconds=[0], seed=1),
+            SimulationWindow(warmup_seconds=0, measurement_seconds=1, max_events=1),
         )
 
 

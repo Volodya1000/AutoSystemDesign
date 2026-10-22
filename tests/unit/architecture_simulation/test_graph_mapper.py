@@ -14,82 +14,31 @@ from domain.architecture_simulation.graph_plan import (
 )
 from domain.models.edges import Edge
 from domain.models.enums import EdgeRoutingMode
-from domain.models.nodes import (
-    CacheNode,
-    ClientNode,
-    ComputeNode,
-    DatabaseNode,
-    MessageBrokerNode,
-)
+from domain.models.nodes import CacheNode, ClientNode, MessageBrokerNode
 from domain.models.protocols import (
     ASYNCHRONOUS_MESSAGE_QUEUE,
     SYNCHRONOUS_REST_HTTP,
 )
-from domain.models.scenarios import DesignScenario, WorkloadProfile
+from tests.unit.architecture_simulation.factories import (
+    make_compute,
+    make_edge,
+    make_graph,
+    make_scenario,
+    make_database,
+)
+from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
 
 pytestmark = pytest.mark.unit
 
 
-def _compute(identifier: str = "api", channels: int | None = 2) -> ComputeNode:
-    return ComputeNode(
-        identifier=identifier,
-        replicas_count=3,
-        maximum_concurrency=10,
-        maximum_queue_size=20,
-        service_channels_per_replica=channels,
-        mean_processing_time_milliseconds=50,
-        standard_deviation_processing_time=5,
-        monthly_cost_usd=100,
-    )
-
-
-def _db() -> DatabaseNode:
-    return DatabaseNode(
-        identifier="db",
-        maximum_concurrency=5,
-        maximum_queue_size=10,
-        service_channels_per_replica=1,
-        mean_processing_time_milliseconds=20,
-        standard_deviation_processing_time=0,
-        monthly_cost_usd=70,
-    )
-
-
-def _edge(source: str, target: str) -> Edge:
-    return Edge(
-        source_identifier=source,
-        target_identifier=target,
-        protocol=SYNCHRONOUS_REST_HTTP,
-        network_latency_milliseconds=4,
-    )
-
-
-def _scenario() -> DesignScenario:
-    return DesignScenario(
-        identifier="orders",
-        description="Order processing",
-        workload=WorkloadProfile(
-            baseline_requests_per_second=10,
-            peak_requests_per_second=20,
-        ),
-    )
-
-
-def _graph() -> ArchitectureGraph:
-    return ArchitectureGraph(
-        nodes=[ClientNode(identifier="web"), _compute(), _db()],
-        edges=[_edge("web", "api"), _edge("api", "db")],
-    )
-
-
 def _map(graph: ArchitectureGraph) -> GraphSimulationPlan:
     mapper: ArchitectureSimulationPlanMapper = ArchitectureSimulationPlanMapper()
-    return mapper.map(graph, _scenario())
+    return mapper.map(graph, make_scenario())
 
 
 def test_linear_graph_preserves_independent_channels_and_latency_units() -> None:
-    plan: GraphSimulationPlan = _map(_graph())
+    plan: GraphSimulationPlan = _map(make_graph())
 
     assert plan.client_identifier == "web"
     assert plan.topological_order == ["web", "api", "db"]
@@ -107,7 +56,7 @@ def test_linear_graph_preserves_independent_channels_and_latency_units() -> None
 
 
 def test_permuting_nodes_and_edges_does_not_change_the_plan() -> None:
-    original: ArchitectureGraph = _graph()
+    original: ArchitectureGraph = make_graph()
     reordered: ArchitectureGraph = ArchitectureGraph(
         nodes=list(reversed(original.nodes)),
         edges=list(reversed(original.edges)),
@@ -126,7 +75,7 @@ def test_branch_preserves_explicit_routing_modes_without_simulating_them() -> No
         monthly_cost_usd=20,
         cache_hit_rate_probability=0.7,
     )
-    graph: ArchitectureGraph = _graph()
+    graph: ArchitectureGraph = make_graph()
     graph.nodes.append(cache)
     graph.edges.append(
         Edge(
@@ -144,8 +93,8 @@ def test_branch_preserves_explicit_routing_modes_without_simulating_them() -> No
 
 def test_missing_service_channels_are_not_guessed_from_concurrency() -> None:
     graph: ArchitectureGraph = ArchitectureGraph(
-        nodes=[ClientNode(identifier="web"), _compute(channels=None)],
-        edges=[_edge("web", "api")],
+        nodes=[ClientNode(identifier="web"), make_compute(channels=None)],
+        edges=[make_edge("web", "api")],
     )
     with pytest.raises(GraphMappingError) as error:
         _map(graph)
@@ -158,17 +107,17 @@ def test_missing_workload_does_not_invent_an_arrival_rate() -> None:
         identifier="orders", description="Order processing"
     )
     with pytest.raises(GraphMappingError) as error:
-        mapper.map(_graph(), scenario)
+        mapper.map(make_graph(), scenario)
     assert error.value.code == MappingFailure.MISSING_WORKLOAD
 
 
 @pytest.mark.parametrize(
     ("edges", "reason"),
     [
-        ([_edge("web", "missing")], MappingFailure.UNKNOWN_ENDPOINT),
-        ([_edge("web", "api"), _edge("web", "api")], MappingFailure.DUPLICATE_EDGE),
+        ([make_edge("web", "missing")], MappingFailure.UNKNOWN_ENDPOINT),
+        ([make_edge("web", "api"), make_edge("web", "api")], MappingFailure.DUPLICATE_EDGE),
         (
-            [_edge("web", "api"), _edge("api", "db"), _edge("db", "api")],
+            [make_edge("web", "api"), make_edge("api", "db"), make_edge("db", "api")],
             MappingFailure.CYCLE,
         ),
     ],
@@ -176,7 +125,7 @@ def test_missing_workload_does_not_invent_an_arrival_rate() -> None:
 def test_inconsistent_topology_has_a_typed_failure(
     edges: list[Edge], reason: MappingFailure
 ) -> None:
-    graph: ArchitectureGraph = _graph()
+    graph: ArchitectureGraph = make_graph()
     graph.edges = edges
     with pytest.raises(GraphMappingError) as error:
         _map(graph)
@@ -184,23 +133,23 @@ def test_inconsistent_topology_has_a_typed_failure(
 
 
 def test_isolated_capacity_node_is_rejected() -> None:
-    graph: ArchitectureGraph = _graph()
-    graph.edges = [_edge("web", "api")]
+    graph: ArchitectureGraph = make_graph()
+    graph.edges = [make_edge("web", "api")]
     with pytest.raises(GraphMappingError) as error:
         _map(graph)
     assert error.value.code == MappingFailure.DISCONNECTED
 
 
 def test_duplicate_identifier_is_rejected() -> None:
-    graph: ArchitectureGraph = _graph()
-    graph.nodes.append(_compute())
+    graph: ArchitectureGraph = make_graph()
+    graph.nodes.append(make_compute())
     with pytest.raises(GraphMappingError) as error:
         _map(graph)
     assert error.value.code == MappingFailure.DUPLICATE_NODE
 
 
 def test_asynchronous_edges_are_not_silently_treated_as_sync() -> None:
-    graph: ArchitectureGraph = _graph()
+    graph: ArchitectureGraph = make_graph()
     graph.edges[0].protocol = ASYNCHRONOUS_MESSAGE_QUEUE
     with pytest.raises(GraphMappingError) as error:
         _map(graph)
@@ -208,7 +157,7 @@ def test_asynchronous_edges_are_not_silently_treated_as_sync() -> None:
 
 
 def test_retries_cannot_be_silently_ignored() -> None:
-    graph: ArchitectureGraph = _graph()
+    graph: ArchitectureGraph = make_graph()
     graph.edges[0].retry_attempts_count = 1
     with pytest.raises(GraphMappingError) as error:
         _map(graph)
@@ -226,7 +175,7 @@ def test_broker_requires_an_explicit_execution_semantics() -> None:
     )
     graph: ArchitectureGraph = ArchitectureGraph(
         nodes=[ClientNode(identifier="web"), broker],
-        edges=[_edge("web", "mq")],
+        edges=[make_edge("web", "mq")],
     )
     with pytest.raises(GraphMappingError) as error:
         _map(graph)
@@ -234,12 +183,12 @@ def test_broker_requires_an_explicit_execution_semantics() -> None:
 
 
 def test_plan_json_round_trip() -> None:
-    plan: GraphSimulationPlan = _map(_graph())
+    plan: GraphSimulationPlan = _map(make_graph())
     assert GraphSimulationPlan.model_validate_json(plan.model_dump_json()) == plan
 
 
 def test_non_finite_resource_times_are_rejected_by_contract() -> None:
-    plan: GraphSimulationPlan = _map(_graph())
+    plan: GraphSimulationPlan = _map(make_graph())
     invalid_payload: dict[str, object] = plan.resources[0].model_dump()
     invalid_payload["mean_service_seconds"] = float("inf")
     with pytest.raises(ValidationError):
