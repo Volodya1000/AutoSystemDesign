@@ -94,8 +94,7 @@ def diagnostic_card(
     if finding.affected_node_identifiers:
         body.append(
             Paragraph(
-                "Компоненты: "
-                + escape(", ".join(finding.affected_node_identifiers)),
+                "Компоненты: " + escape(", ".join(finding.affected_node_identifiers)),
                 styles["note"],
             )
         )
