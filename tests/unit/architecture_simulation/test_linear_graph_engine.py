@@ -91,8 +91,13 @@ def test_graph_trace_is_independent_of_resource_input_order() -> None:
 
 def test_invalid_cyclic_routing_plan_is_rejected() -> None:
     plan: GraphSimulationPlan = _plan()
+    api_to_db = next(
+        edge for edge in plan.connections if edge.source_identifier == "api"
+    )
     plan.connections.append(
-        plan.connections[1].model_copy(update={"target_identifier": "api"})
+        api_to_db.model_copy(
+            update={"source_identifier": "db", "target_identifier": "api"}
+        )
     )
     engine: SimPyLinearGraphEngine = SimPyLinearGraphEngine()
 
