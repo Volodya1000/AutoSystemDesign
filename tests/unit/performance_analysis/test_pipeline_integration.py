@@ -158,6 +158,8 @@ def test_linear_mm1_metrics_match_hand_calculation_in_json_and_pdf(
     pdf_text = "\n".join(page.extract_text() for page in reader.pages)
     assert identifier in pdf_text
     assert "100.00" in pdf_text
+    assert "101.00" in pdf_text
+    assert "Критический путь: client" in pdf_text
     assert "Предупреждение" not in pdf_text
     assert (tmp_path / "architecture_graph.json").is_file()
 
