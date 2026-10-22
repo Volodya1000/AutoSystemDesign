@@ -96,7 +96,7 @@ repos:
 
       - id: pytest
         name: Unit tests
-        entry: uv run --with pytest-cov==7.0.0 pytest -m unit --cov=src --cov-branch --cov-report=term-missing:skip-covered
+        entry: uv run --with pytest-cov==7.0.0 pytest tests/unit --cov=src --cov-branch --cov-report=term-missing:skip-covered
         language: system
         pass_filenames: false
         always_run: true
