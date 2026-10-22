@@ -76,9 +76,7 @@ class GraphTraceWindowResult(GraphExecutionModel):
     @model_validator(mode="after")
     def validate_accounting(self) -> Self:
         """Preserve every measured arrival across the stopping horizon."""
-        counted: int = (
-            len(self.observations) + len(self.rejections) + self.unfinished
-        )
+        counted: int = len(self.observations) + len(self.rejections) + self.unfinished
         if counted != self.measured_arrivals:
             message = "root arrivals must equal completed plus rejected plus unfinished"
             raise ValueError(message)
