@@ -7,6 +7,7 @@ from .protocols import (
     SequenceCatalogValidatorProtocol,
     SequenceScenarioValidatorProtocol,
 )
+from .topology import SequenceTopologyValidator
 
 __all__ = [
     "ClientOwnershipValidator",
@@ -14,4 +15,5 @@ __all__ = [
     "SequenceCatalogValidatorProtocol",
     "SequenceIntegrityValidator",
     "SequenceScenarioValidatorProtocol",
+    "SequenceTopologyValidator",
 ]
