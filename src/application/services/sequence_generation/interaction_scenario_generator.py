@@ -78,14 +78,17 @@ class InteractionScenarioGenerator:
                 )
                 continue
 
+            interaction: InteractionScenario = proposal.payload.model_copy(
+                update={"scenario_id": f"SC-{requirement.identifier}"}
+            )
             validation = self._validate_scenario(
-                proposal.payload, catalog, graph, requirement.identifier
+                interaction, catalog, graph, requirement.identifier
             )
             attempts.append(
                 GenerationAttempt[InteractionScenario](
                     attempt_number=attempt_num,
                     parsed=True,
-                    payload=proposal.payload,
+                    payload=interaction,
                     validation=validation,
                     usage=proposal.usage,
                     latency_seconds=proposal.latency_seconds,
@@ -93,7 +96,7 @@ class InteractionScenarioGenerator:
             )
 
             if validation.is_successful:
-                return attempts, proposal.payload
+                return attempts, interaction
 
             feedback = [
                 ValidationErrorFeedback.from_error(error) for error in validation.errors
@@ -103,7 +106,7 @@ class InteractionScenarioGenerator:
                 roles_catalog=catalog,
                 architecture_graph=graph,
                 mode=DesignTaskMode.REPAIR,
-                previous_payload=proposal.payload.model_dump_json(),
+                previous_payload=interaction.model_dump_json(),
                 validation_feedback=feedback,
             )
 
