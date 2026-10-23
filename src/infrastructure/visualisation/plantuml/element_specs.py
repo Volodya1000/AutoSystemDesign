@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Final
 
 from domain.models.enums import NodeType
+from shared.artifact_language import ArtifactLanguage
 
 
 @dataclass(frozen=True)
@@ -35,3 +36,23 @@ DEFAULT_ELEMENT_SPECS: Final[dict[NodeType, C4ElementSpec]] = {
         function="ContainerQueue", technology="Message Broker"
     ),
 }
+
+
+def localized_element_specs(
+    language: ArtifactLanguage,
+) -> dict[NodeType, C4ElementSpec]:
+    """Localize descriptive component types while preserving C4 functions."""
+    if language is ArtifactLanguage.ENGLISH:
+        return dict(DEFAULT_ELEMENT_SPECS)
+    labels: dict[NodeType, str] = {
+        NodeType.CLIENT: "",
+        NodeType.LOAD_BALANCER: "Балансировщик",
+        NodeType.COMPUTE: "Сервис",
+        NodeType.DATABASE: "База данных",
+        NodeType.CACHE: "Кэш",
+        NodeType.MESSAGE_BROKER: "Брокер сообщений",
+    }
+    return {
+        kind: C4ElementSpec(function=spec.function, technology=labels[kind])
+        for kind, spec in DEFAULT_ELEMENT_SPECS.items()
+    }

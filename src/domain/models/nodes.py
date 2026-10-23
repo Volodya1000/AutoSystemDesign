@@ -19,6 +19,7 @@ class BaseNode(BaseModel):
     )
 
     identifier: str
+    display_name: str | None = Field(default=None, min_length=1)
     node_type: NodeType
     replicas_count: int = Field(default=1, ge=1)
 

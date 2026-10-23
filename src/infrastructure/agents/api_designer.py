@@ -13,6 +13,7 @@ from infrastructure.prompts.api_generation import (
     build_api_initial_messages,
     build_api_repair_messages,
 )
+from infrastructure.prompts.artifact_language import apply_artifact_language
 
 if TYPE_CHECKING:
     from config.root import AppSettings
@@ -32,7 +33,9 @@ class ApiDesignerAgent:
             messages = build_api_repair_messages(task)
 
         request = CompletionRequest(
-            messages=messages,
+            messages=apply_artifact_language(
+                messages, self._settings.generation.artifact_language
+            ),
             temperature=self._settings.llm.temperature,
             max_tokens=self._settings.llm.max_tokens,
             timeout_seconds=self._settings.llm.timeout_seconds,

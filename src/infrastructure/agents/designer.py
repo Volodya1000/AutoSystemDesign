@@ -9,6 +9,7 @@ from application.tasks import DesignProposal, DesignTask, DesignTaskMode
 from domain.models.topology import ArchitectureGraph
 from infrastructure.design.parser import parse_architecture_graph
 from infrastructure.llm.models import CompletionRequest, CompletionResult, Message
+from infrastructure.prompts.artifact_language import apply_artifact_language
 from infrastructure.prompts.design_generation import build_initial_messages
 from infrastructure.prompts.design_repair import build_repair_messages
 
@@ -37,7 +38,9 @@ class ArchitectureDesignerAgent:
             messages = build_repair_messages(task)
 
         request: CompletionRequest = CompletionRequest(
-            messages=messages,
+            messages=apply_artifact_language(
+                messages, self._settings.generation.artifact_language
+            ),
             temperature=self._settings.llm.temperature,
             max_tokens=self._settings.llm.max_tokens,
             timeout_seconds=self._settings.llm.timeout_seconds,

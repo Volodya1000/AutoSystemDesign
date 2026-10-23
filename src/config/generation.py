@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from shared.artifact_language import ArtifactLanguage
 from shared.generation_limits import (
     DEFAULT_SEQUENCE_PARALLELISM,
     MAX_ATTEMPTS,
@@ -13,6 +14,8 @@ from shared.generation_limits import (
 
 class GenerationSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    artifact_language: ArtifactLanguage = ArtifactLanguage.ENGLISH
 
     max_attempts: int = Field(
         default=3,
