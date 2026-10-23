@@ -1,0 +1,21 @@
+identifier: online_store_demo
+description: Система должна регистрировать заказ покупателя по списку кодов товаров
+  и их количеств с возвратом уникального номера заказа.
+workload:
+  baseline_requests_per_second: 120.0
+  peak_requests_per_second: 400.0
+  read_ratio: 0.8
+requirements:
+- threshold_value: 300.0
+  percentile: 95.0
+  type_identifier: latency
+- threshold_value: 500.0
+  type_identifier: budget
+functional_requirements:
+- identifier: FR-001
+  name: Оформление заказа
+  text: Система должна регистрировать заказ покупателя по списку кодов товаров и их
+    количеств с возвратом уникального номера заказа.
+- identifier: FR-002
+  name: Просмотр статуса
+  text: Система должна возвращать текущий статус заказа по его номеру.

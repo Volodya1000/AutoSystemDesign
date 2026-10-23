@@ -16,6 +16,7 @@ from domain.models.protocols import SYNCHRONOUS_REST_HTTP
 from domain.models.requirements import LatencyRequirement
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import AnyNode, ArchitectureGraph
+from domain.service_profiles import ServiceProfile
 
 
 class _CapacityFields(TypedDict):
@@ -166,4 +167,19 @@ def create_test_latency_scenario() -> DesignScenario:
             peak_requests_per_second=20.0,
         ),
         requirements=[LatencyRequirement(threshold_value=1.0, percentile=99.0)],
+    )
+
+
+def create_test_service_profile() -> ServiceProfile:
+    """Build an explicitly sourced, stable synthetic processing profile."""
+    return ServiceProfile(
+        source="Explicit synthetic test assumption",
+        provenance="assumption",
+        replicas_count=1,
+        maximum_concurrency=8,
+        maximum_queue_size=100,
+        service_channels_per_replica=2,
+        mean_processing_time_milliseconds=10,
+        standard_deviation_processing_time=5,
+        monthly_cost_usd=50,
     )

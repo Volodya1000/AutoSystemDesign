@@ -44,7 +44,9 @@ def test_cli_reports_invalid_yaml_field_before_generation(
     monkeypatch.setattr(
         cli,
         "_parse_args",
-        lambda: argparse.Namespace(scenario=str(scenario_path), verbose=False),
+        lambda: argparse.Namespace(
+            scenario=str(scenario_path), verbose=False, profiles=None
+        ),
     )
 
     def unexpected_pipeline(**_kwargs: object) -> None:

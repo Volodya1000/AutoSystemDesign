@@ -1,0 +1,37 @@
+{
+  "by_node_type": {
+    "load_balancer": {
+      "source": "Synthetic demonstration assumption; not a production measurement",
+      "provenance": "assumption",
+      "replicas_count": 1,
+      "maximum_concurrency": 32,
+      "maximum_queue_size": 500,
+      "service_channels_per_replica": 2,
+      "mean_processing_time_milliseconds": 1,
+      "standard_deviation_processing_time": 0.5,
+      "monthly_cost_usd": 20
+    },
+    "compute": {
+      "source": "Synthetic demonstration assumption; not a production measurement",
+      "provenance": "assumption",
+      "replicas_count": 1,
+      "maximum_concurrency": 32,
+      "maximum_queue_size": 500,
+      "service_channels_per_replica": 8,
+      "mean_processing_time_milliseconds": 15,
+      "standard_deviation_processing_time": 7.5,
+      "monthly_cost_usd": 80
+    },
+    "database": {
+      "source": "Synthetic demonstration assumption; not a production measurement",
+      "provenance": "assumption",
+      "replicas_count": 1,
+      "maximum_concurrency": 32,
+      "maximum_queue_size": 500,
+      "service_channels_per_replica": 8,
+      "mean_processing_time_milliseconds": 8,
+      "standard_deviation_processing_time": 4.0,
+      "monthly_cost_usd": 120
+    }
+  }
+}

@@ -18,6 +18,7 @@ from application.tasks import (
 )
 from domain.models.scenarios import DesignScenario
 from domain.models.topology import ArchitectureGraph
+from domain.service_profiles import ProfileApplication, ServiceProfileCatalog
 from domain.specifications.interfaces import (
     BaseValidator,
     ScenarioValidator,
@@ -71,6 +72,8 @@ class DesignGenerationService:
         validators: Sequence[BaseValidator],
         max_attempts: int,
         scenario_validators: Sequence[ScenarioValidator] = (),
+        *,
+        service_profiles: ServiceProfileCatalog | None = None,
     ) -> None:
         if not MIN_ATTEMPTS <= max_attempts <= MAX_ATTEMPTS:
             raise GenerationConfigurationError.attempts_out_of_range(
@@ -86,6 +89,7 @@ class DesignGenerationService:
         )
         self._designer = designer
         self._max_attempts: int = max_attempts
+        self._service_profiles: ServiceProfileCatalog | None = service_profiles
 
     def generate(self, scenario: DesignScenario) -> DesignGenerationResult:
         task: DesignTask = DesignTask(scenario=scenario, mode=DesignTaskMode.INITIAL)
@@ -108,12 +112,20 @@ class DesignGenerationService:
                 task = _build_parsing_repair_task(scenario, parsing_error)
                 continue
 
-            validation: ValidationResult = self._validate(proposal.graph, scenario)
+            binding: ProfileApplication | None = (
+                self._service_profiles.apply(proposal.graph)
+                if self._service_profiles is not None
+                else None
+            )
+            graph: ArchitectureGraph = (
+                binding.graph if binding is not None else proposal.graph
+            )
+            validation: ValidationResult = self._validate(graph, scenario)
             attempts.append(
                 GenerationAttempt[ArchitectureGraph](
                     attempt_number=attempt_number,
                     parsed=True,
-                    payload=proposal.graph,
+                    payload=graph,
                     validation=validation,
                     usage=proposal.usage,
                     latency_seconds=proposal.latency_seconds,
@@ -121,7 +133,7 @@ class DesignGenerationService:
             )
             if validation.is_successful:
                 break
-            task = _build_validation_repair_task(scenario, proposal.graph, validation)
+            task = _build_validation_repair_task(scenario, graph, validation)
 
         return DesignGenerationResult(attempts=attempts)
 

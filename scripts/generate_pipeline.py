@@ -31,6 +31,7 @@ from pydantic import ValidationError
 from config.logging import configure_logging
 from config.root import AppSettings, load_app_settings
 from domain.models import DesignScenario
+from domain.service_profiles import ServiceProfileCatalog
 from infrastructure.composition import build_pipeline
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
 from infrastructure.reporting import log_header
@@ -45,7 +46,11 @@ def main() -> int:
 
     try:
         settings: AppSettings = load_app_settings()
-    except (ValidationError, ValueError):
+        if args.profiles is not None:
+            settings.service_profiles = ServiceProfileCatalog.model_validate_json(
+                args.profiles.read_text(encoding="utf-8")
+            )
+    except (OSError, ValidationError, ValueError):
         _logger.exception("Settings error")
         return 2
 
@@ -80,6 +85,12 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the full design pipeline.")
     parser.add_argument(
         "--scenario", type=str, required=True, help="Path to scenario YAML"
+    )
+    parser.add_argument(
+        "--profiles",
+        type=Path,
+        default=None,
+        help="JSON catalog of explicit service parameters and their sources",
     )
     parser.add_argument(
         "--out-dir",
