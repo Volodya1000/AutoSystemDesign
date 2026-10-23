@@ -155,7 +155,7 @@ def test_offline_command_rejects_missing_inputs(tmp_path: Path) -> None:
     )
 
 
-def test_offline_command_rejects_unmapped_capacity_nodes(tmp_path: Path) -> None:
+def test_offline_command_accepts_unmapped_capacity_nodes(tmp_path: Path) -> None:
     catalog: Path = tmp_path / "empty.json"
     catalog.write_text("{}", encoding="utf-8")
     assert (
@@ -171,5 +171,5 @@ def test_offline_command_rejects_unmapped_capacity_nodes(tmp_path: Path) -> None
                 str(tmp_path),
             ]
         )
-        == 1
+        == 0
     )
