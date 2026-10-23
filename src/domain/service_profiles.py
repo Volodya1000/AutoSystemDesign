@@ -7,31 +7,34 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from domain.exceptions.architecture_errors import ArchitectureValidationError
 from domain.models.enums import NodeType
 from domain.models.nodes import CapacityNode
 from domain.models.topology import AnyNode, ArchitectureGraph
 
 
 class ServiceProfile(BaseModel):
-    """Record the source and complete processing parameters of a service."""
+    """Record only explicitly supplied processing parameters and their source."""
 
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False, frozen=True)
 
     source: str = Field(min_length=1)
     provenance: Literal["assumption", "measurement"]
-    replicas_count: int = Field(ge=1)
-    maximum_concurrency: int = Field(gt=0)
-    maximum_queue_size: int = Field(ge=0)
-    service_channels_per_replica: int = Field(gt=0)
-    mean_processing_time_milliseconds: float = Field(gt=0)
-    standard_deviation_processing_time: float = Field(ge=0)
-    monthly_cost_usd: float = Field(ge=0)
+    replicas_count: int | None = Field(default=None, ge=1)
+    maximum_concurrency: int | None = Field(default=None, gt=0)
+    maximum_queue_size: int | None = Field(default=None, ge=0)
+    service_channels_per_replica: int | None = Field(default=None, gt=0)
+    mean_processing_time_milliseconds: float | None = Field(default=None, gt=0)
+    standard_deviation_processing_time: float | None = Field(default=None, ge=0)
+    monthly_cost_usd: float | None = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def validate_channels(self) -> Self:
         """Keep service channels distinct from the in-flight request limit."""
-        if self.service_channels_per_replica > self.maximum_concurrency:
+        if (
+            self.service_channels_per_replica is not None
+            and self.maximum_concurrency is not None
+            and self.service_channels_per_replica > self.maximum_concurrency
+        ):
             raise InvalidServiceProfileError.channels_exceed_concurrency()
         if not self.source.strip():
             raise InvalidServiceProfileError.missing_source()
@@ -40,7 +43,7 @@ class ServiceProfile(BaseModel):
     def apply[NodeT: CapacityNode](self, node: NodeT) -> NodeT:
         """Validate a new node while preserving type-specific topology fields."""
         parameters: dict[str, object] = self.model_dump(
-            exclude={"source", "provenance"}
+            exclude={"source", "provenance"}, exclude_none=True
         )
         return type(node).model_validate(node.model_dump() | parameters)
 
@@ -61,28 +64,12 @@ class InvalidServiceProfileError(ValueError):
         return cls("Client nodes have no service capacity profile")
 
 
-class MissingServiceProfileError(ArchitectureValidationError):
-    """A generated capacity node has no explicitly configured profile."""
-
-    error_code: str = "MISSING_SERVICE_PROFILE"
-
-    def __init__(self, node: CapacityNode) -> None:
-        super().__init__(
-            message=(
-                f"No service profile for {node.identifier} ({node.node_type.value}). "
-                "Use a configured node/type or extend the explicit profile catalog."
-            ),
-            affected_node_identifiers=[node.identifier],
-        )
-
-
 @dataclass(frozen=True)
 class ProfileApplication:
-    """Keep the bound graph, exact applied parameters and binding errors together."""
+    """Keep the bound graph and exact applied overrides together."""
 
     graph: ArchitectureGraph
     applied: dict[str, ServiceProfile]
-    errors: tuple[ArchitectureValidationError, ...]
 
 
 class ServiceProfileCatalog(BaseModel):
@@ -101,10 +88,9 @@ class ServiceProfileCatalog(BaseModel):
         return self
 
     def apply(self, graph: ArchitectureGraph) -> ProfileApplication:
-        """Bind every capacity node or report a repairable mapping error."""
+        """Apply supplied overrides without requiring a profile for every node."""
         nodes: list[AnyNode] = []
         applied: dict[str, ServiceProfile] = {}
-        errors: list[ArchitectureValidationError] = []
         for node in graph.nodes:
             if not isinstance(node, CapacityNode):
                 nodes.append(node)
@@ -113,7 +99,6 @@ class ServiceProfileCatalog(BaseModel):
                 node.identifier, self.by_node_type.get(node.node_type)
             )
             if profile is None:
-                errors.append(MissingServiceProfileError(node))
                 nodes.append(node)
             else:
                 nodes.append(profile.apply(node))
@@ -121,5 +106,4 @@ class ServiceProfileCatalog(BaseModel):
         return ProfileApplication(
             graph=ArchitectureGraph(nodes=nodes, edges=graph.edges),
             applied=applied,
-            errors=tuple(errors),
         )
