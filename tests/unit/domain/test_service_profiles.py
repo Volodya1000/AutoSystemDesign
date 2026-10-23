@@ -13,7 +13,6 @@ from domain.models.nodes import CapacityNode
 from domain.models.scenarios import DesignScenario, WorkloadProfile
 from domain.models.topology import ArchitectureGraph
 from domain.service_profiles import (
-    MissingServiceProfileError,
     ProfileApplication,
     ServiceProfile,
     ServiceProfileCatalog,
@@ -53,7 +52,6 @@ def test_profile_supplies_channels_without_mutating_original() -> None:
         by_node_type={NodeType.COMPUTE: create_test_service_profile()}
     )
     result: ProfileApplication = catalog.apply(original)
-    assert not result.errors
     assert result.applied["orders"].provenance == "assumption"
     assert isinstance(original.nodes[1], CapacityNode)
     assert original.nodes[1].service_channels_per_replica is None
@@ -82,11 +80,28 @@ def test_node_specific_profile_overrides_type_defaults() -> None:
     assert result.graph.nodes[1].monthly_cost_usd == 75
 
 
-def test_unmapped_node_cannot_fall_back_to_llm_estimates() -> None:
-    result: ProfileApplication = ServiceProfileCatalog().apply(_graph())
-    assert len(result.errors) == 1
-    assert isinstance(result.errors[0], MissingServiceProfileError)
+def test_unmapped_node_does_not_block_generation() -> None:
+    original: ArchitectureGraph = _graph()
+    result: ProfileApplication = ServiceProfileCatalog().apply(original)
+    assert result.graph == original
     assert not result.applied
+
+
+def test_partial_profile_overrides_only_explicit_fields() -> None:
+    original: ArchitectureGraph = _graph()
+    profile: ServiceProfile = ServiceProfile(
+        source="BRD: capacity section",
+        provenance="measurement",
+        service_channels_per_replica=2,
+    )
+    result: ProfileApplication = ServiceProfileCatalog(
+        by_node_id={"orders": profile}
+    ).apply(original)
+    assert isinstance(original.nodes[1], CapacityNode)
+    assert isinstance(result.graph.nodes[1], CapacityNode)
+    assert result.graph.nodes[1].service_channels_per_replica == 2
+    assert result.graph.nodes[1].maximum_concurrency == original.nodes[1].maximum_concurrency
+    assert result.graph.nodes[1].monthly_cost_usd == original.nodes[1].monthly_cost_usd
 
 
 @pytest.mark.parametrize(
