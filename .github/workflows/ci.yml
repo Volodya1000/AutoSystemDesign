@@ -32,7 +32,10 @@ jobs:
       - name: Reject inline lint and type suppressions
         run: uv run python scripts/check_lint_suppressions.py
       - name: Run all pre-commit hooks
-        run: uv run pre-commit run --all-files
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+      - name: Show formatting differences after a failed hook
+        if: failure()
+        run: uv run ruff format --check --diff .
       - name: Check Ruff linting
         run: uv run ruff check .
       - name: Check Ruff formatting

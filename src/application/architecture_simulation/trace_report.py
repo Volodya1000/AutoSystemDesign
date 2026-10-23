@@ -40,6 +40,7 @@ if TYPE_CHECKING:
         OfflineSimulationInput,
         WorkloadObservation,
     )
+    from domain.models.enums import Operator
 
 
 def forward_path_quantiles(durations_seconds: Sequence[float]) -> LatencyQuantiles:
@@ -67,12 +68,14 @@ class GraphTraceReportBuilder:
     ) -> SimulationReport:
         """Keep unavailable metrics null and unsupported requirements unevaluated."""
         experiments: list[SimulationExperiment] = [
-            _experiment(run) for run in observations
+            _experiment(run, inputs.configuration.measurement_seconds)
+            for run in observations
         ]
         return SimulationReport(
             scenario_identifier=inputs.scenario.identifier,
             status=SimulationReportStatus.PARTIAL,
             configuration=inputs.configuration,
+            timeouts_modeled=False,
             experiments=experiments,
             findings=[
                 SimulationFinding(
@@ -80,13 +83,16 @@ class GraphTraceReportBuilder:
                     severity="warning",
                     title=f"Отказы на узле {node.node_identifier}",
                     description=(
-                        f"Режим {run.workload_id.value}: узел отклонил "
-                        f"{node.rejected_requests} клиентских запросов."
+                        f"Нагрузка {run.offered_requests_per_second:g} запросов/с: "
+                        "отклонено "
+                        f"{node.rejected_requests} клиентских запросов. "
+                        "Отказы ограничивают достигнутый темп завершений."
                     ),
                     affected_node_identifiers=[node.node_identifier],
                     recommendation=(
-                        "Проверить каналы, реплики и входную нагрузку узла; "
-                        "повторить моделирование после изменения параметров."
+                        "Сравнить вариант с большей сервисной емкостью этого узла "
+                        "при той же нагрузке. Увеличение только очереди "
+                        "не увеличивает число обслуживающих каналов."
                     ),
                 )
                 for run in experiments
@@ -99,6 +105,13 @@ class GraphTraceReportBuilder:
                 for index, requirement in enumerate(inputs.scenario.requirements)
             ],
             limitations=[
+                SimulationLimitation(
+                    code=SimulationLimitationCode.TIMEOUTS_UNMODELED,
+                    description=(
+                        "Таймауты связей не моделируются; число таймаутов "
+                        "не измерено. Deadline не ограничивает completed."
+                    ),
+                ),
                 SimulationLimitation(
                     code=SimulationLimitationCode.FORWARD_PATH_ONLY,
                     description=(
@@ -126,7 +139,9 @@ class GraphTraceReportBuilder:
         )
 
 
-def _experiment(run: WorkloadObservation) -> SimulationExperiment:
+def _experiment(
+    run: WorkloadObservation, measurement_seconds: float
+) -> SimulationExperiment:
     visits: Counter[str] = Counter(
         identifier
         for observation in run.result.observations
@@ -142,6 +157,19 @@ def _experiment(run: WorkloadObservation) -> SimulationExperiment:
         completed_requests=len(run.result.observations),
         rejected_requests=len(run.result.rejections),
         unfinished_requests=run.result.unfinished,
+        throughput_requests_per_second=(
+            len(run.result.observations) / measurement_seconds
+        ),
+        rejected_ratio=(
+            len(run.result.rejections) / run.result.measured_arrivals
+            if run.result.measured_arrivals
+            else None
+        ),
+        unfinished_ratio=(
+            run.result.unfinished / run.result.measured_arrivals
+            if run.result.measured_arrivals
+            else None
+        ),
         forward_path_latency_milliseconds=forward_path_quantiles(
             [item.traversal_seconds for item in run.result.observations]
         ),
@@ -161,12 +189,14 @@ def _requirement(
 ) -> RequirementEvaluation:
     kind: RequirementKind = RequirementKind(requirement.type_identifier)
     reason: SimulationReasonCode = SimulationReasonCode.REQUIREMENT_SCOPE_UNKNOWN
+    operator: Operator | None = None
     threshold: float | None = None
     percentile: float | None = None
     minimum: float | None = None
     maximum: float | None = None
     if isinstance(requirement, ThresholdRequirement):
         threshold = requirement.threshold_value
+        operator = requirement.operator
     if isinstance(requirement, PercentileThresholdRequirement):
         percentile = requirement.percentile
     if isinstance(requirement, ResourceUtilizationRequirement):
@@ -183,6 +213,7 @@ def _requirement(
         requirement_index=index,
         type_identifier=kind,
         phase=workload,
+        operator=operator,
         threshold_value=threshold,
         minimum_value=minimum,
         maximum_value=maximum,
