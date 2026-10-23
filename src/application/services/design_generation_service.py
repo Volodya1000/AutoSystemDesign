@@ -121,10 +121,6 @@ class DesignGenerationService:
                 binding.graph if binding is not None else proposal.graph
             )
             validation: ValidationResult = self._validate(graph, scenario)
-            if binding is not None:
-                validation = validation.model_copy(
-                    update={"errors": [*binding.errors, *validation.errors]}
-                )
             attempts.append(
                 GenerationAttempt[ArchitectureGraph](
                     attempt_number=attempt_number,
