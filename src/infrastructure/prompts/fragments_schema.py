@@ -73,7 +73,12 @@ OUTPUT_HARD_RULES: Final[str] = (
     "weights are not supported; do not invent them. For a compute node with a "
     "cache read, the paired database fallback receives cache-edge traffic times "
     "(1 - cache_hit_rate_probability); if several database fallback edges exist, "
-    "their routing_mode distributes or duplicates only that miss traffic."
+    "their routing_mode distributes or duplicates only that miss traffic.\n"
+    "13. For stateful business workflows, show the authoritative storage "
+    "dependency explicitly. A component that retrieves previously registered "
+    "data must have a directed path to that same store or to a component "
+    "responsible for reading it. Do not add a disconnected status/query "
+    "service that cannot obtain the requested data."
 )
 
 FEW_SHOT_GRAPH_JSON: Final[str] = """{
