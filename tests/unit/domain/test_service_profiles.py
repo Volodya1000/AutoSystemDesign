@@ -100,7 +100,10 @@ def test_partial_profile_overrides_only_explicit_fields() -> None:
     assert isinstance(original.nodes[1], CapacityNode)
     assert isinstance(result.graph.nodes[1], CapacityNode)
     assert result.graph.nodes[1].service_channels_per_replica == 2
-    assert result.graph.nodes[1].maximum_concurrency == original.nodes[1].maximum_concurrency
+    assert (
+        result.graph.nodes[1].maximum_concurrency
+        == original.nodes[1].maximum_concurrency
+    )
     assert result.graph.nodes[1].monthly_cost_usd == original.nodes[1].monthly_cost_usd
 
 
