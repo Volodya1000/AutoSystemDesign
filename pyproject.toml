@@ -10,6 +10,7 @@ dependencies = [
     "pydantic>=2.14.0",
     "pydantic-settings[yaml]>=2.15.0",
     "reportlab>=4.4,<5",
+    "simpy>=4.1.2,<5",
 ]
 
 [dependency-groups]
@@ -147,7 +148,7 @@ build-backend = "setuptools.build_meta"
 # Ограниченный пилот: проверяем доменную логику численных требований.
 source_paths = ["src/"]
 only_mutate = ["src/domain/models/base_constraints.py"]
-also_copy = ["scripts/", "scenarios/", "config.yaml"]
+also_copy = ["scripts/", "scenarios/", "examples/", "config.yaml"]
 pytest_add_cli_args_test_selection = ["tests/unit"]
 
 [tool.commitizen]

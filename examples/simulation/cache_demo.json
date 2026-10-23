@@ -1,0 +1,65 @@
+{
+  "scenario": {
+    "identifier": "offline_cache",
+    "description": "Каталог: API, кэш 80% и база данных",
+    "workload": {
+      "baseline_requests_per_second": 10.0,
+      "peak_requests_per_second": 80.0
+    },
+    "requirements": [
+      {"type_identifier": "latency", "threshold_value": 100.0, "percentile": 99.0},
+      {"type_identifier": "availability", "threshold_value": 99.9}
+    ]
+  },
+  "configuration": {
+    "warmup_seconds": 0,
+    "measurement_seconds": 10,
+    "replications": 1,
+    "base_seed": 20261022,
+    "max_events_per_replication": 100000
+  },
+  "graph": {
+    "nodes": [
+      {"identifier": "client", "node_type": "client"},
+      {
+        "identifier": "api", "node_type": "compute", "replicas_count": 1,
+        "maximum_concurrency": 6, "maximum_queue_size": 5,
+        "service_channels_per_replica": 1,
+        "mean_processing_time_milliseconds": 50,
+        "standard_deviation_processing_time": 0, "monthly_cost_usd": 100
+      },
+      {
+        "identifier": "cache", "node_type": "cache", "replicas_count": 1,
+        "maximum_concurrency": 3, "maximum_queue_size": 2,
+        "service_channels_per_replica": 1,
+        "mean_processing_time_milliseconds": 3,
+        "standard_deviation_processing_time": 0, "monthly_cost_usd": 20,
+        "cache_hit_rate_probability": 0.8
+      },
+      {
+        "identifier": "db", "node_type": "database", "replicas_count": 1,
+        "maximum_concurrency": 6, "maximum_queue_size": 5,
+        "service_channels_per_replica": 1,
+        "mean_processing_time_milliseconds": 20,
+        "standard_deviation_processing_time": 0, "monthly_cost_usd": 70
+      }
+    ],
+    "edges": [
+      {
+        "source_identifier": "client", "target_identifier": "api",
+        "protocol": {"name": "sync_rest_http", "is_asynchronous": false},
+        "network_latency_milliseconds": 4
+      },
+      {
+        "source_identifier": "api", "target_identifier": "cache",
+        "protocol": {"name": "sync_rest_http", "is_asynchronous": false},
+        "network_latency_milliseconds": 4
+      },
+      {
+        "source_identifier": "api", "target_identifier": "db",
+        "protocol": {"name": "sync_rest_http", "is_asynchronous": false},
+        "network_latency_milliseconds": 4
+      }
+    ]
+  }
+}

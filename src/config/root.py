@@ -32,6 +32,7 @@ from config.generation import GenerationSettings
 from config.llm import LlmSettings
 from config.testing import IntegrationSettings
 from config.visualisation import VisualisationSettings
+from domain.architecture_simulation.configuration import SimulationConfiguration
 
 CONFIG_FILE_ENV_VAR: Final[str] = "APP_CONFIG_FILE"
 _DEFAULT_CONFIG_FILE: Final[Path] = Path("config.yaml")
@@ -90,6 +91,7 @@ class AppSettings(BaseSettings):
     generation: GenerationSettings = Field(default_factory=GenerationSettings)
     testing: IntegrationSettings = Field(default_factory=IntegrationSettings)
     visualisation: VisualisationSettings = Field(default_factory=VisualisationSettings)
+    simulation: SimulationConfiguration = Field(default_factory=SimulationConfiguration)
 
     @classmethod
     def settings_customise_sources(

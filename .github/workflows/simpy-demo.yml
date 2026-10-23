@@ -1,0 +1,40 @@
+name: Offline SimPy report
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/simpy-demo.yml
+      - examples/simulation/**
+      - scripts/run_offline_simulation_demo.py
+      - src/**/architecture_simulation/**
+      - src/infrastructure/reporting/pdf/**
+      - pyproject.toml
+      - uv.lock
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    name: Fixed C4 graph to SimPy JSON and PDF
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install dependencies
+        run: uv sync --locked --all-groups
+      - name: Run actual simulation without an LLM
+        run: uv run python scripts/run_offline_simulation_demo.py --output-dir output/simpy_demo
+      - name: Publish simulation report and event evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: simpy-offline-report
+          path: output/simpy_demo/
+          if-no-files-found: error
