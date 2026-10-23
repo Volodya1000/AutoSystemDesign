@@ -16,6 +16,7 @@ from infrastructure.design.sequence_parser import (
 )
 from infrastructure.llm.models import CompletionRequest, CompletionResult
 from infrastructure.llm.protocols import CompletionClientProtocol
+from infrastructure.prompts.artifact_language import apply_artifact_language
 from infrastructure.prompts.sequence_generation import (
     build_interaction_initial_messages,
     build_interaction_repair_messages,
@@ -37,7 +38,9 @@ class SequenceDesignerAgent:
             messages = build_roles_repair_messages(task)
 
         request = CompletionRequest(
-            messages=messages,
+            messages=apply_artifact_language(
+                messages, self._settings.generation.artifact_language
+            ),
             temperature=self._settings.llm.temperature,
             max_tokens=self._settings.llm.max_tokens,
             timeout_seconds=self._settings.llm.timeout_seconds,
@@ -67,7 +70,9 @@ class SequenceDesignerAgent:
             messages = build_interaction_repair_messages(task)
 
         request = CompletionRequest(
-            messages=messages,
+            messages=apply_artifact_language(
+                messages, self._settings.generation.artifact_language
+            ),
             temperature=self._settings.llm.temperature,
             max_tokens=self._settings.llm.max_tokens,
             timeout_seconds=self._settings.llm.timeout_seconds,

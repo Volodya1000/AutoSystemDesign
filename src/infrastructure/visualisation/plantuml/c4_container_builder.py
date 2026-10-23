@@ -99,7 +99,7 @@ def _edge_technology(edge: Edge) -> str:
 
 def _format_element(spec: C4ElementSpec, alias: str, node: AnyNode) -> str:
     """Format a single C4 element call."""
-    arguments: list[str] = [alias, _quote(node.identifier)]
+    arguments: list[str] = [alias, _quote(node.display_name or node.identifier)]
     if spec.technology:
         arguments.append(_quote(spec.technology))
     arguments.append(_quote(_describe_node(node)))

@@ -14,6 +14,7 @@ from application.tasks import (
     SequenceRoleTask,
 )
 from application.usage import TokenUsage
+from config.generation import GenerationSettings
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
 from domain.models.api import (
@@ -39,6 +40,7 @@ from infrastructure.llm.models import (
     Message,
     MessageRole,
 )
+from shared.artifact_language import ArtifactLanguage
 
 pytestmark = pytest.mark.unit
 
@@ -61,8 +63,9 @@ class RecordingCompletionClient:
         return self.result
 
 
-def _settings() -> AppSettings:
+def _settings(language: ArtifactLanguage) -> AppSettings:
     return AppSettings(
+        generation=GenerationSettings(artifact_language=language),
         base_url="http://localhost/v1",
         api_key=SecretStr("test-key"),
         llm=LlmSettings(
@@ -73,6 +76,14 @@ def _settings() -> AppSettings:
             structured_output_mode=StructuredOutputMode.JSON_SCHEMA,
         ),
     )
+
+
+def _assert_language(request: CompletionRequest, language: ArtifactLanguage) -> None:
+    language_name: str = (
+        "Russian" if language is ArtifactLanguage.RUSSIAN else "English"
+    )
+    assert request.messages[0].role is MessageRole.SYSTEM
+    assert language_name in request.messages[0].content
 
 
 def _messages(content: str) -> list[Message]:
@@ -186,9 +197,11 @@ def _interaction() -> InteractionScenario:
     )
 
 
+@pytest.mark.parametrize("language", list(ArtifactLanguage))
 @pytest.mark.parametrize("mode", [DesignTaskMode.INITIAL, DesignTaskMode.REPAIR])
 def test_architecture_designer_builds_typed_request_and_parses_result(
     mode: DesignTaskMode,
+    language: ArtifactLanguage,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client = RecordingCompletionClient()
@@ -207,11 +220,12 @@ def test_architecture_designer_builds_typed_request_and_parses_result(
 
     task = DesignTask(scenario=_scenario(), mode=mode)
     proposal = architecture_designer_module.ArchitectureDesignerAgent(
-        client, _settings()
+        client, _settings(language)
     ).propose(task)
 
     request = client.requests[0]
-    assert request.messages[0].content == (
+    _assert_language(request, language)
+    assert request.messages[-1].content == (
         "initial prompt" if mode is DesignTaskMode.INITIAL else "repair prompt"
     )
     assert request.temperature == 0.3
@@ -225,9 +239,11 @@ def test_architecture_designer_builds_typed_request_and_parses_result(
     assert proposal.latency_seconds == 0.25
 
 
+@pytest.mark.parametrize("language", list(ArtifactLanguage))
 @pytest.mark.parametrize("mode", [DesignTaskMode.INITIAL, DesignTaskMode.REPAIR])
 def test_api_designer_builds_typed_request_and_parses_result(
     mode: DesignTaskMode,
+    language: ArtifactLanguage,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client = RecordingCompletionClient()
@@ -250,10 +266,13 @@ def test_api_designer_builds_typed_request_and_parses_result(
         sequence_scenarios=[],
         mode=mode,
     )
-    proposal = api_designer_module.ApiDesignerAgent(client, _settings()).propose(task)
+    proposal = api_designer_module.ApiDesignerAgent(
+        client, _settings(language)
+    ).propose(task)
 
     request = client.requests[0]
-    assert request.messages[0].content == (
+    _assert_language(request, language)
+    assert request.messages[-1].content == (
         "initial prompt" if mode is DesignTaskMode.INITIAL else "repair prompt"
     )
     assert request.response_schema == ApiDesign.model_json_schema()
@@ -267,9 +286,11 @@ def test_api_designer_builds_typed_request_and_parses_result(
     assert proposal.latency_seconds == 0.25
 
 
+@pytest.mark.parametrize("language", list(ArtifactLanguage))
 @pytest.mark.parametrize("mode", [DesignTaskMode.INITIAL, DesignTaskMode.REPAIR])
 def test_sequence_designer_builds_roles_request_and_parses_result(
     mode: DesignTaskMode,
+    language: ArtifactLanguage,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client = RecordingCompletionClient()
@@ -287,11 +308,12 @@ def test_sequence_designer_builds_roles_request_and_parses_result(
     )
 
     proposal = sequence_designer_module.SequenceDesignerAgent(
-        client, _settings()
+        client, _settings(language)
     ).propose_roles(SequenceRoleTask(scenario=_scenario(), mode=mode))
 
     request = client.requests[0]
-    assert request.messages[0].content == (
+    _assert_language(request, language)
+    assert request.messages[-1].content == (
         "initial prompt" if mode is DesignTaskMode.INITIAL else "repair prompt"
     )
     assert request.response_schema == ProjectRolesCatalog.model_json_schema()
@@ -302,9 +324,11 @@ def test_sequence_designer_builds_roles_request_and_parses_result(
     assert proposal.latency_seconds == 0.25
 
 
+@pytest.mark.parametrize("language", list(ArtifactLanguage))
 @pytest.mark.parametrize("mode", [DesignTaskMode.INITIAL, DesignTaskMode.REPAIR])
 def test_sequence_designer_builds_interaction_request_and_parses_result(
     mode: DesignTaskMode,
+    language: ArtifactLanguage,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client = RecordingCompletionClient()
@@ -328,11 +352,12 @@ def test_sequence_designer_builds_interaction_request_and_parses_result(
         mode=mode,
     )
     proposal = sequence_designer_module.SequenceDesignerAgent(
-        client, _settings()
+        client, _settings(language)
     ).propose_interaction(task)
 
     request = client.requests[0]
-    assert request.messages[0].content == (
+    _assert_language(request, language)
+    assert request.messages[-1].content == (
         "initial prompt" if mode is DesignTaskMode.INITIAL else "repair prompt"
     )
     assert request.response_schema == InteractionScenario.model_json_schema()

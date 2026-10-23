@@ -48,10 +48,12 @@ from infrastructure.visualisation.openapi.renderers import DefaultApiArtifactRen
 from infrastructure.visualisation.plantuml.c4_container_builder import (
     C4ContainerDiagramBuilder,
 )
+from infrastructure.visualisation.plantuml.element_specs import localized_element_specs
 from infrastructure.visualisation.plantuml.renderers import PlantUmlDiagramRenderer
 from infrastructure.visualisation.plantuml.sequence_builder import (
     SequenceDiagramBuilder,
 )
+from shared.artifact_language import ArtifactLanguage
 
 if TYPE_CHECKING:
     from application.pipeline.diagram_subjects import SequenceDiagramSubject
@@ -217,7 +219,17 @@ def build_pipeline(
         settings if settings is not None else load_app_settings()
     )
     c4_builder: DiagramSourceBuilderProtocol[ArchitectureGraph] = (
-        C4ContainerDiagramBuilder()
+        C4ContainerDiagramBuilder(
+            element_specs=localized_element_specs(
+                resolved_settings.generation.artifact_language
+            ),
+            system_boundary_label=(
+                "Система"
+                if resolved_settings.generation.artifact_language
+                is ArtifactLanguage.RUSSIAN
+                else "System"
+            ),
+        )
     )
     c4_renderer: PlantUmlDiagramRenderer[ArchitectureGraph] | None = _diagram_renderer(
         c4_builder,

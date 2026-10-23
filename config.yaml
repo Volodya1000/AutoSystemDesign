@@ -13,6 +13,7 @@ llm:
   timeout_seconds: 500.0
   structured_output_mode: prompt
 generation:
+  artifact_language: ru
   max_attempts: 3
   sequence_parallelism: 3
 # Diagram rendering backend:
