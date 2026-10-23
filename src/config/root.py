@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Final
 
 import yaml
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic_settings.sources import (
     InitSettingsSource,
@@ -33,6 +33,7 @@ from config.llm import LlmSettings
 from config.testing import IntegrationSettings
 from config.visualisation import VisualisationSettings
 from domain.architecture_simulation.configuration import SimulationConfiguration
+from domain.service_profiles import ServiceProfileCatalog
 
 CONFIG_FILE_ENV_VAR: Final[str] = "APP_CONFIG_FILE"
 _DEFAULT_CONFIG_FILE: Final[Path] = Path("config.yaml")
@@ -92,6 +93,19 @@ class AppSettings(BaseSettings):
     testing: IntegrationSettings = Field(default_factory=IntegrationSettings)
     visualisation: VisualisationSettings = Field(default_factory=VisualisationSettings)
     simulation: SimulationConfiguration = Field(default_factory=SimulationConfiguration)
+    service_profiles: ServiceProfileCatalog | None = None
+
+    @field_validator("service_profiles", mode="before")
+    @classmethod
+    def load_service_profiles(cls, value: object) -> ServiceProfileCatalog | None:
+        """Accept an inline catalog or an explicit JSON file path."""
+        if value is None:
+            return None
+        if isinstance(value, (str, Path)):
+            return ServiceProfileCatalog.model_validate_json(
+                Path(value).read_text(encoding="utf-8")
+            )
+        return ServiceProfileCatalog.model_validate(value)
 
     @classmethod
     def settings_customise_sources(

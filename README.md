@@ -87,6 +87,8 @@ uv run python scripts/generate_pipeline.py \\
 
 ## Изучение анализа производительности
 
+Для явных параметров обслуживания доступен `--profiles`: [формат каталога и офлайн-пример](docs/service-profiles.md).
+
 Если вы впервые читаете расчёты нагрузки и очередей, начните не с PR, а с
 [учебной карты фичи](docs/performance-analysis/README.md).
 Там есть [объяснение M/M/1, M/M/c, M/M/c/K и аппроксимаций с нуля](docs/performance-analysis/QUEUEING_THEORY_FOR_BEGINNERS.md)

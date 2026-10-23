@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from application.pipeline.service_protocols import DesignGeneratorProtocol
     from domain.models.scenarios import DesignScenario
     from domain.models.topology import ArchitectureGraph
+    from domain.service_profiles import ServiceProfileCatalog
 
 _logger = logging.getLogger("pipeline.c4")
 
@@ -49,10 +50,13 @@ class C4Stage:
         service: DesignGeneratorProtocol,
         renderer: DiagramRendererProtocol[ArchitectureGraph] | None,
         reporter: GenerationReporterProtocol,
+        *,
+        service_profiles: ServiceProfileCatalog | None = None,
     ) -> None:
         self._service: DesignGeneratorProtocol = service
         self._renderer: DiagramRendererProtocol[ArchitectureGraph] | None = renderer
         self._reporter: GenerationReporterProtocol = reporter
+        self._service_profiles: ServiceProfileCatalog | None = service_profiles
 
     def run(self, context: StageContext) -> StageOutcome[ArchitectureGraph]:
         stage_start: float = time.perf_counter()
@@ -117,6 +121,19 @@ class C4Stage:
                     message="C4 architecture generation failed",
                     warnings=tuple(warnings),
                 ),
+            )
+
+        if self._service_profiles is not None:
+            artifacts.append(
+                context.writer.write_text(
+                    context.out_dir / f"{scenario.identifier}_service_profiles.json",
+                    self._service_profiles.model_copy(
+                        update={
+                            "by_node_type": {},
+                            "by_node_id": self._service_profiles.apply(graph).applied,
+                        }
+                    ).model_dump_json(indent=2),
+                )
             )
 
         render_result: DiagramRenderResult = self._render(

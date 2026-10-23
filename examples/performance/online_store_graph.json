@@ -1,0 +1,86 @@
+{
+  "nodes": [
+    {
+      "identifier": "web_client",
+      "node_type": "client",
+      "replicas_count": 1
+    },
+    {
+      "identifier": "edge_lb",
+      "node_type": "load_balancer",
+      "replicas_count": 1,
+      "maximum_concurrency": 1000,
+      "maximum_queue_size": 1000,
+      "service_channels_per_replica": null,
+      "mean_processing_time_milliseconds": 1.0,
+      "standard_deviation_processing_time": 0.5,
+      "monthly_cost_usd": 20.0
+    },
+    {
+      "identifier": "orders_api",
+      "node_type": "compute",
+      "replicas_count": 1,
+      "maximum_concurrency": 200,
+      "maximum_queue_size": 500,
+      "service_channels_per_replica": null,
+      "mean_processing_time_milliseconds": 15.0,
+      "standard_deviation_processing_time": 3.0,
+      "monthly_cost_usd": 80.0
+    },
+    {
+      "identifier": "orders_db",
+      "node_type": "database",
+      "replicas_count": 1,
+      "maximum_concurrency": 150,
+      "maximum_queue_size": 1000,
+      "service_channels_per_replica": null,
+      "mean_processing_time_milliseconds": 8.0,
+      "standard_deviation_processing_time": 2.0,
+      "monthly_cost_usd": 120.0,
+      "database_role": "primary",
+      "shards_count": 1,
+      "input_output_operations_per_second_limit": null
+    }
+  ],
+  "edges": [
+    {
+      "source_identifier": "web_client",
+      "target_identifier": "edge_lb",
+      "protocol": {
+        "name": "sync_rest_http",
+        "is_asynchronous": false
+      },
+      "routing_mode": "alternative",
+      "description": "",
+      "network_latency_milliseconds": 5.0,
+      "retry_attempts_count": 0,
+      "timeout_milliseconds": 5000.0
+    },
+    {
+      "source_identifier": "edge_lb",
+      "target_identifier": "orders_api",
+      "protocol": {
+        "name": "sync_grpc",
+        "is_asynchronous": false
+      },
+      "routing_mode": "alternative",
+      "description": "",
+      "network_latency_milliseconds": 2.0,
+      "retry_attempts_count": 0,
+      "timeout_milliseconds": 5000.0
+    },
+    {
+      "source_identifier": "orders_api",
+      "target_identifier": "orders_db",
+      "protocol": {
+        "name": "sync_database_tcp",
+        "is_asynchronous": false
+      },
+      "routing_mode": "alternative",
+      "description": "",
+      "network_latency_milliseconds": 1.0,
+      "retry_attempts_count": 0,
+      "timeout_milliseconds": 5000.0
+    }
+  ]
+}

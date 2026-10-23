@@ -91,6 +91,7 @@ def build_design_generation_service(
         validators=validators,
         max_attempts=resolved.generation.max_attempts,
         scenario_validators=scenario_validators,
+        service_profiles=resolved.service_profiles,
     )
 
 
@@ -164,6 +165,7 @@ def _build_c4_stage(
         service=build_design_generation_service(settings),
         renderer=renderer,
         reporter=reporter,
+        service_profiles=settings.service_profiles,
     )
 
 
