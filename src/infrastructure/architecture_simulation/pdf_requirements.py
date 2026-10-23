@@ -55,8 +55,8 @@ def requirement_target(requirement: RequirementEvaluation) -> str:
         return f"{label} {operator} {requirement.threshold_value:g} {unit}"
     if requirement.minimum_value is not None and requirement.maximum_value is not None:
         return (
-            f"{label}: {requirement.minimum_value:g}"
-            f"–{requirement.maximum_value:g} {unit}"
+            f"{label}: от {requirement.minimum_value:g}"
+            f" до {requirement.maximum_value:g} {unit}"
         )
     return label
 
@@ -74,7 +74,7 @@ def _verdict_text(requirement: RequirementEvaluation) -> str:
     if interval is not None:
         verdict += (
             f"; ДИ доли {interval.confidence_level:.0%}: "
-            f"{interval.lower:g}–{interval.upper:g} ({interval.method})"
+            f"[{interval.lower:g}; {interval.upper:g}] ({interval.method})"
         )
     return verdict
 

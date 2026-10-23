@@ -28,7 +28,13 @@ if TYPE_CHECKING:
 def outcomes_rows(report: SimulationReport) -> list[list[str]]:
     """Keep losses beside completed-path latency and the offered workload."""
     rows: list[list[str]] = [
-        ["Нагрузка / вход, запр./с", "Завершено/с", "Отказано", "Осталось", "p99, мс (n)"]
+        [
+            "Нагрузка / вход, запр./с",
+            "Завершено/с",
+            "Отказано",
+            "Осталось",
+            "p99, мс (n)",
+        ]
     ]
     rows.extend(
         [
@@ -36,8 +42,10 @@ def outcomes_rows(report: SimulationReport) -> list[list[str]]:
             number_text(run.throughput_requests_per_second),
             f"{ratio_text(run.rejected_ratio)} ({run.rejected_requests})",
             f"{ratio_text(run.unfinished_ratio)} ({run.unfinished_requests})",
-            f"{number_text(run.forward_path_latency_milliseconds.p99)} "
-            f"({run.completed_requests})",
+            (
+                f"{number_text(run.forward_path_latency_milliseconds.p99)} "
+                f"({run.completed_requests})"
+            ),
         ]
         for run in report.experiments
     )
@@ -92,25 +100,38 @@ def limitations_text(report: SimulationReport) -> str:
         notes.append("Равномерный вход; без прогрева и ожидания завершения после окна.")
     if report.timeouts_modeled is False:
         notes.append("Таймауты не моделируются; их число не измерено.")
-    notes.extend(item.description for item in report.limitations if item.code not in covered)
+    notes.extend(
+        item.description for item in report.limitations if item.code not in covered
+    )
     return " ".join(dict.fromkeys(notes))
 
 
 def inputs_rows(result: OfflineSimulationResult) -> list[list[str]]:
     """Expose only resource parameters that affect this simulation."""
     rows: list[list[str]] = [
-        ["Узел", "Реплики × каналы", "In-flight / очередь", "Сервис: μ / σ, мс", "Hit"]
+        [
+            "Узел",
+            "Реплики x каналы",
+            "In-flight / очередь",
+            "Сервис: среднее / std, мс",
+            "Hit",
+        ]
     ]
     rows.extend(
         [
             resource.identifier,
-            f"{resource.replicas_count} × {resource.service_channels_per_replica}",
-            f"{resource.maximum_concurrency_per_replica} / "
-            f"{resource.maximum_queue_size_per_replica}",
-            f"{resource.mean_service_seconds * 1000:g} / "
-            f"{resource.std_service_seconds * 1000:g}",
+            f"{resource.replicas_count} x {resource.service_channels_per_replica}",
+            (
+                f"{resource.maximum_concurrency_per_replica} / "
+                f"{resource.maximum_queue_size_per_replica}"
+            ),
+            (
+                f"{resource.mean_service_seconds * 1000:g} / "
+                f"{resource.std_service_seconds * 1000:g}"
+            ),
             ratio_text(resource.cache_hit_probability)
-            if resource.cache_hit_probability is not None else "—",
+            if resource.cache_hit_probability is not None
+            else "—",
         ]
         for resource in result.plan.resources
     )
@@ -139,7 +160,9 @@ def experiment_sections(
         ),
         Paragraph(
             "Очередь FIFO на реплику; выбор реплики round-robin. "
-            "Сервис постоянный при σ=0, иначе Gamma по μ и σ.", styles["note"],
+            "Сервис постоянный при нулевом стандартном отклонении, "
+            "иначе Gamma по среднему и стандартному отклонению (std).",
+            styles["note"],
         ),
         Paragraph(escape(links), styles["note"]),
     ]

@@ -22,7 +22,6 @@ from domain.architecture_simulation.report import (
     SimulationReportStatus,
     SimulationWorkload,
 )
-from domain.models.enums import Operator
 from domain.models.base_constraints import (
     PercentileThresholdRequirement,
     ThresholdRequirement,
@@ -41,6 +40,7 @@ if TYPE_CHECKING:
         OfflineSimulationInput,
         WorkloadObservation,
     )
+    from domain.models.enums import Operator
 
 
 def forward_path_quantiles(durations_seconds: Sequence[float]) -> LatencyQuantiles:
@@ -162,11 +162,13 @@ def _experiment(
         ),
         rejected_ratio=(
             len(run.result.rejections) / run.result.measured_arrivals
-            if run.result.measured_arrivals else None
+            if run.result.measured_arrivals
+            else None
         ),
         unfinished_ratio=(
             run.result.unfinished / run.result.measured_arrivals
-            if run.result.measured_arrivals else None
+            if run.result.measured_arrivals
+            else None
         ),
         forward_path_latency_milliseconds=forward_path_quantiles(
             [item.traversal_seconds for item in run.result.observations]

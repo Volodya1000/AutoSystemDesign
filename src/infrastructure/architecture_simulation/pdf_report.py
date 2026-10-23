@@ -44,8 +44,12 @@ class SimulationReportPdfRenderer:
         styles: dict[str, ParagraphStyle] = build_report_styles(font)
         buffer: BytesIO = BytesIO()
         document: SimpleDocTemplate = SimpleDocTemplate(
-            buffer, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm,
-            topMargin=16 * mm, bottomMargin=18 * mm,
+            buffer,
+            pagesize=A4,
+            leftMargin=18 * mm,
+            rightMargin=18 * mm,
+            topMargin=16 * mm,
+            bottomMargin=18 * mm,
             title=f"SimPy: {result.report.scenario_identifier}",
             author="AutoSystemDesign",
         )

@@ -21,18 +21,21 @@ from domain.architecture_simulation.report import (
     RequirementEvaluation,
     RequirementKind,
     RequirementVerdict,
-    SimulationReportStatus,
     SimulationReport,
+    SimulationReportStatus,
     SimulationWorkload,
 )
 from domain.models.enums import Operator
 from domain.models.nodes import ClientNode
+from domain.models.requirements import LatencyRequirement
 from domain.models.topology import ArchitectureGraph
 from infrastructure.architecture_simulation.linear_graph_engine import (
     SimPyLinearGraphEngine,
 )
 from infrastructure.architecture_simulation.pdf_graph import graph_drawing
-from infrastructure.architecture_simulation.pdf_report import SimulationReportPdfRenderer
+from infrastructure.architecture_simulation.pdf_report import (
+    SimulationReportPdfRenderer,
+)
 from infrastructure.reporting.pdf.typography import UnicodeReportFont
 from tests.unit.architecture_simulation.factories import (
     make_compute,
@@ -81,7 +84,12 @@ def test_report_keeps_unmodeled_timeout_distinct_from_zero(
 def test_targets_and_operators_survive_report_and_pdf(
     result: OfflineSimulationResult,
 ) -> None:
-    result.inputs.scenario.requirements[0].operator = Operator.LESS_THAN
+    requirement: LatencyRequirement = next(
+        item
+        for item in result.inputs.scenario.requirements
+        if isinstance(item, LatencyRequirement)
+    )
+    requirement.operator = Operator.LESS_THAN
     result.report = GraphTraceReportBuilder().build(result.inputs, result.observations)
     assert result.report.requirements[0].operator is Operator.LESS_THAN
     text = _pdf_text(result)
@@ -94,9 +102,15 @@ def test_distinct_latency_targets_remain_distinguishable(
     result: OfflineSimulationResult,
 ) -> None:
     requirement = result.report.requirements[0]
-    result.report.requirements.append(requirement.model_copy(update={
-        "requirement_index": 2, "threshold_value": 200.0, "percentile": 95.0,
-    }))
+    result.report.requirements.append(
+        requirement.model_copy(
+            update={
+                "requirement_index": 2,
+                "threshold_value": 200.0,
+                "percentile": 95.0,
+            }
+        )
+    )
     text = _pdf_text(result)
     assert "#1 Задержка p99" in text
     assert "#3 Задержка p95" in text
@@ -118,10 +132,14 @@ def test_empty_cohort_has_missing_ratios_and_no_invented_latency(
     result: OfflineSimulationResult,
 ) -> None:
     for run in result.observations:
-        run.result = run.result.model_copy(update={
-            "observations": [], "rejections": [], "measured_arrivals": 0,
-            "unfinished": 0,
-        })
+        run.result = run.result.model_copy(
+            update={
+                "observations": [],
+                "rejections": [],
+                "measured_arrivals": 0,
+                "unfinished": 0,
+            }
+        )
     result.report = GraphTraceReportBuilder().build(result.inputs, result.observations)
     assert all(run.rejected_ratio is None for run in result.report.experiments)
     assert all(run.unfinished_ratio is None for run in result.report.experiments)
@@ -132,13 +150,20 @@ def test_conclusive_requirement_keeps_its_evidence(
     result: OfflineSimulationResult,
 ) -> None:
     requirement = RequirementEvaluation(
-        requirement_index=0, type_identifier=RequirementKind.LATENCY,
-        phase=SimulationWorkload.PEAK, operator=Operator.LESS_THAN_OR_EQUAL,
-        threshold_value=100, percentile=99, observed_value=0.995,
+        requirement_index=0,
+        type_identifier=RequirementKind.LATENCY,
+        phase=SimulationWorkload.PEAK,
+        operator=Operator.LESS_THAN_OR_EQUAL,
+        threshold_value=100,
+        percentile=99,
+        observed_value=0.995,
         confidence_interval=ConfidenceInterval(
-            lower=0.991, upper=0.999, confidence_level=0.95,
+            lower=0.991,
+            upper=0.999,
+            confidence_level=0.95,
             method="independent_replications",
-        ), status=RequirementVerdict.MET,
+        ),
+        status=RequirementVerdict.MET,
     )
     result.report.requirements = [requirement]
     text = _pdf_text(result)
@@ -153,7 +178,8 @@ def test_topology_cards_do_not_overlap(shape: str) -> None:
     identifiers = [f"service_{index}" for index in range(6)]
     pairs = (
         list(zip(["web", *identifiers[:-1]], identifiers, strict=True))
-        if shape == "chain" else [("web", identifier) for identifier in identifiers]
+        if shape == "chain"
+        else [("web", identifier) for identifier in identifiers]
     )
     graph = ArchitectureGraph(
         nodes=[ClientNode(identifier="web"), *map(make_compute, identifiers)],
@@ -163,7 +189,7 @@ def test_topology_cards_do_not_overlap(shape: str) -> None:
     drawing = graph_drawing(plan, 493, UnicodeReportFont().register())
     cards = [item for item in drawing.contents if isinstance(item, Rect)]
     for index, first in enumerate(cards):
-        for second in cards[index + 1:]:
+        for second in cards[index + 1 :]:
             overlap_x = min(first.x + first.width, second.x + second.width)
             overlap_x -= max(first.x, second.x)
             overlap_y = min(first.y + first.height, second.y + second.height)
@@ -188,7 +214,8 @@ def test_unavailable_report_uses_its_real_status(
     result: OfflineSimulationResult,
 ) -> None:
     result.report = SimulationReport(
-        scenario_identifier="missing", status=SimulationReportStatus.UNAVAILABLE,
+        scenario_identifier="missing",
+        status=SimulationReportStatus.UNAVAILABLE,
     )
     text = _pdf_text(result)
     assert "расчет недоступен" in text

@@ -122,12 +122,22 @@ def _draw_cards(
     node_height: float
     node_width, node_height = size
     for identifier, (center_x, center_y) in positions.items():
-        drawing.add(Rect(
-            center_x - node_width / 2, center_y - node_height / 2,
-            node_width, node_height, fillColor=colors.white,
-        ))
+        card: Rect = Rect(
+            center_x - node_width / 2,
+            center_y - node_height / 2,
+            node_width,
+            node_height,
+        )
+        card.fillColor = colors.white
+        drawing.add(card)
         for index, line in enumerate(labels[identifier]):
-            drawing.add(String(
-                center_x, center_y + (len(labels[identifier]) - 1) * 5.5 - index * 11 - 3,
-                line, textAnchor="middle", fontName=font, fontSize=9,
-            ))
+            drawing.add(
+                String(
+                    center_x,
+                    center_y + (len(labels[identifier]) - 1) * 5.5 - index * 11 - 3,
+                    line,
+                    textAnchor="middle",
+                    fontName=font,
+                    fontSize=9,
+                )
+            )
