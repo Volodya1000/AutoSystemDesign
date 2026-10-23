@@ -18,8 +18,10 @@ from domain.models.api import ApiDesign, ApiOperation, ApiResponse, HttpMethod
 from domain.models.functional import FunctionalRequirement
 from domain.models.nodes import ComputeNode
 from domain.models.scenarios import DesignScenario
+from domain.models.sequence import InteractionScenario
 from domain.models.topology import ArchitectureGraph
 from domain.specifications.api_validator import ApiDesignValidator
+from tests.interaction_factories import create_test_interaction
 
 pytestmark = pytest.mark.unit
 
@@ -66,10 +68,15 @@ def _api_design(*, handler_component_id: str = "api") -> ApiDesign:
                 entrypoint_component_id="api",
                 handler_component_id=handler_component_id,
                 requirement_ids=["FR-1"],
+                sequence_ids=["SC-FR-1"],
                 responses=[ApiResponse(status_code="201", description="Created")],
             )
         ],
     )
+
+
+def _sequences() -> dict[str, InteractionScenario]:
+    return {"FR-1": create_test_interaction("FR-1", "SC-FR-1")}
 
 
 def _proposal(api: ApiDesign) -> ApiDesignProposal:
@@ -111,7 +118,9 @@ def _service(
 def test_api_generation_succeeds_on_first_valid_proposal() -> None:
     designer = ScriptedApiDesigner([_proposal(_api_design())])
 
-    result: ApiGenerationResult = _service(designer).generate(_scenario(), _graph(), {})
+    result: ApiGenerationResult = _service(designer).generate(
+        _scenario(), _graph(), _sequences()
+    )
 
     assert result.status is GenerationStatus.SUCCEEDED
     assert result.api_design is not None
@@ -127,7 +136,9 @@ def test_api_validation_failure_builds_repair_task() -> None:
         ]
     )
 
-    result: ApiGenerationResult = _service(designer).generate(_scenario(), _graph(), {})
+    result: ApiGenerationResult = _service(designer).generate(
+        _scenario(), _graph(), _sequences()
+    )
 
     assert result.status is GenerationStatus.SUCCEEDED
     assert len(result.attempts) == 2
@@ -155,7 +166,9 @@ def test_api_parsing_failure_builds_repair_task() -> None:
     )
     designer = ScriptedApiDesigner([parsing_error, _proposal(_api_design())])
 
-    result: ApiGenerationResult = _service(designer).generate(_scenario(), _graph(), {})
+    result: ApiGenerationResult = _service(designer).generate(
+        _scenario(), _graph(), _sequences()
+    )
 
     assert result.status is GenerationStatus.SUCCEEDED
     assert len(result.attempts) == 2
@@ -171,10 +184,27 @@ def test_api_generation_returns_failure_after_max_attempts() -> None:
     designer = ScriptedApiDesigner([invalid, invalid])
 
     result: ApiGenerationResult = _service(designer, max_attempts=2).generate(
-        _scenario(), _graph(), {}
+        _scenario(), _graph(), _sequences()
     )
 
     assert result.status is GenerationStatus.VALIDATION_FAILED
     assert result.api_design is None
     assert len(result.attempts) == 2
     assert designer.received_tasks[-1].mode is DesignTaskMode.REPAIR
+
+
+def test_invalid_sequence_reference_is_returned_for_repair() -> None:
+    incorrect: ApiDesign = _api_design()
+    incorrect.operations[0].sequence_ids = ["missing"]
+    designer: ScriptedApiDesigner = ScriptedApiDesigner(
+        [_proposal(incorrect), _proposal(_api_design())]
+    )
+    result: ApiGenerationResult = _service(designer).generate(
+        _scenario(), _graph(), _sequences()
+    )
+    assert result.status is GenerationStatus.SUCCEEDED
+    assert len(result.attempts) == 2
+    assert any(
+        feedback.error_code == "API_TRACEABILITY_ERROR"
+        for feedback in designer.received_tasks[1].validation_feedback
+    )

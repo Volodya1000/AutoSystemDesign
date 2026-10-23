@@ -272,3 +272,30 @@ def test_failed_requirement_does_not_discard_successful_scenarios() -> None:
     assert list(result.scenarios_results) == ["FR-1", "FR-2"]
     assert result.scenarios_results["FR-1"].interaction_scenario is not None
     assert result.scenarios_results["FR-2"].interaction_scenario is None
+
+
+@pytest.mark.parametrize("parallelism", [1, 2])
+def test_llm_scenario_ids_are_replaced_with_unique_requirement_ids(
+    parallelism: int,
+) -> None:
+    first: SequenceInteractionProposal = _interaction_proposal("FR-1")
+    second: SequenceInteractionProposal = _interaction_proposal("FR-2")
+    first.payload.scenario_id = "same"
+    second.payload.scenario_id = "same"
+    designer: ScriptedSequenceDesigner = ScriptedSequenceDesigner(
+        [_role_proposal()], {"FR-1": [first], "FR-2": [second]}
+    )
+    result = _service(designer, max_parallel_workers=parallelism).generate(
+        _scenario(["FR-1", "FR-2"]), ArchitectureGraph(nodes=[], edges=[])
+    )
+    interactions = [
+        item.interaction_scenario for item in result.scenarios_results.values()
+    ]
+    identifiers: set[str] = {
+        item.scenario_id for item in interactions if item is not None
+    }
+    assert len(identifiers) == 2
+    for requirement_id, item in result.scenarios_results.items():
+        assert item.interaction_scenario is not None
+        assert item.interaction_scenario.scenario_id == f"SC-{requirement_id}"
+        assert item.attempts[-1].payload == item.interaction_scenario

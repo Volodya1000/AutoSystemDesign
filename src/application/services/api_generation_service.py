@@ -16,6 +16,7 @@ from application.tasks import (
     ValidationErrorFeedback,
 )
 from domain.models.api import ApiDesign
+from domain.specifications.api_traceability import ApiTraceabilityValidator
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -86,6 +87,12 @@ class ApiGenerationService:
 
             validation: ValidationResult = self._validator.validate(
                 proposal.payload, graph, expected_req_ids
+            )
+            traceability: ValidationResult = ApiTraceabilityValidator().validate(
+                proposal.payload, sequence_list, expected_req_ids
+            )
+            validation = validation.model_copy(
+                update={"errors": [*validation.errors, *traceability.errors]}
             )
             attempts.append(
                 GenerationAttempt[ApiDesign](
