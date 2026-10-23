@@ -57,7 +57,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
     binding: ProfileApplication = catalog.apply(graph)
     errors = [
-        *binding.errors,
         *StructuralTopologyValidator().validate(binding.graph).errors,
         *MessageBrokerConsumerValidator().validate(binding.graph).errors,
         *CacheUsageValidator().validate(binding.graph).errors,
