@@ -32,6 +32,7 @@ from domain.specifications.sequence_validation import (
     ClientOwnershipValidator,
     DeliveryModeValidator,
     SequenceIntegrityValidator,
+    SequenceTopologyValidator,
 )
 from domain.specifications.structural_validator import StructuralTopologyValidator
 from infrastructure.agents.api_designer import ApiDesignerAgent
@@ -115,6 +116,7 @@ def build_sequence_generation_service(
         catalog_validators=[integrity],
         scenario_validators=[
             integrity,
+            SequenceTopologyValidator(),
             ClientOwnershipValidator(),
             DeliveryModeValidator(),
         ],

@@ -9,6 +9,18 @@ class SequenceIntegrityError(ArchitectureValidationError):
     error_code: str = "SEQUENCE_INTEGRITY_ERROR"
 
 
+class SequenceTopologyError(ArchitectureValidationError):
+    """A component message contradicts C4 or has no matching request."""
+
+    error_code: str = "SEQUENCE_TOPOLOGY_ERROR"
+
+    def __init__(self, source: str, target: str, explanation: str) -> None:
+        super().__init__(
+            message=f"Message {source} -> {target}: {explanation}",
+            affected_node_identifiers=[source, target],
+        )
+
+
 class SharedClientLifelineError(ArchitectureValidationError):
     """A client boundary component is used by more than one business role."""
 
