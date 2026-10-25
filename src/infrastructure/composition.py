@@ -11,11 +11,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from application.document_scenario_service import DocumentScenarioService
 from application.pipeline.runner import PipelineRunner
 from application.pipeline.stages.api import ApiStage
 from application.pipeline.stages.c4 import C4Stage
 from application.pipeline.stages.performance_analysis import PerformanceAnalysisStage
 from application.pipeline.stages.sequence import SequenceStage
+from application.requirements_extraction import DocumentRequirementsService
 from application.services.api_generation_service import ApiGenerationService
 from application.services.design_generation_service import DesignGenerationService
 from application.services.sequence_generation_service import SequenceGenerationService
@@ -38,7 +40,12 @@ from domain.specifications.structural_validator import StructuralTopologyValidat
 from infrastructure.agents.api_designer import ApiDesignerAgent
 from infrastructure.agents.designer import ArchitectureDesignerAgent
 from infrastructure.agents.sequence_designer import SequenceDesignerAgent
+from infrastructure.document_readers.markdown_reader import MarkdownReader
 from infrastructure.llm.client import LiteLlmClient
+from infrastructure.llm.document_requirement_extractor import (
+    LlmDocumentRequirementExtractor,
+)
+from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMapper
 from infrastructure.performance_analysis.pdf_renderer import (
     PerformanceReportPdfRenderer,
 )
@@ -69,6 +76,17 @@ if TYPE_CHECKING:
     from infrastructure.visualisation.plantuml import DiagramImageFormat
     from infrastructure.visualisation.plantuml.protocols import (
         DiagramSourceBuilderProtocol,
+    )
+
+
+def build_document_scenario_service(settings: AppSettings) -> DocumentScenarioService:
+    """Wire Markdown reading, requirement extraction, and scenario mapping."""
+    return DocumentScenarioService(
+        requirements_service=DocumentRequirementsService(
+            reader=MarkdownReader(),
+            extractor=LlmDocumentRequirementExtractor(settings),
+        ),
+        mapper=LlmDocumentScenarioMapper(settings),
     )
 
 

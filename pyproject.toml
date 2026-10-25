@@ -13,9 +13,6 @@ dependencies = [
     "simpy>=4.1.2,<5",
 ]
 
-[project.scripts]
-asd = "infrastructure.cli:main"
-
 [dependency-groups]
 dev = [
     "mypy>=2.3.1",

@@ -12,11 +12,6 @@ from domain.scenario_extraction import DocumentScenarioResult
 from scripts import extract_document_scenario as cli
 
 
-def _dummy_factory(*_args: object, **_kwargs: object) -> object:
-    """Return an inert object for dependencies unused by the CLI test."""
-    return object()
-
-
 @pytest.mark.unit
 def test_main_writes_pipeline_yaml_and_evidence_manifest(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
@@ -45,9 +40,6 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
     pipeline_calls: list[list[str]] = []
 
     class FakeService:
-        def __init__(self, requirements_service: object, mapper: object) -> None:
-            pass
-
         def extract_file(self, path: Path) -> DocumentScenarioResult:
             assert path == document
             return expected
@@ -61,10 +53,9 @@ def test_main_writes_pipeline_yaml_and_evidence_manifest(
         return FakeProcess()
 
     monkeypatch.setattr(cli, "load_app_settings", object)
-    monkeypatch.setattr(cli, "LlmDocumentRequirementExtractor", _dummy_factory)
-    monkeypatch.setattr(cli, "DocumentRequirementsService", _dummy_factory)
-    monkeypatch.setattr(cli, "LlmDocumentScenarioMapper", _dummy_factory)
-    monkeypatch.setattr(cli, "DocumentScenarioService", FakeService)
+    monkeypatch.setattr(
+        cli, "build_document_scenario_service", lambda _settings: FakeService()
+    )
     monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_create_subprocess_exec)
 
     exit_code = cli.main(
@@ -119,17 +110,13 @@ def test_main_does_not_write_scenario_without_validated_result(
     )
 
     class FakeService:
-        def __init__(self, requirements_service: object, mapper: object) -> None:
-            pass
-
         def extract_file(self, _path: Path) -> DocumentScenarioResult:
             return result
 
     monkeypatch.setattr(cli, "load_app_settings", object)
-    monkeypatch.setattr(cli, "LlmDocumentRequirementExtractor", _dummy_factory)
-    monkeypatch.setattr(cli, "DocumentRequirementsService", _dummy_factory)
-    monkeypatch.setattr(cli, "LlmDocumentScenarioMapper", _dummy_factory)
-    monkeypatch.setattr(cli, "DocumentScenarioService", FakeService)
+    monkeypatch.setattr(
+        cli, "build_document_scenario_service", lambda _settings: FakeService()
+    )
 
     exit_code = cli.main(
         [

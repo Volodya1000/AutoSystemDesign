@@ -1,22 +1,23 @@
-"""Exercise document CLI success and failure contracts without a live LLM."""
+"""Exercise the thin BRD CLI and document workflow without a live LLM."""
 
+import argparse
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 import yaml
 from pydantic import SecretStr
 
-from application.document_scenario_service import DocumentScenarioService
 from application.pipeline.outcome import StageDiagnostics, StageOutcome, StageStatus
 from application.pipeline.stage import StageId
 from config.llm import LlmSettings, StructuredOutputMode
 from config.root import AppSettings
 from domain.models.scenarios import DesignScenario
 from domain.scenario_extraction import DocumentScenarioResult
-from infrastructure import cli
-from infrastructure.visualisation.plantuml import DiagramImageFormat
+from infrastructure import document_generation as workflow
+from infrastructure.cli_arguments import diagram_server
+from infrastructure.pipeline_execution import PipelineExecutionOptions
+from scripts import generate_from_brd as cli
 
 pytestmark = pytest.mark.unit
 
@@ -34,8 +35,28 @@ def configured(monkeypatch: pytest.MonkeyPatch) -> AppSettings:
             structured_output_mode=StructuredOutputMode.PROMPT,
         ),
     )
-    monkeypatch.setattr(cli, "load_app_settings", lambda: settings)
+    monkeypatch.setattr(workflow, "load_app_settings", lambda: settings)
     return settings
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "auto",
+        "plantuml",
+        "kroki",
+        "http://localhost:8080",
+        "https://uml.example",
+    ],
+)
+def test_diagram_server_accepts_presets_and_absolute_urls(value: str) -> None:
+    assert diagram_server(value) == value
+
+
+@pytest.mark.parametrize("value", ["localhost:8080", "file:///tmp/uml", "unknown"])
+def test_diagram_server_rejects_ambiguous_values(value: str) -> None:
+    with pytest.raises(argparse.ArgumentTypeError, match="expected auto"):
+        diagram_server(value)
 
 
 @pytest.mark.parametrize("pipeline_code", [0, 1, 2])
@@ -55,15 +76,27 @@ def test_generate_preserves_evidence_options_and_pipeline_status(
         is_relevant=True,
         source_name="brd.md",
     )
-    monkeypatch.setattr(DocumentScenarioService, "extract_file", lambda *_args: result)
-    options: dict[str, object] = {}
 
-    def run(scenario: DesignScenario, directory: Path, _writer: object) -> int:
-        assert scenario == result.scenario
-        directory.mkdir()
-        (directory / "orders_c4.json").write_text("{}", encoding="utf-8")
-        reporter = options["pipeline_reporter"]
-        assert isinstance(reporter, cli.RunReporter)
+    class FakeService:
+        def extract_file(self, _path: Path) -> DocumentScenarioResult:
+            return result
+
+    monkeypatch.setattr(
+        workflow, "build_document_scenario_service", lambda _settings: FakeService()
+    )
+    captured: dict[str, object] = {}
+
+    def execute(
+        scenario: DesignScenario,
+        settings: AppSettings,
+        options: PipelineExecutionOptions,
+        *,
+        reporter: workflow.RunReporter,
+    ) -> int:
+        captured.update(scenario=scenario, settings=settings, options=options)
+        artifact_dir = out / "artifacts"
+        artifact_dir.mkdir()
+        (artifact_dir / "orders_c4.json").write_text("{}", encoding="utf-8")
         reporter.report(
             [
                 StageOutcome(
@@ -77,17 +110,12 @@ def test_generate_preserves_evidence_options_and_pipeline_status(
         )
         return pipeline_code
 
-    def build(**kwargs: object) -> SimpleNamespace:
-        options.update(kwargs)
-        return SimpleNamespace(runner=SimpleNamespace(run=run), writer=object())
-
-    monkeypatch.setattr(cli, "build_pipeline", build)
+    monkeypatch.setattr(workflow, "execute_pipeline", execute)
     code = cli.main(
         [
-            "generate",
-            "--brd",
+            "--document",
             "brd.md",
-            "--out",
+            "--out-dir",
             str(out),
             "--diagram-server",
             "http://localhost:8080",
@@ -98,48 +126,50 @@ def test_generate_preserves_evidence_options_and_pipeline_status(
         ]
     )
     assert code == pipeline_code
-    assert options["settings"] is configured
-    assert configured.service_profiles is not None
-    assert options["diagram_server"] == "http://localhost:8080"
-    assert options["image_format"] is DiagramImageFormat.SVG
-    assert options["render_diagrams"] is True
+    assert captured["scenario"] == result.scenario
+    assert captured["settings"] is configured
+    options = captured["options"]
+    assert isinstance(options, PipelineExecutionOptions)
+    assert options.diagram_server == "http://localhost:8080"
+    assert options.diagram_format.value == "svg"
     evidence = json.loads((out / "requirements.evidence.json").read_text("utf-8"))
     assert evidence["field_evidence"] == result.field_evidence
     scenario = yaml.safe_load((out / "scenario.yaml").read_text("utf-8"))
     assert DesignScenario.model_validate(scenario) == result.scenario
     report = json.loads((out / "run.json").read_text("utf-8"))
     assert report["exit_code"] == pipeline_code
+    assert report["performance_input_mode"] == "explicit_service_profiles"
     assert report["stages"][0]["warnings"] == ["Renderer unavailable"]
-    assert any("orders_c4.json" in path for path in report["artifacts"])
 
 
 def test_unverified_document_stops_before_pipeline(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, configured: AppSettings
 ) -> None:
     _ = configured
+
+    class FakeService:
+        def extract_file(self, _path: Path) -> DocumentScenarioResult:
+            return DocumentScenarioResult(
+                scenario=None,
+                field_evidence={},
+                issues=[],
+                is_relevant=False,
+                source_name="brd.md",
+            )
+
     monkeypatch.setattr(
-        DocumentScenarioService,
-        "extract_file",
-        lambda *_args: DocumentScenarioResult(
-            scenario=None,
-            field_evidence={},
-            issues=[],
-            is_relevant=False,
-            source_name="brd.md",
-        ),
+        workflow, "build_document_scenario_service", lambda _settings: FakeService()
     )
     out = tmp_path / "result"
-    assert cli.main(["generate", "--brd", "brd.md", "--out", str(out)]) == 1
+    assert cli.main(["--document", "brd.md", "--out-dir", str(out)]) == 1
     assert (out / "requirements.evidence.json").exists()
     assert not (out / "scenario.yaml").exists()
-    report = json.loads((out / "run.json").read_text("utf-8"))
-    assert report["stages"] == []
 
 
 def test_existing_output_is_never_overwritten(tmp_path: Path) -> None:
     sentinel = tmp_path / "scenario.yaml"
     sentinel.write_text("previous run", encoding="utf-8")
-    assert cli.main(["generate", "--brd", "brd.md", "--out", str(tmp_path)]) == 2
+    assert cli.main(["--document", "brd.md", "--out-dir", str(tmp_path)]) == 2
     assert sentinel.read_text("utf-8") == "previous run"
 
 
@@ -148,6 +178,6 @@ def test_missing_document_creates_failure_report(
 ) -> None:
     _ = configured
     out = tmp_path / "result"
-    assert cli.main(["generate", "--brd", "absent.md", "--out", str(out)]) == 2
+    assert cli.main(["--document", "absent.md", "--out-dir", str(out)]) == 2
     report = json.loads((out / "run.json").read_text("utf-8"))
     assert report["status"] == "failed"

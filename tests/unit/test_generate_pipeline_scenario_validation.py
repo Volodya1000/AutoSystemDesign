@@ -49,10 +49,10 @@ def test_cli_reports_invalid_yaml_field_before_generation(
         ),
     )
 
-    def unexpected_pipeline(**_kwargs: object) -> None:
+    def unexpected_pipeline(*_args: object, **_kwargs: object) -> None:
         pytest.fail("Pipeline must not start for an invalid scenario")
 
-    monkeypatch.setattr(cli, "build_pipeline", unexpected_pipeline)
+    monkeypatch.setattr(cli, "execute_pipeline", unexpected_pipeline)
 
     with caplog.at_level(logging.ERROR, logger="pipeline"):
         exit_code = cli.main()

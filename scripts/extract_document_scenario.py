@@ -9,16 +9,10 @@ from pathlib import Path
 
 import yaml
 
-from application.document_scenario_service import DocumentScenarioService
-from application.requirements_extraction import DocumentRequirementsService
 from config.logging import configure_logging
 from config.root import load_app_settings
-from infrastructure.document_readers.markdown_reader import MarkdownReader
+from infrastructure.composition import build_document_scenario_service
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
-from infrastructure.llm.document_requirement_extractor import (
-    LlmDocumentRequirementExtractor,
-)
-from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMapper
 from infrastructure.persistence.document_scenario import (
     scenario_payload as _scenario_payload,
 )
@@ -107,15 +101,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         settings = load_app_settings()
-        requirement_extractor = LlmDocumentRequirementExtractor(settings)
-        requirements_service = DocumentRequirementsService(
-            reader=MarkdownReader(),
-            extractor=requirement_extractor,
-        )
-        service = DocumentScenarioService(
-            requirements_service=requirements_service,
-            mapper=LlmDocumentScenarioMapper(settings),
-        )
+        service = build_document_scenario_service(settings)
         result = service.extract_file(args.document)
         _write_evidence_manifest(evidence_output, result)
     except (LlmConnectionError, OSError, ValueError):
