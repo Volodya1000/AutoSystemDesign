@@ -35,6 +35,10 @@ Rules:
 - Select a metric category only when its meaning is supported by a verified claim.
   Supply evidence for every proposed value; do not infer values for fields that
   cannot be established from the source.
+- requirements[].type_identifier is also an EvidenceValue, not an exception to
+  citation rules. For latency or budget, copy the complete metric requirement
+  into its source_excerpt (the same excerpt used for threshold_value). Never
+  return a non-null type_identifier.value with source_excerpt=null.
 - Report ambiguity or conflict only when the source supports it. Cite complete
   verified excerpts in the schema's note representation. An ambiguity description
   must be copied verbatim from a supporting excerpt. A conflict description may
