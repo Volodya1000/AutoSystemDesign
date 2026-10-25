@@ -13,6 +13,7 @@ from domain.specifications.rules import DEFAULT_ALLOWED_CONNECTION_TYPES
 from domain.specifications.structural_validator import StructuralTopologyValidator
 from infrastructure.prompts.fragments_schema import (
     FEW_SHOT_GRAPH_JSON,
+    OUTPUT_HARD_RULES,
     render_allowed_connections,
     render_output_schema,
 )
@@ -42,6 +43,12 @@ class TestFragments:
         assert "routing_mode" in schema_text
         assert '"alternative"' in schema_text
         assert '"fan_out"' in schema_text
+
+    def test_schema_requires_performance_channels_for_generated_services(self) -> None:
+        schema_text: str = render_output_schema()
+
+        assert "service_channels_per_replica" in schema_text
+        assert "never copy maximum_concurrency" in OUTPUT_HARD_RULES
 
     def test_few_shot_example_is_a_valid_graph(self) -> None:
         graph: ArchitectureGraph = ArchitectureGraph.model_validate(

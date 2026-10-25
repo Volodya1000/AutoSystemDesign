@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
 import yaml
 
+from application.run_report import (
+    DocumentRunReport,
+    PerformanceInputMode,
+    RunStageReport,
+    RunStatus,
+)
 from config.root import load_app_settings
 from domain.service_profiles import ServiceProfileCatalog
 from infrastructure.composition import build_document_scenario_service
@@ -49,20 +55,20 @@ class RunReporter:
     """Collect stage results while preserving the console summary."""
 
     def __init__(self) -> None:
-        self.stages: list[dict[str, object]] = []
+        self.stages: list[RunStageReport] = []
 
     def report(self, outcomes: Sequence[StageOutcome[object]]) -> None:
         """Record stage status, resource use, and diagnostics."""
         LoggingPipelineReporter().report(outcomes)
         self.stages = [
-            {
-                "name": outcome.name.value,
-                "status": outcome.status.value,
-                "duration_seconds": outcome.duration_seconds,
-                "total_tokens": outcome.total_tokens,
-                "warnings": list(outcome.warnings),
-                "message": outcome.message,
-            }
+            RunStageReport(
+                name=outcome.name,
+                status=outcome.status,
+                duration_seconds=outcome.duration_seconds,
+                total_tokens=outcome.total_tokens,
+                warnings=list(outcome.warnings),
+                message=outcome.message,
+            )
             for outcome in outcomes
         ]
 
@@ -82,25 +88,21 @@ def _write_run_report(
     failure: str | None,
 ) -> None:
     input_mode = (
-        "explicit_service_profiles"
+        PerformanceInputMode.EXPLICIT_PROFILES
         if options.profiles is not None
-        else "llm_generated_c4_parameters"
+        else PerformanceInputMode.GENERATED_C4
     )
-    payload = {
-        "source": str(options.document),
-        "exit_code": exit_code,
-        "status": "completed" if exit_code == 0 else "failed",
-        "performance_input_mode": input_mode,
-        "artifacts": _artifact_files(options.out_dir),
-        "stages": reporter.stages,
-        "error": failure,
-        "note": (
-            "Completion does not imply all NFRs passed. Without explicit service "
-            "profiles, performance parameters come from the generated C4 candidate."
-        ),
-    }
+    report = DocumentRunReport(
+        source=str(options.document),
+        exit_code=exit_code,
+        status=RunStatus.COMPLETED if exit_code == 0 else RunStatus.FAILED,
+        performance_input_mode=input_mode,
+        artifacts=_artifact_files(options.out_dir),
+        stages=reporter.stages,
+        error=failure,
+    )
     (options.out_dir / "run.json").write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        json.dumps(asdict(report), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 

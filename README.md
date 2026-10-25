@@ -30,17 +30,15 @@ cp .env.example .env
 
 ```powershell
 uv run python scripts/generate_from_brd.py `
-  --document examples/requirements/online_store_brd.md `
-  --out-dir output/brd_demo_01 `
-  --diagram-server http://localhost:8080
+  --document examples/requirements/online_store_brd.md
 ```
 
 Команда извлекает требования с цитатами, затем запускает C4, анализ
 производительности, Sequence и API. YAML создаётся автоматически как
-промежуточный файл. Каталог `--out-dir` должен быть новым. Настройки модели берутся
+промежуточный файл. По умолчанию файлы записываются в
+`output/online_store_brd`; этот каталог должен быть новым. Настройки модели берутся
 из `config.yaml`, адрес и ключ LLM — из `.env` или переменных окружения.
-Локальный сервер PlantUML нужно запустить заранее; без `--diagram-server`
-используется настройка визуализации проекта.
+Способ рендеринга диаграмм берётся из настройки визуализации проекта.
 
 В результате создаются `requirements.evidence.json`, `scenario.yaml`,
 `run.json` со статусами стадий и каталог `artifacts/`. Полный пример выходов,

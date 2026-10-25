@@ -1,10 +1,10 @@
 """Diagram rendering settings owned by config.yaml."""
 
-from typing import Final, Literal
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-_SERVER_PATTERN: Final[str] = r"^(auto|plantuml|kroki|https?://.+)$"
+from shared.diagram_server import normalize_diagram_server
 
 
 class VisualisationSettings(BaseModel):
@@ -24,6 +24,12 @@ class VisualisationSettings(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    server: str = Field(default="auto", pattern=_SERVER_PATTERN)
+    server: str = "auto"
     image_format: Literal["png", "svg"] = Field(default="svg")
     diagram_dir: str = Field(default="output/diagrams", min_length=1)
+
+    @field_validator("server")
+    @classmethod
+    def validate_server(cls, value: str) -> str:
+        """Use the same typed selection model as renderer and CLI adapters."""
+        return str(normalize_diagram_server(value))

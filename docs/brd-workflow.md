@@ -4,9 +4,7 @@
 
 ```powershell
 uv run python scripts/generate_from_brd.py `
-  --document examples/requirements/online_store_brd.md `
-  --out-dir output/brd_demo_01 `
-  --diagram-server http://localhost:8080
+  --document examples/requirements/online_store_brd.md
 ```
 
 Это единый запуск извлечения и существующего конвейера. Ручное редактирование
@@ -62,8 +60,9 @@ PDF зависит от доступности Unicode-шрифта. При `--d
 отключается. `--profiles profiles.json` передаёт явные параметры обслуживания
 в анализ и проверку C4. `--verbose` включает подробные логи LLM.
 
-Каталог `--out-dir` должен отсутствовать: команда не смешивает новый запуск со
-старыми результатами. Для повторения выберите, например, `brd_demo_02`.
+По умолчанию используется каталог `output/<document-stem>`. Он должен
+отсутствовать: команда не смешивает новый запуск со старыми результатами.
+Для повторения укажите новый путь через `--out-dir`.
 
 ## Откуда берутся параметры производительности
 

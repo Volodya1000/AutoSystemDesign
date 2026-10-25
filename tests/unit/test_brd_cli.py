@@ -15,9 +15,9 @@ from config.root import AppSettings
 from domain.models.scenarios import DesignScenario
 from domain.scenario_extraction import DocumentScenarioResult
 from infrastructure import document_generation as workflow
-from infrastructure.cli_arguments import diagram_server
 from infrastructure.pipeline_execution import PipelineExecutionOptions
 from scripts import generate_from_brd as cli
+from scripts._cli_arguments import diagram_server
 
 pytestmark = pytest.mark.unit
 
@@ -55,8 +55,23 @@ def test_diagram_server_accepts_presets_and_absolute_urls(value: str) -> None:
 
 @pytest.mark.parametrize("value", ["localhost:8080", "file:///tmp/uml", "unknown"])
 def test_diagram_server_rejects_ambiguous_values(value: str) -> None:
-    with pytest.raises(argparse.ArgumentTypeError, match="expected auto"):
+    with pytest.raises(argparse.ArgumentTypeError, match="auto, plantuml, kroki"):
         diagram_server(value)
+
+
+def test_document_stem_selects_default_output_directory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[workflow.DocumentGenerationOptions] = []
+
+    def generate(options: workflow.DocumentGenerationOptions) -> int:
+        captured.append(options)
+        return 0
+
+    monkeypatch.setattr(cli, "generate_from_document", generate)
+
+    assert cli.main(["--document", "examples/requirements/orders.md"]) == 0
+    assert captured[0].out_dir == Path("output/orders")
 
 
 @pytest.mark.parametrize("pipeline_code", [0, 1, 2])

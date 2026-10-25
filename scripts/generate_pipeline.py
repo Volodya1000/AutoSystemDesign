@@ -32,11 +32,11 @@ from config.logging import configure_logging
 from config.root import AppSettings, load_app_settings
 from domain.models import DesignScenario
 from domain.service_profiles import ServiceProfileCatalog
-from infrastructure.cli_arguments import add_visualisation_arguments
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
 from infrastructure.pipeline_execution import PipelineExecutionOptions, execute_pipeline
 from infrastructure.reporting import log_header
 from infrastructure.visualisation.plantuml import DiagramImageFormat
+from scripts._cli_arguments import add_visualisation_arguments
 
 _logger: logging.Logger = logging.getLogger("pipeline")
 

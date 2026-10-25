@@ -19,16 +19,22 @@ from infrastructure.visualisation.plantuml.encoding import (
     build_kroki_url,
     build_plantuml_url,
 )
+from shared.diagram_server import (
+    DiagramServerPreset,
+    DiagramServerSelectionError,
+    diagram_server_usage,
+    normalize_diagram_server,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
     from infrastructure.visualisation.plantuml.models import DiagramImageFormat
 
 
 PLANTUML_PUBLIC_SERVER_URL: Final[str] = "https://www.plantuml.com/plantuml"
 KROKI_PUBLIC_SERVER_URL: Final[str] = "https://kroki.io"
-AUTO_SERVER_SELECTION: Final[str] = "auto"
+AUTO_SERVER_SELECTION: Final[str] = DiagramServerPreset.AUTO.value
 
 _USER_AGENT: Final[str] = "Mozilla/5.0 (compatible; AutoSystemDesign/1.0)"
 _DEFAULT_TIMEOUT_SECONDS: Final[float] = 30.0
@@ -176,8 +182,8 @@ class UnknownDiagramServerError(ValueError):
 
     def __init__(self, selection: str) -> None:
         super().__init__(
-            f"Unknown diagram server selection {selection!r}: expected 'auto', "
-            "'plantuml', 'kroki' or an http(s) plantuml-server URL"
+            f"Unknown diagram server selection {selection!r}: expected "
+            f"{diagram_server_usage()}"
         )
 
 
@@ -223,18 +229,19 @@ def resolve_image_renderer(server: str) -> PlantumlImageRendererProtocol:
     - an http(s) URL of a self-hosted plantuml-server instance, for
       example the docker compose deployment in deploy/plantuml.
     """
-    selection: str = server.strip().lower()
-    if selection == AUTO_SERVER_SELECTION:
-        return FallbackImageRenderer(
-            renderers=[
-                PlantumlServerImageRenderer(),
-                KrokiImageRenderer(),
-            ]
-        )
-    if selection == "plantuml":
-        return PlantumlServerImageRenderer()
-    if selection == "kroki":
-        return KrokiImageRenderer()
-    if selection.startswith(("http://", "https://")):
-        return PlantumlServerImageRenderer(server_url=server.strip())
-    raise UnknownDiagramServerError(server)
+    try:
+        selection = normalize_diagram_server(server)
+    except DiagramServerSelectionError as error:
+        raise UnknownDiagramServerError(server) from error
+    if isinstance(selection, str) and not isinstance(selection, DiagramServerPreset):
+        return PlantumlServerImageRenderer(server_url=selection)
+    factories: dict[
+        DiagramServerPreset, Callable[[], PlantumlImageRendererProtocol]
+    ] = {
+        DiagramServerPreset.AUTO: lambda: FallbackImageRenderer(
+            renderers=[PlantumlServerImageRenderer(), KrokiImageRenderer()]
+        ),
+        DiagramServerPreset.PLANTUML: PlantumlServerImageRenderer,
+        DiagramServerPreset.KROKI: KrokiImageRenderer,
+    }
+    return factories[selection]()
