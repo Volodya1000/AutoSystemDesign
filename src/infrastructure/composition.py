@@ -61,6 +61,7 @@ if TYPE_CHECKING:
         ArtifactWriterProtocol,
         DiagramRendererProtocol,
         GenerationReporterProtocol,
+        PipelineReporterProtocol,
     )
     from application.pipeline.stage import PipelineStageProtocol
     from domain.models.topology import ArchitectureGraph
@@ -215,6 +216,7 @@ def build_pipeline(
     image_format: DiagramImageFormat,
     render_diagrams: bool,
     settings: AppSettings | None = None,
+    pipeline_reporter: PipelineReporterProtocol | None = None,
 ) -> PipelineWiring:
     """Build the C4 + performance analysis + Sequence + REST API pipeline."""
     resolved_settings: AppSettings = (
@@ -266,7 +268,7 @@ def build_pipeline(
     return PipelineWiring(
         runner=PipelineRunner(
             stages=stages,
-            reporter=LoggingPipelineReporter(),
+            reporter=pipeline_reporter or LoggingPipelineReporter(),
         ),
         writer=FileSystemArtifactWriter(),
     )

@@ -26,6 +26,23 @@ cp .env.example .env
 
 ## Быстрый запуск
 
+Из BRD в полный комплект архитектурных артефактов одной командой:
+
+```powershell
+uv run asd generate --brd examples/requirements/online_store_brd.md --out output/brd_demo_01 --diagram-server http://localhost:8080
+```
+
+Команда извлекает требования с цитатами, затем запускает C4, анализ
+производительности, Sequence и API. YAML создаётся автоматически как
+промежуточный файл. Каталог `--out` должен быть новым. Настройки модели берутся
+из `config.yaml`, адрес и ключ LLM — из `.env` или переменных окружения.
+Локальный сервер PlantUML нужно запустить заранее; без `--diagram-server`
+используется настройка визуализации проекта.
+
+В результате создаются `requirements.evidence.json`, `scenario.yaml`,
+`run.json` со статусами стадий и каталог `artifacts/`. Полный пример выходов,
+ограничения и коды завершения описаны в [BRD workflow](docs/brd-workflow.md).
+
 Из корня репозитория:
 
 ```bash
