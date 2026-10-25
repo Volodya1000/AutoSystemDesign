@@ -1,5 +1,6 @@
 """Pure transformations from evidence-bearing candidates into scenario models."""
 
+import re
 from typing import cast
 
 from pydantic import ValidationError
@@ -46,6 +47,14 @@ _REQUIRED_METRIC_FIELDS: dict[MetricType, frozenset[str]] = {
 
 class UnsupportedMetricTypeError(AssertionError):
     """Raised if an unsupported metric type bypasses domain validation."""
+
+
+def _read_fraction(value: float, excerpt: str) -> float:
+    """Convert a verified literal percentage to the domain's fractional ratio."""
+    percentages = re.findall(r"(?<![\d.,-])(\d+(?:[.,]\d+)?)\s*%", excerpt)
+    if any(float(number.replace(",", ".")) == value for number in percentages):
+        return value / 100
+    return value
 
 
 def build_workload(
@@ -105,7 +114,9 @@ def build_workload(
         workload = WorkloadProfile(
             baseline_requests_per_second=baseline.value,
             peak_requests_per_second=peak.value,
-            read_ratio=read_ratio.value,
+            read_ratio=_read_fraction(
+                read_ratio.value, extracted.read_ratio.source_excerpt or ""
+            ),
         )
     except ValidationError as error:
         issues.append(

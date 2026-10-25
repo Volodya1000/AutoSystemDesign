@@ -27,6 +27,9 @@ Rules:
   only. If a value is unknown, leave the value and its paired citation null.
 - Do not convert units, normalize percentages to fractions, or guess numeric values
   or percentiles. A numeric value must be explicit in a cited source excerpt.
+- For read_ratio, copy the literal number: return 80 for 80%, or 0.8 when the
+  source explicitly states a fraction of 0.8. Application code converts a
+  verified percentage to the domain fraction; do not perform that conversion.
 - The scenario description and each functional requirement's text must be copied
   verbatim from a cited excerpt, not summarized, strengthened, or paraphrased.
 - Select a metric category only when its meaning is supported by a verified claim.
