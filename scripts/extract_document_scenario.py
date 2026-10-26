@@ -2,7 +2,6 @@
 
 import argparse
 import asyncio
-import json
 import logging
 import sys
 from collections.abc import Sequence
@@ -10,18 +9,16 @@ from pathlib import Path
 
 import yaml
 
-from application.document_scenario_service import DocumentScenarioService
-from application.requirements_extraction import DocumentRequirementsService
 from config.logging import configure_logging
 from config.root import load_app_settings
-from domain.models.scenarios import DesignScenario
-from domain.scenario_extraction import DocumentScenarioResult
-from infrastructure.document_readers.markdown_reader import MarkdownReader
+from infrastructure.composition import build_document_scenario_service
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
-from infrastructure.llm.document_requirement_extractor import (
-    LlmDocumentRequirementExtractor,
+from infrastructure.persistence.document_scenario import (
+    scenario_payload as _scenario_payload,
 )
-from infrastructure.llm.document_scenario_mapper import LlmDocumentScenarioMapper
+from infrastructure.persistence.document_scenario import (
+    write_evidence_manifest as _write_evidence_manifest,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -72,22 +69,6 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _write_evidence_manifest(path: Path, result: DocumentScenarioResult) -> None:
-    """Persist citations and diagnostics even when no safe scenario can be produced."""
-    payload = {
-        "source_name": result.source_name,
-        "is_relevant": result.is_relevant,
-        "field_evidence": result.field_evidence,
-        "issues": [issue.model_dump(mode="json") for issue in result.issues],
-        "scenario_created": result.scenario is not None,
-    }
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-
-
 def _run_pipeline(args: argparse.Namespace) -> int:
     """Invoke the existing pipeline CLI, keeping orchestration in one place."""
     logger = logging.getLogger(__name__)
@@ -109,17 +90,6 @@ def _run_pipeline(args: argparse.Namespace) -> int:
         return 2
 
 
-def _scenario_payload(scenario: DesignScenario) -> dict[str, object]:
-    """Serialize a scenario while preserving required union discriminators."""
-    payload = scenario.model_dump(mode="json", exclude_unset=True, exclude_none=True)
-    payload["requirements"] = [
-        requirement.model_dump(mode="json", exclude_unset=True, exclude_none=True)
-        | {"type_identifier": requirement.type_identifier}
-        for requirement in scenario.requirements
-    ]
-    return payload
-
-
 def main(argv: Sequence[str] | None = None) -> int:
     """Run extraction, save evidence diagnostics, and write canonical scenario YAML."""
     configure_logging(verbose=False)
@@ -131,15 +101,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         settings = load_app_settings()
-        requirement_extractor = LlmDocumentRequirementExtractor(settings)
-        requirements_service = DocumentRequirementsService(
-            reader=MarkdownReader(),
-            extractor=requirement_extractor,
-        )
-        service = DocumentScenarioService(
-            requirements_service=requirements_service,
-            mapper=LlmDocumentScenarioMapper(settings),
-        )
+        service = build_document_scenario_service(settings)
         result = service.extract_file(args.document)
         _write_evidence_manifest(evidence_output, result)
     except (LlmConnectionError, OSError, ValueError):

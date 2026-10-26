@@ -32,10 +32,11 @@ from config.logging import configure_logging
 from config.root import AppSettings, load_app_settings
 from domain.models import DesignScenario
 from domain.service_profiles import ServiceProfileCatalog
-from infrastructure.composition import build_pipeline
 from infrastructure.exceptions.llm_exceptions import LlmConnectionError
+from infrastructure.pipeline_execution import PipelineExecutionOptions, execute_pipeline
 from infrastructure.reporting import log_header
 from infrastructure.visualisation.plantuml import DiagramImageFormat
+from scripts._cli_arguments import add_visualisation_arguments
 
 _logger: logging.Logger = logging.getLogger("pipeline")
 
@@ -69,13 +70,16 @@ def main() -> int:
     log_header(settings, scenario)
 
     try:
-        wiring = build_pipeline(
-            settings=settings,
-            diagram_server=server,
-            image_format=image_format,
-            render_diagrams=not args.no_diagram,
+        return execute_pipeline(
+            scenario,
+            settings,
+            PipelineExecutionOptions(
+                out_dir=out_dir,
+                diagram_server=server,
+                diagram_format=image_format,
+                render_diagrams=not args.no_diagram,
+            ),
         )
-        return wiring.runner.run(scenario, out_dir, wiring.writer)
     except LlmConnectionError:
         _logger.exception("LLM endpoint failure")
         return 2
@@ -98,25 +102,7 @@ def _parse_args() -> argparse.Namespace:
         default=None,
         help="Override visualisation.diagram_dir from config.yaml",
     )
-    parser.add_argument(
-        "--diagram-server",
-        type=str,
-        default=None,
-        help=(
-            "Override visualisation.server "
-            "(auto/plantuml/kroki or a plantuml-server URL)"
-        ),
-    )
-    parser.add_argument(
-        "--diagram-format",
-        type=DiagramImageFormat,
-        choices=[fmt.value for fmt in DiagramImageFormat],
-        default=None,
-        help="Override visualisation.image_format (png/svg)",
-    )
-    parser.add_argument(
-        "--no-diagram", action="store_true", help="Skip diagram rendering"
-    )
+    add_visualisation_arguments(parser)
     parser.add_argument(
         "--verbose",
         action="store_true",

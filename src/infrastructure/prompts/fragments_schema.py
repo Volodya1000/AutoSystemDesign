@@ -29,7 +29,10 @@ OUTPUT_HARD_RULES: Final[str] = (
     "3. The topology is a strict DAG: cycles are forbidden.\n"
     "4. Every edge matches one of the allowed source -> target transitions.\n"
     '5. Every node except "client" must provide all capacity fields '
-    "with valid values.\n"
+    "with valid values, including service_channels_per_replica. Estimate this "
+    "as the number of independent workers or connections that can process "
+    "requests at once per replica. Reason about it independently and never "
+    "copy maximum_concurrency; it must not exceed maximum_concurrency.\n"
     '6. Include a "client" node as the entry point of user traffic.\n'
     "7. Do not add fields that are not defined in the output format above.\n"
     "8. Every message_broker node is a routing bridge with DISTINCT ends:\n"
@@ -86,14 +89,17 @@ FEW_SHOT_GRAPH_JSON: Final[str] = """{
     {"identifier": "web_client", "node_type": "client"},
     {"identifier": "edge_lb", "node_type": "load_balancer",
      "maximum_concurrency": 1000, "maximum_queue_size": 1000,
+     "service_channels_per_replica": 16,
      "mean_processing_time_milliseconds": 1.0,
      "standard_deviation_processing_time": 0.5, "monthly_cost_usd": 20.0},
     {"identifier": "orders_api", "node_type": "compute",
      "maximum_concurrency": 200, "maximum_queue_size": 500,
+     "service_channels_per_replica": 8,
      "mean_processing_time_milliseconds": 15.0,
      "standard_deviation_processing_time": 3.0, "monthly_cost_usd": 80.0},
     {"identifier": "orders_db", "node_type": "database",
      "maximum_concurrency": 150, "maximum_queue_size": 1000,
+     "service_channels_per_replica": 16,
      "mean_processing_time_milliseconds": 8.0,
      "standard_deviation_processing_time": 2.0, "monthly_cost_usd": 120.0}
   ],

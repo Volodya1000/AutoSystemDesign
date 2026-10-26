@@ -3,7 +3,9 @@
 import yaml
 
 from domain.models import AvailabilityRequirement, DesignScenario, LatencyRequirement
-from scripts.extract_document_scenario import _scenario_payload
+from infrastructure.persistence.document_scenario import (
+    scenario_payload as _scenario_payload,
+)
 
 
 def test_scenario_payload_round_trips_discriminated_requirements() -> None:
